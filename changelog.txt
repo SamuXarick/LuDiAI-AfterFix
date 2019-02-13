@@ -1,0 +1,100 @@
+LuDiAI AfterFix
+===============
+
+v7 (22-12-2018)
+- Fixed a crash when founding a town
+
+v6 (22-12-2018)
+- Added 3 new settings:
+- "Minimum distance between towns for road routes", which was always 40 in
+  previous versions
+- "Road pathfinder profile", which was "Custom" in the previous version
+  and "Default" in even earlier versions. "Fastest" is the newer choice
+- "Road route capacity mode", which was always "Maximum of 25 road
+  vehicles" in previous versions. "Estimate maximum number of road
+  vehicles" and "Adjust number of road vehicles dynamically" are the newer
+  choices
+- Reworked "Random picks" setting into "Town choice priority", with 4
+  options to chose from. "None, pick at random" is the equivalent choice
+  if "Random picks" was on, and "Most cargo produced first" is the
+  equivalent choice if it was off. "Shorter routes first" and "Longer
+  routes first" are the newer choices
+- Road route minimum distance takes map size into account
+- Changed road route maximum distance to always have a minimum delta
+  between it and the minimum distance
+- No longer retries to find a nearby town to connect by road with an
+  increased maximum distance after failing the first time
+- Managing road routes can now be interrupted and continued next cycle
+- Account for more road vehicles when estimating costs for building a road
+  route
+- Save messages are hidden
+- The maximum number of pathfinder attemps is now based on distance and 
+  profile used. Also reduces duration of each attempt
+- The formula used for computing days in transit for a road vehicle was
+  wrong and has been fixed
+- Prevent road vehicles with incomplete orders from running
+- Renew road vehicles when a better engine model becomes available
+- Station spread road stations only when it reaches maximum capacity
+- Account for at least two aircraft when estimating costs for building an
+  air route
+- Try to build next air routes with two aircraft minimum, one per airport
+- Managing air routes was being denied if "Air Support" is turned off
+  while there were air routes
+- Builds statues
+- Builds company HQ
+- Does not change company name upload loading from a savegame
+- Founds towns
+
+v5 (29-09-2018)
+- OpenTTD and API requirements set to 1.4.0
+- Upgrading road vehicles, engines and bridges was being denied once the
+  AI had reached the maximum number of vehicles
+- Allow road pathfinder to be interrupted and resumed without losing its
+  current path finding progress, allowing the AI to manage other things in
+  between, by up to 5 times
+- Allow pathbuilder to retry construction when failing to build planned
+  route roads
+- Tweaked pathfinder internal cost values and how they're measured, which
+  should result in more bridges and tunnels on difficult terrain, while
+  being cost conscious at the same time when on a low budget
+- Allow pathfinder to build bridges over rail and rivers in more occasions
+- Prevent pathfinder to connect roads with level crossings in most
+  situations
+- Prevent blocking of road stations of other companies while constructing
+  its own road stations
+- Allow a few more cases where locations without adjacent roads could be
+  suitable for constructing a road station
+
+v4 (18-09-2018)
+- There was still some cases where drive through road stations were not
+  being built, resulting in vehicles with few orders
+- Reduce number of stalls when managing too many road routes, when looking
+  for suitable airport and road station locations
+- Road vehicle engine model choice is no longer based only on maximum
+  speed, but also on capacity, cargo payment, distance of route, days in
+  transit and reliability
+
+v3 (16-09-2018)
+- When expanding a road station, the counting of articulated road vehicles
+  could be incorrect in determining the need of a drivethrough station
+- The build manager wasn't setting the articulated variable value at all
+- When building or expanding a road station, there could be cases where
+  the station wasn't being built at all, resulting in vehicles with few
+  orders
+- Disabled breakdowns were not being considered on estimating the
+  viability of an aircraft engine
+
+v2 (15-09-2018)
+- Estimating air route costs could account an incorrect aircraft price
+- Helicopter engine list could include invalid and unbuildable models
+- Valuator for best aircraft income was using the wrong distance type
+- Allow more towns to be searched for a suitable first airport
+- Don't start road construction when there are no engines available
+- Builds or expands routes with only drivethrough road stations if there's
+  only articulated road vehicles
+- Increased town's mail last month production lower limit
+- Loosened the aircraft income estimator lower limit
+- Lowered the bar for what's deemed profitable to an aircraft
+
+v1 (14-09-2018)
+- Uploaded to BaNaNaS
