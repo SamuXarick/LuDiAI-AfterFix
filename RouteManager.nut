@@ -94,7 +94,7 @@ class RouteManager {
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
 			table.rawset(i, m_townRouteArray[i].saveRoute());
 		}
-		
+
 		routemanager.append(table);
 		routemanager.append(m_sentToDepotRoadGroup);
 
@@ -105,7 +105,7 @@ class RouteManager {
 		if (m_townRouteArray == null) {
 			m_townRouteArray = [];
 		}
-		
+
 		local routearray = data[0];
 
 		local i = 0;
@@ -116,10 +116,10 @@ class RouteManager {
 			bridges += route[1];
 			++i;
 		}
-		
+
 		m_sentToDepotRoadGroup = data[1];
 
 		AILog.Info("Loaded " + m_townRouteArray.len() + " routes with " + bridges + " bridges.");
 	}
-	
+
 }

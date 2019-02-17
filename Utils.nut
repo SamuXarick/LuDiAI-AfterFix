@@ -4,7 +4,7 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 	local velocity = AIGameSettings.GetValue("units_velocity");
 	local unit_str = " km-ish/h";
 	local converted_speed = speed;
-	
+
 	if (velocity == 0) { // Imperial
 		unit_str = " mph";
 		converted_speed = ((speed * 10 * 1) >> 0) / 16;
@@ -15,7 +15,7 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 		unit_str = " m/s";
 		converted_speed = ((speed * 10 * 1831) >> 12) / 16;
 	}
-	
+
 	return converted_speed + unit_str;
 }
 
@@ -52,10 +52,10 @@ function Utils::MyCID() {
 function Utils::getValidOffsetTile(tile, offsetX, offsetY) {
 	local oldX = AIMap.GetTileX(tile);
 	local oldY = AIMap.GetTileY(tile);
-	
+
 	local newX = oldX;
 	local newY = oldY;
-	
+
 	if (offsetX > 0) {
 		for (local x = offsetX; x > 0; x--) {
 			if (AIMap.IsValidTile(AIMap.GetTileIndex(newX + 1, newY))) {
@@ -69,7 +69,7 @@ function Utils::getValidOffsetTile(tile, offsetX, offsetY) {
 			}
 		}
 	}
-	
+
 	if (offsetY > 0) {
 		for (local y = offsetY; y > 0; y--) {
 			if (AIMap.IsValidTile(AIMap.GetTileIndex(newX, newY + 1))) {
@@ -83,7 +83,7 @@ function Utils::getValidOffsetTile(tile, offsetX, offsetY) {
 			}
 		}
 	}
-	
+
 	return AIMap.GetTileIndex(newX, newY);
 }
 
@@ -148,7 +148,7 @@ function Utils::IsStationBuildableTile(tile) {
 
 function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 	local stationType = cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
-	
+
 	//check if there are other stations squareSize squares nearby
 	local squareSize = AIStation.GetCoverageRadius(stationType);
 	if (stationId == null) {
@@ -186,7 +186,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 			}
 		}
 	}
-	
+
 	return false;
 };
 
@@ -213,7 +213,7 @@ function Utils::isTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks 
 		!AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -235,32 +235,32 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	if (stationId != AIStation.STATION_NEW) {
 		return stationId;
 	}
-	
+
 	if (!AIController.GetSetting("station_spread")) {
 		return AIStation.STATION_NEW;
 	}
-	
+
 	local spread_rad = AIGameSettings.GetValue("station_spread") - 1;
 
 	local tileList = AITileList();
 	local spreadrectangle = [Utils.getValidOffsetTile(stationTile, (-1) * spread_rad, (-1) * spread_rad), Utils.getValidOffsetTile(stationTile, spread_rad, spread_rad)];
 	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
-	
+
 	tileList.Valuate(Utils.isTileMyStationWithoutRoadStation, cargoClass);
 	tileList.KeepValue(1);
 	tileList.Valuate(AIStation.GetStationID);
-	
+
 	local airportList = AIList();
-	
+
 	for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
 		airportList.AddItem(tileList.GetValue(tile), AITile.GetDistanceManhattanToTile(tile, stationTile));
 	}
-	
+
 	local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);
 	local spreadrectangle_top_y = AIMap.GetTileY(spreadrectangle[0]);
 	local spreadrectangle_bot_x = AIMap.GetTileX(spreadrectangle[1]);
 	local spreadrectangle_bot_y = AIMap.GetTileY(spreadrectangle[1]);
-	
+
 	local list = AIList();
 	list.AddList(airportList);
 	for (local airportId = airportList.Begin(); !airportList.IsEnd(); airportId = airportList.Next()) {
@@ -285,8 +285,8 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 				airport_bot_y = tile_y;
 			}
 		}
-		
-		if (spreadrectangle_top_x > airport_top_x || 
+
+		if (spreadrectangle_top_x > airport_top_x ||
 			spreadrectangle_top_y > airport_top_y ||
 			spreadrectangle_bot_x < airport_bot_x ||
 			spreadrectangle_bot_y < airport_bot_y) {
@@ -294,7 +294,7 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 		}
 	}
 	list.Sort(AIList.SORT_BY_VALUE, true);
-	
+
 	local adjacentStation = AIStation.STATION_NEW;
 	if(list.Count()) {
 		adjacentStation = list.Begin();
@@ -369,17 +369,17 @@ class MoneyTest {
 
 class TestDemolishTile extends MoneyTest {
 	l = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AITile.DemolishTile(l);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AITile.DemolishTile(l);
 		return cost.GetCosts();
 	}
-	
+
 	function TryDemolish(location) {
 		l = location;
 		return DoMoneyTest();
@@ -388,17 +388,17 @@ class TestDemolishTile extends MoneyTest {
 
 class TestRemoveRoadStation extends MoneyTest {
 	l = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIRoad.RemoveRoadStation(l);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIRoad.RemoveRoadStation(l);
 		return cost.GetCosts();
 	}
-	
+
 	function TryRemove(location) {
 		l = location;
 		return DoMoneyTest();
@@ -407,17 +407,17 @@ class TestRemoveRoadStation extends MoneyTest {
 
 class TestRemoveRoadDepot extends MoneyTest {
 	l = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIRoad.RemoveRoadDepot(l);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIRoad.RemoveRoadDepot(l);
 		return cost.GetCosts();
 	}
-	
+
 	function TryRemove(location) {
 		l = location;
 		return DoMoneyTest();
@@ -427,17 +427,17 @@ class TestRemoveRoadDepot extends MoneyTest {
 class TestBuildRoad extends MoneyTest {
 	s = null;
 	e = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIRoad.BuildRoad(s, e);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIRoad.BuildRoad(s, e);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(start, end) {
 		s = start;
 		e = end;
@@ -448,17 +448,17 @@ class TestBuildRoad extends MoneyTest {
 class TestBuildTunnel extends MoneyTest {
 	t = null;
 	l = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AITunnel.BuildTunnel(t, l);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AITunnel.BuildTunnel(t, l);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(vehicleType, location) {
 		t = vehicleType;
 		l = location;
@@ -471,17 +471,17 @@ class TestBuildBridge extends MoneyTest {
 	i = null;
 	s = null;
 	e = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIBridge.BuildBridge(t, i, s, e);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIBridge.BuildBridge(t, i, s, e);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(vehicleType, bridgeId, start, end) {
 		t = vehicleType;
 		i = bridgeId;
@@ -496,17 +496,17 @@ class TestBuildRoadStation extends MoneyTest {
 	e = null;
 	t = null;
 	i = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIRoad.BuildRoadStation(l, e, t, i);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIRoad.BuildRoadStation(l, e, t, i);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(location, exit, vehicleType, stationId) {
 		l = location;
 		e = exit;
@@ -521,17 +521,17 @@ class TestBuildDriveThroughRoadStation extends MoneyTest {
 	e = null;
 	t = null;
 	i = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIRoad.BuildDriveThroughRoadStation(l, e, t, i);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIRoad.BuildDriveThroughRoadStation(l, e, t, i);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(location, exit, vehicleType, stationId) {
 		l = location;
 		e = exit;
@@ -544,17 +544,17 @@ class TestBuildDriveThroughRoadStation extends MoneyTest {
 class TestBuildRoadDepot extends MoneyTest {
 	l = null;
 	e = null;
-	
+
 	function DoAction() {
 		return AIExecMode() && AIRoad.BuildRoadDepot(l, e);
 	}
-	
+
 	function GetPrice() {
 	   local cost = AIAccounting();
 	   AITestMode() && AIRoad.BuildRoadDepot(l, e);
 	   return cost.GetCosts();
 	}
-	
+
 	function TryBuild(location, exit) {
 		l = location;
 		e = exit;
@@ -570,13 +570,13 @@ class TestBuildAirport extends MoneyTest {
 	function DoAction() {
 		return AIExecMode() && AIAirport.BuildAirport(l, t, i);
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIAirport.BuildAirport(l, t, i);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(airport_location, airport_type, airport_stationId) {
 		l = airport_location;
 		t = airport_type;
@@ -593,7 +593,7 @@ class TestBuildAircraft extends MoneyTest {
 	h = null;
 	e = null;
 	v = null;
-	
+
 	function DoAction() {
 		v = AIVehicle.BuildVehicle(h, e);
 		if (!AIVehicle.IsValidVehicle(v)) {
@@ -601,11 +601,11 @@ class TestBuildAircraft extends MoneyTest {
 		}
 		return true;
 	}
-	
+
 	function GetPrice() {
 		return AIEngine.GetPrice(e);
 	}
-	
+
 	function TryBuild(best_hangar, engine) {
 		h = best_hangar;
 		e = engine;
@@ -621,7 +621,7 @@ class TestCloneAircraft extends MoneyTest {
 	v = null;
 	s = null;
 	c = null;
-	
+
 	function DoAction() {
 		c = AIVehicle.CloneVehicle(d, v, s);
 		if (!AIVehicle.IsValidVehicle(c)) {
@@ -629,11 +629,11 @@ class TestCloneAircraft extends MoneyTest {
 		}
 		return true;
 	}
-	
+
 	function GetPrice() {
 		return AIEngine.GetPrice(AIVehicle.GetEngineType(v)) + 12500;
 	}
-	
+
 	function TryClone(depot, vehicle, shared) {
 		d = depot;
 		v = vehicle;
@@ -648,7 +648,7 @@ class TestCloneAircraft extends MoneyTest {
 class TestRefitAircraft extends MoneyTest {
 	v = null;
 	c = null;
-	
+
 	function DoAction() {
 		if (AIExecMode() && AIVehicle.RefitVehicle(v, c)) {
 			return true;
@@ -656,13 +656,13 @@ class TestRefitAircraft extends MoneyTest {
 		AIVehicle.SellVehicle(v);
 		return false;
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIVehicle.RefitVehicle(v, c);
 		return cost.GetCosts();
 	}
-	
+
 	function TryRefit(vehicle, cargoId) {
 		v = vehicle;
 		c = cargoId;
@@ -672,20 +672,20 @@ class TestRefitAircraft extends MoneyTest {
 
 class TestRemoveAirport extends MoneyTest {
 	l = null;
-	
+
 	function DoAction() {
 		if (AIExecMode() && AIAirport.RemoveAirport(l)) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIAirport.RemoveAirport(l);
 		return cost.GetCosts();
 	}
-	
+
 	function TryRemove(airport_location) {
 		l = airport_location;
 		if (DoMoneyTest()) {
@@ -699,7 +699,7 @@ class TestBuildRoadVehicle extends MoneyTest {
 	d = null;
 	e = null;
 	v = null;
-	
+
 	function DoAction() {
 		v = AIVehicle.BuildVehicle(d, e);
 		if (!AIVehicle.IsValidVehicle(v)) {
@@ -707,11 +707,11 @@ class TestBuildRoadVehicle extends MoneyTest {
 		}
 		return true;
 	}
-	
+
 	function GetPrice() {
 		return AIEngine.GetPrice(e);
 	}
-	
+
 	function TryBuild(depot, engine) {
 		d = depot;
 		e = engine;
@@ -727,7 +727,7 @@ class TestCloneRoadVehicle extends MoneyTest {
 	v = null;
 	s = null;
 	c = null;
-	
+
 	function DoAction() {
 		c = AIVehicle.CloneVehicle(d, v, s);
 		if (!AIVehicle.IsValidVehicle(c)) {
@@ -735,11 +735,11 @@ class TestCloneRoadVehicle extends MoneyTest {
 		}
 		return true;
 	}
-	
+
 	function GetPrice() {
 		return AIEngine.GetPrice(AIVehicle.GetEngineType(v));
 	}
-	
+
 	function TryClone(depot, vehicle, shared) {
 		d = depot;
 		v = vehicle;
@@ -754,7 +754,7 @@ class TestCloneRoadVehicle extends MoneyTest {
 class TestRefitRoadVehicle extends MoneyTest {
 	v = null;
 	c = null;
-	
+
 	function DoAction() {
 		if (AIExecMode() && AIVehicle.RefitVehicle(v, c)) {
 			return true;
@@ -762,13 +762,13 @@ class TestRefitRoadVehicle extends MoneyTest {
 		AIVehicle.SellVehicle(v);
 		return false;
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AIVehicle.RefitVehicle(v, c);
 		return cost.GetCosts();
 	}
-	
+
 	function TryRefit(vehicle, cargoId) {
 		v = vehicle;
 		c = cargoId;
@@ -779,26 +779,26 @@ class TestRefitRoadVehicle extends MoneyTest {
 class TestPerformTownAction extends MoneyTest {
 	t = null;
 	a = null;
-	
+
 	function DoAction() {
 		if (AIExecMode() && AITown.PerformTownAction(t, a)) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AITown.PerformTownAction(t, a);
 		return cost.GetCosts();
 	}
-	
+
 	function TryPerform(town, action) {
 		t = town;
 		a = action;
 		return DoMoneyTest();
 	}
-	
+
 	function TestCost(town, action) {
 		t = town;
 		a = action;
@@ -808,20 +808,20 @@ class TestPerformTownAction extends MoneyTest {
 
 class TestBuildHQ extends MoneyTest {
 	t = null;
-	
+
 	function DoAction() {
 		if (AIExecMode() && AICompany.BuildCompanyHQ(t)) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	function GetPrice() {
 		local cost = AIAccounting();
 		AITestMode() && AICompany.BuildCompanyHQ(t);
 		return cost.GetCosts();
 	}
-	
+
 	function TryBuild(tile) {
 		t = tile;
 		return DoMoneyTest();
@@ -834,7 +834,7 @@ class TestFoundTown extends MoneyTest {
 	c = null;
 	l = null;
 	n = null;
-	
+
 	function DoAction() {
 		if (AIExecMode() && AITown.FoundTown(t, s, c, l, n)) {
 			return true;
@@ -856,7 +856,7 @@ class TestFoundTown extends MoneyTest {
 		n = name;
 		return DoMoneyTest();
 	}
-	
+
 	function TestCost(tile, size, city, layout, name) {
 		t = tile;
 		s = size;
