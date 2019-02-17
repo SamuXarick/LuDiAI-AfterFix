@@ -1,7 +1,7 @@
 LuDiAI AfterFix
 ===============
 
-v8 (16-02-2019)
+v8 (17-02-2019)
 - Added SCP support for Company Value GS
 - Added vehicle groups for routes
 - Reworked send to depot code with recourse to two special groups for the
@@ -16,6 +16,8 @@ v8 (16-02-2019)
 - Fixed a bug that caused towns founded by others than self to go
   unnoticed by the town manager for road routes
 - Renew aircraft when a better engine model becomes available
+- Fixed a bug that caused incomplete removal of road vehicle routes. Their
+  removal is now scheduled instead
 
 v7 (22-12-2018)
 - Fixed a crash when founding a town

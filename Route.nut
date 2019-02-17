@@ -632,39 +632,28 @@ class Route extends RouteManager {
 
 	function removeIfUnserviced() {
 		local vehicleList = this.vehicleList();
-		local fully_removed = true;
 		if (vehicleList.Count() == 0 && (AIDate.GetCurrentDate() -	m_lastVehicleAdded >= 90) && m_lastVehicleAdded != 0) {
 			m_activeRoute = false;
 
 			local stationFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_stationFrom));
 			local fromTiles = AITileList_StationType(AIStation.GetStationID(m_stationFrom), m_cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 			for (local tile = fromTiles.Begin(); !fromTiles.IsEnd(); tile = fromTiles.Next()) {
-				if (!TestRemoveRoadStation().TryRemove(tile)) {
-					m_stationFrom = AIBaseStation.GetLocation(AIStation.GetStationID(tile));
-					fully_removed = false;
-				}
+				LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
 			}
 
 			local stationTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_stationTo));
 			local toTiles = AITileList_StationType(AIStation.GetStationID(m_stationTo), m_cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 			for (local tile = toTiles.Begin(); !toTiles.IsEnd(); tile = toTiles.Next()) {
-				if (!TestRemoveRoadStation().TryRemove(tile)) {
-					m_stationTo = AIBaseStation.GetLocation(AIStation.GetStationID(tile));
-					fully_removed = false;
-				}
+				LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
 			}
 
-			if (!TestRemoveRoadDepot().TryRemove(m_depotTile)) {
-				fully_removed = false;
-			}
+			LuDiAIAfterFix().scheduledRemovals.AddItem(m_depotTile, 0);
 
-			if (fully_removed) {
-				if (AIGroup.IsValidGroup(m_group)) {
-					AIGroup.DeleteGroup(m_group);
-				}
-				AILog.Warning("Removed unserviced road route from " + stationFrom_name + " to " + stationTo_name);
-				return true;
+			if (AIGroup.IsValidGroup(m_group)) {
+				AIGroup.DeleteGroup(m_group);
 			}
+			AILog.Warning("Removing unserviced road route from " + stationFrom_name + " to " + stationTo_name);
+			return true;
 		}
 		return false;
 	}
