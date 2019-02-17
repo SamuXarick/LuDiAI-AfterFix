@@ -470,7 +470,7 @@ function WrightAI::BuildAircraft(tile_1, tile_2, silent_mode = false, build_mult
 			AIVehicle.StartStopVehicle(new_vehicle);
 
 			local new_vehicle_group = AIVehicle.GetGroupID(new_vehicle);
-			if (!AIGroup.IsValidGroup(new_vehicle_group) || new_vehicle_group == vehicle_to_depot[0] || new_vehicle_group == vehicle_to_depot[1] || new_vehicle_group = AIGroup.GROUP_DEFAULT) {
+			if (!AIGroup.IsValidGroup(new_vehicle_group) || new_vehicle_group == vehicle_to_depot[0] || new_vehicle_group == vehicle_to_depot[1] || new_vehicle_group == AIGroup.GROUP_DEFAULT) {
 				AIGroup.MoveVehicle(new_vehicle, AIGroup.GROUP_DEFAULT);
 				this.GroupVehicles(station1);
 			}
