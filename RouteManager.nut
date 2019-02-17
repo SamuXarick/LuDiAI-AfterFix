@@ -2,13 +2,15 @@ require("BuildManager.nut");
 
 class RouteManager {
     m_townRouteArray = null;
+	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
-    constructor() {
+    constructor(sentToDepotRoadGroup) {
         m_townRouteArray = [];
+		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
     }
 
     function buildRoute(buildManager, cityFrom, cityTo, cargoClass, articulated) {
-        local route = buildManager.buildRoute(cityFrom, cityTo, cargoClass, articulated);
+        local route = buildManager.buildRoute(cityFrom, cityTo, cargoClass, articulated, m_sentToDepotRoadGroup);
         if (route != null && route != 0) {
             m_townRouteArray.append(route);
             buildManager.setRouteFinish();
@@ -38,11 +40,13 @@ class RouteManager {
     }
 
     //the highest last years profit out of all vehicles
-    function highestProfitLastYear(routeManager) {
+    function highestProfitLastYear() {
         local maxAllRoutesProfit = 0;
 
-        for (local i = 0; i < routeManager.m_townRouteArray.len(); ++i) {
-            local maxRouteProfit = AIVehicleList_Depot(routeManager.m_townRouteArray[i].m_depotTile);
+        for (local i = 0; i < this.m_townRouteArray.len(); ++i) {
+            local maxRouteProfit = AIVehicleList_Station(AIStation.GetStationID(this.m_townRouteArray[i].m_stationFrom));
+			maxRouteProfit.Valuate(AIVehicle.GetVehicleType);
+			maxRouteProfit.KeepValue(AIVehicle.VT_ROAD);
             maxRouteProfit.Valuate(AIVehicle.GetProfitLastYear);
             maxRouteProfit.Sort(AIList.SORT_BY_VALUE, false);
             maxRouteProfit = maxRouteProfit.GetValue(maxRouteProfit.Begin());
@@ -84,28 +88,36 @@ class RouteManager {
     }
 
     function saveRouteManager() {
+		local routemanager = [];
         local table = {};
 
-        for(local i = 0; i < m_townRouteArray.len(); ++i) {
+        for (local i = 0; i < m_townRouteArray.len(); ++i) {
             table.rawset(i, m_townRouteArray[i].saveRoute());
         }
+		
+		routemanager.append(table);
+		routemanager.append(m_sentToDepotRoadGroup);
 
-        return table;
+        return routemanager;
     }
 
     function loadRouteManager(data) {
-        if(m_townRouteArray == null) {
+        if (m_townRouteArray == null) {
             m_townRouteArray = [];
         }
+		
+		local routearray = data[0];
 
         local i = 0;
         local bridges = 0;
-        while(data.rawin(i)) {
-            local route = Route.loadRoute(data.rawget(i));
+        while(routearray.rawin(i)) {
+            local route = Route.loadRoute(routearray.rawget(i));
             m_townRouteArray.append(route[0]);
             bridges += route[1];
             ++i;
         }
+		
+		m_sentToDepotRoadGroup = data[1];
 
         AILog.Info("Loaded " + m_townRouteArray.len() + " routes with " + bridges + " bridges.");
     }

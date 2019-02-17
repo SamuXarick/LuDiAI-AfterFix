@@ -9,13 +9,13 @@ class LuDiAIAfterFix extends AIInfo {
     return "Transports passengers or mail with trucks, buses, airplanes and helicopters";
   }
   function GetVersion() {
-    return 7;
+    return 8;
   }
   function MinVersionToLoad() {
-    return 2;
+    return 8;
   }
   function GetDate() {
-    return "22-12-2018";
+    return "16-02-2019";
   }
   function CreateInstance() {
     return "LuDiAIAfterFix";
@@ -33,7 +33,7 @@ class LuDiAIAfterFix extends AIInfo {
   function GetSettings() {
     AddSetting({
       name = "select_town_cargo",
-      description = "Town Cargo",
+      description = "Town cargo",
       easy_value = 0,
       medium_value = 0,
       hard_value = 0,
@@ -89,7 +89,7 @@ class LuDiAIAfterFix extends AIInfo {
 
     AddSetting({
       name = "air_support",
-      description = "Air Support",
+      description = "Air support",
       easy_value = 1,
       medium_value = 1,
       hard_value = 1,
@@ -99,7 +99,7 @@ class LuDiAIAfterFix extends AIInfo {
 
     AddSetting({
       name = "road_support",
-      description = "Road Support",
+      description = "Road support",
       easy_value = 1,
       medium_value = 1,
       hard_value = 1,
@@ -164,6 +164,16 @@ class LuDiAIAfterFix extends AIInfo {
       _0 = "Maximum of 25 road vehicles",
       _1 = "Estimate maximum number of road vehicles",
       _2 = "Adjust number of road vehicles dynamically"
+    });
+
+    AddSetting({
+      name = "scp_support",
+      description = "AI-GS communication support",
+      easy_value = 1,
+      medium_value = 1,
+      hard_value = 1,
+      custom_value = 0,
+      flags = CONFIG_BOOLEAN | CONFIG_RANDOM
     });
   }
 }

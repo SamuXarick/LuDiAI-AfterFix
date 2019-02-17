@@ -31,6 +31,7 @@ class BuildManager {
 	m_pathfinder = null;
 	m_pathfinderTries = 0;
 	m_builtTiles = [];
+	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
     constructor() {
 
@@ -42,7 +43,7 @@ class BuildManager {
     function findRoadTileDepot(tile);
     function buildDepotOnRoad(roadArray);
     function saveBuildManager();
-    function buildRoute(cityFrom, cityTo, cargoClass, articulated);
+    function buildRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup);
 
     function hasUnfinishedRoute() {
         if(m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
@@ -62,13 +63,15 @@ class BuildManager {
         m_cargoClass = -1;
 		m_articulated = -1;
 		m_builtTiles = [];
+		m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
     }
 
-    function buildRoute(cityFrom, cityTo, cargoClass, articulated) {
+    function buildRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup) {
         m_cityFrom = cityFrom;
         m_cityTo = cityTo;
         m_cargoClass = cargoClass;
 		m_articulated = articulated;
+		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
 		
 		local list = AIVehicleList();
 	    list.Valuate(AIVehicle.GetVehicleType);
@@ -189,7 +192,7 @@ class BuildManager {
         }
 
 		m_builtTiles = [];
-        return Route(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass);
+        return Route(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_sentToDepotRoadGroup);
     }
 
     function buildTownStation(town, cargoClass, stationTile, otherTown, articulated) {
@@ -860,7 +863,14 @@ class BuildManager {
 		    ++m_pathfinderTries;
 			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
 			local profile = AIController.GetSetting("pf_profile");
-			local max_pathfinderTries = route_dist / 15 + 2 - profile;
+			local max_pathfinderTries = route_dist;
+			if (profile == 0) {
+				max_pathfinderTries = 1 + route_dist / 4;
+			} else if (profile == 1) {
+				max_pathfinderTries = 1 + route_dist / 10;
+			} else {
+				max_pathfinderTries = 1 + route_dist / 31;
+			}
 
             //* Print the names of the towns we'll try to connect. */
             if (!silent_mode) AILog.Info("Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (attempt " + m_pathfinderTries + "/" + max_pathfinderTries + ")");

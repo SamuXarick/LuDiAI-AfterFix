@@ -28,8 +28,8 @@ Main differences or improvements
 - Plans optimal distances between airports
 - May build more than one aircraft per route at once
 - May add or remove more than one road vehicle at once during management
-- Renews road vehicles when better models become available
-- Plans a maximum number of aircraft a route can support
+- Renews vehicles when better models become available
+- Plans a maximum number of vehicles a route can support
 - Attaches road stations to existing airports
 - Removes unserviced road routes
 - Use of customized road pathfinder
@@ -40,6 +40,8 @@ Main differences or improvements
 - Schedules removals of leftover road stations and depots on failure
 - May also try to build road depots in the source or destination towns
 - Founds towns
+- Initiates advertising campaigns in towns
+- Funds construction of buildings in towns
 - Loans and repays on-the-go
 
 
@@ -89,11 +91,11 @@ Is friendly:
     startup.
 
 
-Air Support:
+Air support:
     Enables or disables the usage of air routes.
 
 
-Road Support:
+Road support:
     Enables or disables the usage of road routes.
 
 
@@ -167,3 +169,9 @@ Road route capacity mode:
     time, which may slow down management. Contrary to the other modes, it
     can add or remove multiple vehicles at once per management cycle.
 
+
+AI-GS communication support:
+    Allow communication between AI and Game Script SCP libraries.
+    Currently supports Company Value GS, where the AI will think twice
+    before spending money in town actions, just to maintain the lead or
+    to maintain catch-up against the company ranked first.

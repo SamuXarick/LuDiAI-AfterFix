@@ -44,12 +44,7 @@ class TownManager {
 
     constructor() {
 
-        m_townList = AITownList();
-        if (AIController.GetSetting("cities_only")) {
-            m_townList = AITownList();
-            m_townList.Valuate(AITown.IsCity);
-            m_townList.KeepValue(1);
-        }
+        m_townList = BuildTownList();
 
         m_nearCityPairArray = [];
         m_usedCities = AIList();
@@ -58,8 +53,20 @@ class TownManager {
     function getUnusedCity(bestRoutesBuilt, cargoClass);
 	function removeUsedCityPair(fromCity, toCity, usedCities);
     function findNearCities(fromCity, minDistance, maxDistance, bestRoutesBuilt, cargoClass);
+	function BuildTownList();
+	
+	function BuildTownList() {
+	    m_townList = AITownList();
+        if (AIController.GetSetting("cities_only")) {
+            m_townList = AITownList();
+            m_townList.Valuate(AITown.IsCity);
+            m_townList.KeepValue(1);
+        }
+	}
 
     function getUnusedCity(bestRoutesBuilt, cargoClass) {
+		BuildTownList();
+
         if (m_townList.Count() == m_usedCities.Count()) {
             return null;
         }
@@ -124,6 +131,8 @@ class TownManager {
 
     function findNearCities(fromCity, minDistance, maxDistance, bestRoutesBuilt, cargoClass) {
 //		AILog.Info("fromCity = " + fromCity + "; minDistance = " + minDistance + "; maxDistance = " + maxDistance + "; bestRoutesBuilt = " + bestRoutesBuilt + "; cargoClass = " + cargoClass);
+		BuildTownList();
+
         local localCityList = AIList();
         localCityList.AddList(m_townList);
         localCityList.RemoveList(m_usedCities);

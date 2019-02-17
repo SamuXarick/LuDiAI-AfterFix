@@ -1,6 +1,22 @@
 LuDiAI AfterFix
 ===============
 
+v8 (16-02-2019)
+- Added SCP support for Company Value GS
+- Added vehicle groups for routes
+- Reworked send to depot code with recourse to two special groups for the
+  effect
+- Added shared orders support for vehicles
+- Several optimizations were done to increase vehicle and route management
+  speeds
+- Initiates small, medium and large advertising campaigns
+- Funds construction of new buildings in towns
+- Reevaluated pathfinder number of tries so that it doesn't take more
+  or less time than necessary to find a path
+- Fixed a bug that caused towns founded by others than self to go
+  unnoticed by the town manager for road routes
+- Renew aircraft when a better engine model becomes available
+
 v7 (22-12-2018)
 - Fixed a crash when founding a town
 

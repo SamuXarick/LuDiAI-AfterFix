@@ -193,7 +193,7 @@ function Road::_CostHelperEfficient(self, path, new_tile, coast_cost_only = null
 				cost -= self._cost_no_existing_road;
 			}
 		}
-		
+
 		if (_AIRoad.IsDriveThroughRoadStationTile(new_tile)) {
 			cost += self._cost_drive_through;
 		}
@@ -257,7 +257,7 @@ function Road::_Neighbours(self, path, cur_node,
 {
 	/* self._max_cost is the maximum path cost, if we go over it, the path isn't valid. */
 	if (path.GetCost() >= self._max_cost) return [];
-	
+
 	local par = path.GetParent() != null;
 	local last_node = par ? path.GetParent().GetTile() : 0;
 
@@ -306,7 +306,7 @@ function Road::_Neighbours(self, path, cur_node,
 				tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);
 			}
 		}
-		if (par) {			
+		if (par) {
 			/*
 			 * Get a list of all bridges and tunnels that can be built from the
 			 * current tile. Tunnels will only be built if no terraforming
