@@ -2,7 +2,7 @@ require ("FibonacciHeap.nut");
 
 /**
  * An AyStar implementation.
- *  It solves graphs by finding the fastest route from one point to the other.
+ *	It solves graphs by finding the fastest route from one point to the other.
  */
 class AyStar
 {
@@ -17,23 +17,23 @@ class AyStar
 
 	/**
 	 * @param pf_instance An instance that'll be used as 'this' for all
-	 *  the callback functions.
+	 *	the callback functions.
 	 * @param cost_callback A function that returns the cost of a path. It
-	 *  should accept three parameters, old_path, new_tile and
-	 *  cost_callback_param. old_path is an instance of AyStar.Path, and
-	 *  new_node is the new node that is added to that path. It should return
-	 *  the cost of the path including new_node.
+	 *	should accept three parameters, old_path, new_tile and
+	 *	cost_callback_param. old_path is an instance of AyStar.Path, and
+	 *	new_node is the new node that is added to that path. It should return
+	 *	the cost of the path including new_node.
 	 * @param estimate_callback A function that returns an estimate from a node
-	 *  to the goal node. It should accept three parameters, tile,
-	 *  goal_node and estimate_callback_param. It should return an estimate to
-	 *  the cost between node and goal_node.
-	 *  Note that this estimate is not allowed to be higher than the real cost
-	 *  between node and goal_node. A lower value is fine, however the closer it
-	 *  is to the real value, the better the performance.
+	 *	to the goal node. It should accept three parameters, tile,
+	 *	goal_node and estimate_callback_param. It should return an estimate to
+	 *	the cost between node and goal_node.
+	 *	Note that this estimate is not allowed to be higher than the real cost
+	 *	between node and goal_node. A lower value is fine, however the closer it
+	 *	is to the real value, the better the performance.
 	 * @param neighbours_callback A function that returns all neighbouring nodes
-	 *  from a given node. It should accept three parameters, current_path, node
-	 *  and neighbours_callback_param. It should return an array containing all
-	 *  neighbouring nodes, which are an array in the form [tile, direction].
+	 *	from a given node. It should accept three parameters, current_path, node
+	 *	and neighbours_callback_param. It should return an array containing all
+	 *	neighbouring nodes, which are an array in the form [tile, direction].
 	 */
 	constructor(pf_instance, cost_callback, estimate_callback, neighbours_callback)
 	{
@@ -53,12 +53,12 @@ class AyStar
 	/**
 	 * Try to find the path as indicated with InitializePath with the lowest cost.
 	 * @param iterations After how many iterations it should abort for a moment.
-	 *  This value should be > 0. Any other value aborts immediatly and will never
-	 *  find a path.
+	 *	This value should be > 0. Any other value aborts immediatly and will never
+	 *	find a path.
 	 * @return A route if one was found, or false if the amount of iterations was
-	 *  reached, or null if no path was found.
-	 *  You can call this function over and over as long as it returns false,
-	 *  which is an indication it is not yet done looking for a route.
+	 *	reached, or null if no path was found.
+	 *	You can call this function over and over as long as it returns false,
+	 *	which is an indication it is not yet done looking for a route.
 	 */
 	function FindPath(iterations);
 };
@@ -133,9 +133,9 @@ function AyStar::_CleanPath()
 
 /**
  * The path of the AyStar algorithm.
- *  It is reversed, that is, the first entry is more close to the goal-nodes
- *  than his GetParent(). You can walk this list to find the whole path.
- *  The last entry has a GetParent() of null.
+ *	It is reversed, that is, the first entry is more close to the goal-nodes
+ *	than his GetParent(). You can walk this list to find the whole path.
+ *	The last entry has a GetParent() of null.
  */
 class AyStar.Path
 {

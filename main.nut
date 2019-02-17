@@ -12,24 +12,24 @@ require("Utils.nut");
 require("WrightAI.nut");
 
 class LuDiAIAfterFix extends AIController {
-    MAX_TOWN_VEHICLES = AIGameSettings.GetValue("max_roadveh");
-    MIN_DISTANCE = AIController.GetSetting("road_min_dist");
-    MAX_DISTANCE = 115;
-    MAX_DISTANCE_INCREASE = 25;
+	MAX_TOWN_VEHICLES = AIGameSettings.GetValue("max_roadveh");
+	MIN_DISTANCE = AIController.GetSetting("road_min_dist");
+	MAX_DISTANCE = 115;
+	MAX_DISTANCE_INCREASE = 25;
 
-    townManager = null;
-    routeManager = null;
-    buildManager = null;
+	townManager = null;
+	routeManager = null;
+	buildManager = null;
 	scheduledRemovals = AIList();
 	
 	lastManaged = 0;
 
-    cargoClass = null;
+	cargoClass = null;
 
-    bestRoutesBuilt = null;
-    allRoutesBuilt = null;
+	bestRoutesBuilt = null;
+	allRoutesBuilt = null;
 
-    wrightAI = null;
+	wrightAI = null;
 	
 	sentToDepotAirGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
@@ -42,43 +42,43 @@ class LuDiAIAfterFix extends AIController {
 	cvgs = null;
 	ncg = null;
 
-    constructor() {
-        townManager = TownManager();
-        routeManager = RouteManager(this.sentToDepotRoadGroup);
-        buildManager = BuildManager();
+	constructor() {
+		townManager = TownManager();
+		routeManager = RouteManager(this.sentToDepotRoadGroup);
+		buildManager = BuildManager();
 
-        if (!AIController.GetSetting("select_town_cargo")) {
-            cargoClass = AICargo.CC_PASSENGERS;
-        } else {
-            cargoClass = AICargo.CC_MAIL;
-        }
+		if (!AIController.GetSetting("select_town_cargo")) {
+			cargoClass = AICargo.CC_PASSENGERS;
+		} else {
+			cargoClass = AICargo.CC_MAIL;
+		}
 
-        bestRoutesBuilt = false;
-        allRoutesBuilt = false;
+		bestRoutesBuilt = false;
+		allRoutesBuilt = false;
 
-        wrightAI = WrightAI(cargoClass, this.sentToDepotAirGroup);
+		wrightAI = WrightAI(cargoClass, this.sentToDepotAirGroup);
 		
 		loading = true;
-    }
+	}
 
-    function Start();
+	function Start();
 	
 	function BuildRoadRoute(cityFrom, unfinished) {
-	    if (unfinished || (routeManager.getRoadVehicleCount() < MAX_TOWN_VEHICLES - 10) && !allRoutesBuilt) {
+		if (unfinished || (routeManager.getRoadVehicleCount() < MAX_TOWN_VEHICLES - 10) && !allRoutesBuilt) {
 
 			local cargo = Utils.getCargoId(cargoClass);
-	        local engineList = AIEngineList(AIVehicle.VT_ROAD);
+			local engineList = AIEngineList(AIVehicle.VT_ROAD);
 			engineList.Valuate(AIEngine.IsValidEngine);
 			engineList.KeepValue(1);
-		    engineList.Valuate(AIEngine.IsBuildable);
-		    engineList.KeepValue(1);
-            engineList.Valuate(AIEngine.GetRoadType);
-            engineList.KeepValue(AIRoad.ROADTYPE_ROAD);
-            engineList.Valuate(AIEngine.CanRefitCargo, cargo);
-            engineList.KeepValue(1);
+			engineList.Valuate(AIEngine.IsBuildable);
+			engineList.KeepValue(1);
+			engineList.Valuate(AIEngine.GetRoadType);
+			engineList.KeepValue(AIRoad.ROADTYPE_ROAD);
+			engineList.Valuate(AIEngine.CanRefitCargo, cargo);
+			engineList.KeepValue(1);
 
 			if (engineList.Count() != 0) {
-			    engineList.Valuate(AIEngine.GetPrice);
+				engineList.Valuate(AIEngine.GetPrice);
 				engineList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 				
 //				local bestengineinfo = WrightAI.GetBestEngineIncome(engineList, cargo, Route.START_VEHICLE_COUNT, false);
@@ -97,74 +97,74 @@ class LuDiAIAfterFix extends AIController {
 				local depot_cost = AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, AIRoad.BT_DEPOT);
 				estimated_costs += engine_costs + road_costs + clear_costs + station_costs + depot_cost;
 //				AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + ", road_costs = " + road_costs + ", clear_costs = " + clear_costs + ", station_costs = " + station_costs + ", depot_cost = " + depot_cost);
-                if (!Utils.HasMoney(estimated_costs)) {
-				    return;
+				if (!Utils.HasMoney(estimated_costs)) {
+					return;
 				}
-			    
+				
 				local cityTo;
 				local articulated;
-			    if (!unfinished) {
-				    local articulatedList = AIList();
-			        articulatedList.AddList(engineList);
-			        articulatedList.Valuate(AIEngine.IsArticulated);
-			        articulatedList.KeepValue(1);
-			        articulated = engineList.Count() == articulatedList.Count();
+				if (!unfinished) {
+					local articulatedList = AIList();
+					articulatedList.AddList(engineList);
+					articulatedList.Valuate(AIEngine.IsArticulated);
+					articulatedList.KeepValue(1);
+					articulated = engineList.Count() == articulatedList.Count();
 				
-                    if (cityFrom == null) {
-                        cityFrom = townManager.getUnusedCity(bestRoutesBuilt, cargoClass);
-                        if (cityFrom == null) {
-                            if (AIController.GetSetting("pick_mode") == 1) {
-                                townManager.m_usedCities.Clear();
-                            } else {
-                                if (!bestRoutesBuilt) {
-                                    bestRoutesBuilt = true;
-                                    townManager.m_usedCities.Clear();
-//                                  townManager.m_nearCityPairArray = [];
-                                    AILog.Warning("Best road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
-                                } else {
-                                    allRoutesBuilt = true;
+					if (cityFrom == null) {
+						cityFrom = townManager.getUnusedCity(bestRoutesBuilt, cargoClass);
+						if (cityFrom == null) {
+							if (AIController.GetSetting("pick_mode") == 1) {
+								townManager.m_usedCities.Clear();
+							} else {
+								if (!bestRoutesBuilt) {
+									bestRoutesBuilt = true;
+									townManager.m_usedCities.Clear();
+//									townManager.m_nearCityPairArray = [];
+									AILog.Warning("Best road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
+								} else {
+									allRoutesBuilt = true;
 									townManager.m_nearCityPairArray = [];
-                                    AILog.Warning("All road routes have been used!");
-                                }
-                            }
-                        }
-                    }
+									AILog.Warning("All road routes have been used!");
+								}
+							}
+						}
+					}
 
-                    if (cityFrom != null) {
-	    		        AILog.Info("New city found: " + AITown.GetName(cityFrom));
+					if (cityFrom != null) {
+						AILog.Info("New city found: " + AITown.GetName(cityFrom));
 
 						townManager.findNearCities(cityFrom, min_dist, max_dist, bestRoutesBuilt, cargoClass);
-                        if (!townManager.m_nearCityPairArray.len()) {
-                            AILog.Info("No near city available");
-                            cityFrom = null;
-                        }
-			        }
+						if (!townManager.m_nearCityPairArray.len()) {
+							AILog.Info("No near city available");
+							cityFrom = null;
+						}
+					}
 
-			        cityTo = null;
-                    if (cityFrom != null) {
-                        for (local i = 0; i < townManager.m_nearCityPairArray.len(); ++i) {
-                            if (cityFrom == townManager.m_nearCityPairArray[i].m_cityFrom) {
-                                if (!routeManager.townRouteExists(cityFrom, townManager.m_nearCityPairArray[i].m_cityTo)) {
-                                    cityTo = townManager.m_nearCityPairArray[i].m_cityTo;
+					cityTo = null;
+					if (cityFrom != null) {
+						for (local i = 0; i < townManager.m_nearCityPairArray.len(); ++i) {
+							if (cityFrom == townManager.m_nearCityPairArray[i].m_cityFrom) {
+								if (!routeManager.townRouteExists(cityFrom, townManager.m_nearCityPairArray[i].m_cityTo)) {
+									cityTo = townManager.m_nearCityPairArray[i].m_cityTo;
 
-                                    if (routeManager.hasMaxStationCount(cityFrom, cityTo)) {
-                                        cityTo = null;
-                                        continue;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
+									if (routeManager.hasMaxStationCount(cityFrom, cityTo)) {
+										cityTo = null;
+										continue;
+									} else {
+										break;
+									}
+								}
+							}
+						}
 
-                        if (cityTo == null) {
-                            cityFrom = null;
-                        }
-		    	    }
+						if (cityTo == null) {
+							cityFrom = null;
+						}
+					}
 				}
 
-                if (unfinished || cityFrom != null && cityTo != null) {
-			        if (!unfinished) AILog.Info("New near city found: " + AITown.GetName(cityTo));
+				if (unfinished || cityFrom != null && cityTo != null) {
+					if (!unfinished) AILog.Info("New near city found: " + AITown.GetName(cityTo));
 
 					if (!unfinished) buildTimer = 0;
 					local from = unfinished ? buildManager.m_cityFrom : cityFrom;
@@ -172,28 +172,28 @@ class LuDiAIAfterFix extends AIController {
 					local cargo = unfinished ? buildManager.m_cargoClass : cargoClass;
 					local artic = unfinished ? buildManager.m_articulated : articulated;
 
-			        local start_date = AIDate.GetCurrentDate();
-                    local routeResult = routeManager.buildRoute(buildManager, from, to, cargo, artic);
+					local start_date = AIDate.GetCurrentDate();
+					local routeResult = routeManager.buildRoute(buildManager, from, to, cargo, artic);
 					buildTimer += AIDate.GetCurrentDate() - start_date;
-                    if (routeResult[0] != null) {
-			            if (routeResult[0] != 0) {
-                            AILog.Warning("Built road route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimer + " day" + (buildTimer != 1 ? "s" : "") + ".");
+					if (routeResult[0] != null) {
+						if (routeResult[0] != 0) {
+							AILog.Warning("Built road route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimer + " day" + (buildTimer != 1 ? "s" : "") + ".");
 						}
-                    } else {
-				        townManager.removeUsedCityPair(from, to, false);
-				        AILog.Error(buildTimer + " day" + (buildTimer != 1 ? "s" : "") + " wasted!");
-			        }
+					} else {
+						townManager.removeUsedCityPair(from, to, false);
+						AILog.Error(buildTimer + " day" + (buildTimer != 1 ? "s" : "") + " wasted!");
+					}
 
-                    //cityFrom = cityTo; // use this line to look for a new town from the last town
-                    cityFrom = null;
-			    }
+					//cityFrom = cityTo; // use this line to look for a new town from the last town
+					cityFrom = null;
+				}
 			}
-        }
+		}
 	}
 	
 	function RemoveLeftovers() {
-	    if (scheduledRemovals.Count() == 0) {
-		    return;
+		if (scheduledRemovals.Count() == 0) {
+			return;
 		}
 		
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
@@ -230,10 +230,10 @@ class LuDiAIAfterFix extends AIController {
 		scheduledRemovals.RemoveList(clearedList);
 	}
 
-    function updateVehicles() {
-	    local max_roadveh = AIGameSettings.GetValue("max_roadveh");
+	function updateVehicles() {
+		local max_roadveh = AIGameSettings.GetValue("max_roadveh");
 		if (max_roadveh != MAX_TOWN_VEHICLES) {
-		    MAX_TOWN_VEHICLES = max_roadveh;
+			MAX_TOWN_VEHICLES = max_roadveh;
 			AILog.Info("MAX_TOWN_VEHICLES = " + MAX_TOWN_VEHICLES);
 		}
 
@@ -243,7 +243,7 @@ class LuDiAIAfterFix extends AIController {
 //
 //		local start_tick = AIController.GetTick();
 		for (local i = routeManager.m_townRouteArray.len() - 1; i >= 0; --i) {
-//		    AILog.Info("managing route " + i + ". renewVehicles");
+//			AILog.Info("managing route " + i + ". renewVehicles");
 			routeManager.m_townRouteArray[i].renewVehicles();
 		}
 //		local management_ticks = AIController.GetTick() - start_tick;
@@ -262,16 +262,16 @@ class LuDiAIAfterFix extends AIController {
 		local maxAllRoutesProfit = routeManager.highestProfitLastYear();
 		for (local i = routeManager.m_townRouteArray.len() - 1; i >= 0; --i) {
 //			AILog.Info("managing route " + i + ". sendLowProfitVehiclesToDepot");
-            if (MAX_TOWN_VEHICLES < num_vehs) {
+			if (MAX_TOWN_VEHICLES < num_vehs) {
 				routeManager.m_townRouteArray[i].sendLowProfitVehiclesToDepot(maxAllRoutesProfit);
-            }
+			}
 		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("Managed " + routeManager.m_townRouteArray.len() + " road route" + (routeManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 		for (local i = routeManager.m_townRouteArray.len() - 1; i >= 0; --i) {
-//          AILog.Info("managing route " + i + ". updateEngine");
+//			AILog.Info("managing route " + i + ". updateEngine");
 			routeManager.m_townRouteArray[i].updateEngine();
 		}
 //		local management_ticks = AIController.GetTick() - start_tick;
@@ -287,8 +287,8 @@ class LuDiAIAfterFix extends AIController {
 		
 //		local start_tick = AIController.GetTick();
 		for (local i = routeManager.m_townRouteArray.len() - 1; i >= 0; --i) {
-//		    AILog.Info("managing route " + i + ". updateBridges")
-		    routeManager.m_townRouteArray[i].updateBridges();
+//			AILog.Info("managing route " + i + ". updateBridges")
+			routeManager.m_townRouteArray[i].updateBridges();
 		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("Managed " + routeManager.m_townRouteArray.len() + " road route" + (routeManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
@@ -297,7 +297,7 @@ class LuDiAIAfterFix extends AIController {
 		num_vehs = routeManager.getRoadVehicleCount();
 		for (local i = routeManager.m_townRouteArray.len() - 1; i >= 0; --i) {
 //			AILog.Info("managing route " + i + ". addremoveVehicleToRoute");
-            if (num_vehs < MAX_TOWN_VEHICLES) {
+			if (num_vehs < MAX_TOWN_VEHICLES) {
 				num_vehs += routeManager.m_townRouteArray[i].addremoveVehicleToRoute(num_vehs < MAX_TOWN_VEHICLES);
 			}
 		}
@@ -325,15 +325,15 @@ class LuDiAIAfterFix extends AIController {
 			local cityTo = routeManager.m_townRouteArray[i].m_cityTo;
 //			AILog.Info("managing route " + i + ". removeIfUnserviced");
 			if (routeManager.m_townRouteArray[i].removeIfUnserviced()) {
-			     routeManager.m_townRouteArray.remove(i);
+				 routeManager.m_townRouteArray.remove(i);
 				 townManager.removeUsedCityPair(cityFrom, cityTo, true);
 			}
 		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("Managed " + routeManager.m_townRouteArray.len() + " road route" + (routeManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
-    }
+	}
 
-    function PerformTownActions() {
+	function PerformTownActions() {
 		local myCID = Utils.MyCID();
 		if (!cvgs.IsCompanyValueGSGame() || cvgs.GetCompanyIDRank(myCID) == 1) {
 			local cargoId = Utils.getCargoId(cargoClass);
@@ -491,41 +491,41 @@ class LuDiAIAfterFix extends AIController {
 		}
 	}
 
-    function Save() {
-	    if (loading) {
-		    AILog.Error("WARNING! AI didn't finish loading previously saved data. It will be saving partial data!")
+	function Save() {
+		if (loading) {
+			AILog.Error("WARNING! AI didn't finish loading previously saved data. It will be saving partial data!")
 		}
-//      AILog.Warning("Saving...");
+//		AILog.Warning("Saving...");
 
-        local table = {};
-        table.rawset("town_manager", townManager.saveTownManager());
-        table.rawset("route_manager", routeManager.saveRouteManager());
-        table.rawset("build_manager", buildManager.saveBuildManager());
+		local table = {};
+		table.rawset("town_manager", townManager.saveTownManager());
+		table.rawset("route_manager", routeManager.saveRouteManager());
+		table.rawset("build_manager", buildManager.saveBuildManager());
 		
-        local scheduledRemovalsTable = {};
+		local scheduledRemovalsTable = {};
 		for (local tile = scheduledRemovals.Begin(), i = 0; !scheduledRemovals.IsEnd(); tile = scheduledRemovals.Next(), ++i) {
-		    scheduledRemovalsTable.rawset(i, [tile, scheduledRemovals.GetValue(tile)]);
+			scheduledRemovalsTable.rawset(i, [tile, scheduledRemovals.GetValue(tile)]);
 		}
 		table.rawset("scheduled_removes", scheduledRemovalsTable);
 
-        table.rawset("best_routes_built", bestRoutesBuilt);
-        table.rawset("all_routes_built", allRoutesBuilt);
+		table.rawset("best_routes_built", bestRoutesBuilt);
+		table.rawset("all_routes_built", allRoutesBuilt);
 
-        table.rawset("wrightai", wrightAI.save());
+		table.rawset("wrightai", wrightAI.save());
 		
 		table.rawset("sent_to_depot_air_group", sentToDepotAirGroup);
 		table.rawset("sent_to_depot_road_group", sentToDepotRoadGroup);
 
-//      AILog.Warning("Saved!");
+//		AILog.Warning("Saved!");
 
-        return table;
-    }
+		return table;
+	}
 
-    function Load(version, data) {
-	    loading = true;
+	function Load(version, data) {
+		loading = true;
 		loadData = [version, data];
-        AILog.Warning("Loading data from version " + version + "...");
-    }
+		AILog.Warning("Loading data from version " + version + "...");
+	}
 }
 
 function LuDiAIAfterFix::Start() {
@@ -549,41 +549,41 @@ function LuDiAIAfterFix::Start() {
 			}
 		}
 
-        if (loadData != null) {
-		    if (loadData[1].rawin("town_manager")) {
-                townManager.loadTownManager(loadData[1].rawget("town_manager"));
-            }
+		if (loadData != null) {
+			if (loadData[1].rawin("town_manager")) {
+				townManager.loadTownManager(loadData[1].rawget("town_manager"));
+			}
 
-            if (loadData[1].rawin("route_manager")) {
+			if (loadData[1].rawin("route_manager")) {
 				routeManager.loadRouteManager(loadData[1].rawget("route_manager"));
-            }
+			}
 
-            if (loadData[1].rawin("build_manager")) {
-                buildManager.loadBuildManager(loadData[1].rawget("build_manager"));
-            }
+			if (loadData[1].rawin("build_manager")) {
+				buildManager.loadBuildManager(loadData[1].rawget("build_manager"));
+			}
 
-		    if (loadData[1].rawin("scheduled_removes")) {
-		        local scheduledRemovalsTable = loadData[1].rawget("scheduled_removes");
-		        local i = 0;
-		        while(scheduledRemovalsTable.rawin(i)) {
-		            local tile = scheduledRemovalsTable.rawget(i);
-			        scheduledRemovals.AddItem(tile[0], tile[1]);
-			        ++i;
-			    }
-		    }
-		    AILog.Info("Loaded " + scheduledRemovals.Count() + " scheduled removals.");
+			if (loadData[1].rawin("scheduled_removes")) {
+				local scheduledRemovalsTable = loadData[1].rawget("scheduled_removes");
+				local i = 0;
+				while(scheduledRemovalsTable.rawin(i)) {
+					local tile = scheduledRemovalsTable.rawget(i);
+					scheduledRemovals.AddItem(tile[0], tile[1]);
+					++i;
+				}
+			}
+			AILog.Info("Loaded " + scheduledRemovals.Count() + " scheduled removals.");
 
-            if (loadData[1].rawin("best_routes_built")) {
-                bestRoutesBuilt = loadData[1].rawget("best_routes_built");
-            }
+			if (loadData[1].rawin("best_routes_built")) {
+				bestRoutesBuilt = loadData[1].rawget("best_routes_built");
+			}
 
-            if (loadData[1].rawin("all_routes_built")) {
-                allRoutesBuilt = loadData[1].rawget("all_routes_built");
-            }
+			if (loadData[1].rawin("all_routes_built")) {
+				allRoutesBuilt = loadData[1].rawget("all_routes_built");
+			}
 
-            if (loadData[1].rawin("wrightai")) {
-                wrightAI.load(/*loadData[0], */loadData[1].rawget("wrightai"));
-            }
+			if (loadData[1].rawin("wrightai")) {
+				wrightAI.load(/*loadData[0], */loadData[1].rawget("wrightai"));
+			}
 			
 			if (loadData[1].rawin("sent_to_depot_air_group")) {
 				sentToDepotAirGroup = loadData[1].rawget("sent_to_depot_air_group");
@@ -593,7 +593,7 @@ function LuDiAIAfterFix::Start() {
 				sentToDepotRoadGroup = loadData[1].rawget("sent_to_depot_road_group");
 			}
 
-            AILog.Warning("Game loaded.");
+			AILog.Warning("Game loaded.");
 
 			loadData = null;
 		} else {
@@ -614,13 +614,13 @@ function LuDiAIAfterFix::Start() {
 		}
 		this.cvgs = SCPClient_CompanyValueGS(this.scp);
 		this.ncg = SCPClient_NoCarGoal(this.scp);
-    }
+	}
 	local scp_counter = 0;
 
 	local cityFrom = null;
-    while (AIController.Sleep(1)) {
-	    //pay loan
-        Utils.RepayLoan();
+	while (AIController.Sleep(1)) {
+		//pay loan
+		Utils.RepayLoan();
 
 		if (this.scp != null) {
 			do {
@@ -633,30 +633,30 @@ function LuDiAIAfterFix::Start() {
 			} while(scp_counter < 150);
 		}
 
-        RemoveLeftovers();
+		RemoveLeftovers();
 		
 //		local start_tick = AIController.GetTick();
-//	    AILog.Info("main loop . updateVehicles");
-        updateVehicles();
+//		AILog.Info("main loop . updateVehicles");
+		updateVehicles();
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("Updated vehicles in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 		if (AIController.GetSetting("road_support")) {
-		    BuildRoadRoute(cityFrom, buildManager.hasUnfinishedRoute() ? true : false);
+			BuildRoadRoute(cityFrom, buildManager.hasUnfinishedRoute() ? true : false);
 		}
 
 		wrightAI.ManageAirRoutes();
-        if (AIController.GetSetting("air_support")) {
-            if (!AIController.GetSetting ("road_support") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD) ||
-			    (routeManager.getRoadVehicleCount() > 125 || MAX_TOWN_VEHICLES <= 125 && routeManager.getRoadVehicleCount() > WrightAI.GetAircraftCount() * 4) ||
-                (AIDate.GetYear(AIDate.GetCurrentDate()) > 1955 || allRoutesBuilt) ||
+		if (AIController.GetSetting("air_support")) {
+			if (!AIController.GetSetting ("road_support") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD) ||
+				(routeManager.getRoadVehicleCount() > 125 || MAX_TOWN_VEHICLES <= 125 && routeManager.getRoadVehicleCount() > WrightAI.GetAircraftCount() * 4) ||
+				(AIDate.GetYear(AIDate.GetCurrentDate()) > 1955 || allRoutesBuilt) ||
 				routeManager.getRoadVehicleCount() >= MAX_TOWN_VEHICLES - 10) {
-                wrightAI.BuildAirRoute();
-            }
-        }
+				wrightAI.BuildAirRoute();
+			}
+		}
 		
 		PerformTownActions();
 		FoundTown();
 		BuildHQ();
-    }
+	}
 }

@@ -2,31 +2,31 @@ require("AyStar.nut");
 
 /**
  * A Road Pathfinder.
- *  This road pathfinder tries to find a buildable / existing route for
- *  road vehicles. You can changes the costs below using for example
- *  roadpf.cost.turn = 30. Note that it's not allowed to change the cost
- *  between consecutive calls to FindPath. You can change the cost before
- *  the first call to FindPath and after FindPath has returned an actual
- *  route. To use only existing roads, set cost.no_existing_road to
- *  cost.max_cost.
+ *	This road pathfinder tries to find a buildable / existing route for
+ *	road vehicles. You can changes the costs below using for example
+ *	roadpf.cost.turn = 30. Note that it's not allowed to change the cost
+ *	between consecutive calls to FindPath. You can change the cost before
+ *	the first call to FindPath and after FindPath has returned an actual
+ *	route. To use only existing roads, set cost.no_existing_road to
+ *	cost.max_cost.
  */
 class Road
 {
 	_aystar_class = AyStar;
-	_max_cost = null;              ///< The maximum cost for a route.
-	_cost_tile = null;             ///< The cost for a single road tile, bridge tile or tunnel tile.
+	_max_cost = null;			   ///< The maximum cost for a route.
+	_cost_tile = null;			   ///< The cost for a single road tile, bridge tile or tunnel tile.
 	_cost_no_existing_road = null; ///< The cost that is added to _cost_tile if no road connection exists between two tiles. Cost is doubled when the tile to enter has no road, no bridge and no tunnel.
-	_cost_turn = null;             ///< The cost that is added to _cost_tile if the direction changes.
-	_cost_slope = null;            ///< The extra cost if a road tile or bridge head is sloped.
+	_cost_turn = null;			   ///< The cost that is added to _cost_tile if the direction changes.
+	_cost_slope = null;			   ///< The extra cost if a road tile or bridge head is sloped.
 	_cost_bridge_per_tile = null;  ///< The extra cost per tile for a bridge.
 	_cost_tunnel_per_tile = null;  ///< The extra cost per tile for a tunnel.
-	_cost_coast = null;            ///< The extra cost if a new road tile or new bridge head is on a coast tile with water.
-	_cost_drive_through = null;    ///< The extra cost if a road tile is part of a drive through road station.
-	_max_bridge_length = null;     ///< The maximum length of a bridge that will be built. Length includes bridge heads.
-	_max_tunnel_length = null;     ///< The maximum length of a tunnel that will be built. Length includes entrance and exit.
-	_pathfinder = null;            ///< A reference to the used AyStar object.
+	_cost_coast = null;			   ///< The extra cost if a new road tile or new bridge head is on a coast tile with water.
+	_cost_drive_through = null;	   ///< The extra cost if a road tile is part of a drive through road station.
+	_max_bridge_length = null;	   ///< The maximum length of a bridge that will be built. Length includes bridge heads.
+	_max_tunnel_length = null;	   ///< The maximum length of a tunnel that will be built. Length includes entrance and exit.
+	_pathfinder = null;			   ///< A reference to the used AyStar object.
 
-	cost = null;                   ///< Used to change the costs.
+	cost = null;				   ///< Used to change the costs.
 	_running = null;
 	_map_size_x = AIMap.GetMapSizeX();
 	_best_estimate = AIMap.GetMapSize();
@@ -64,12 +64,12 @@ class Road
 	/**
 	 * Try to find the path as indicated with InitializePath with the lowest cost.
 	 * @param iterations After how many iterations it should abort for a moment.
-	 *  This value should either be -1 for infinite, or > 0. Any other value
-	 *  aborts immediatly and will never find a path.
+	 *	This value should either be -1 for infinite, or > 0. Any other value
+	 *	aborts immediatly and will never find a path.
 	 * @return A route if one was found, or false if the amount of iterations was
-	 *  reached, or null if no path was found.
-	 *  You can call this function over and over as long as it returns false,
-	 *  which is an indication it is not yet done looking for a route.
+	 *	reached, or null if no path was found.
+	 *	You can call this function over and over as long as it returns false,
+	 *	which is an indication it is not yet done looking for a route.
 	 * @see AyStar::FindPath()
 	 */
 	function FindPath(iterations);
@@ -84,15 +84,15 @@ class Road.Cost
 		if (this._main._running) throw("You are not allowed to change parameters of a running pathfinder.");
 
 		switch (idx) {
-			case "max_cost":          this._main._max_cost = val; break;
-			case "tile":              this._main._cost_tile = val; break;
+			case "max_cost":		  this._main._max_cost = val; break;
+			case "tile":			  this._main._cost_tile = val; break;
 			case "no_existing_road":  this._main._cost_no_existing_road = val; break;
-			case "turn":              this._main._cost_turn = val; break;
-			case "slope":             this._main._cost_slope = val; break;
-			case "bridge_per_tile":   this._main._cost_bridge_per_tile = val; break;
-			case "tunnel_per_tile":   this._main._cost_tunnel_per_tile = val; break;
-			case "coast":             this._main._cost_coast = val; break;
-			case "drive_through":     this._main._cost_drive_through = val; break;
+			case "turn":			  this._main._cost_turn = val; break;
+			case "slope":			  this._main._cost_slope = val; break;
+			case "bridge_per_tile":	  this._main._cost_bridge_per_tile = val; break;
+			case "tunnel_per_tile":	  this._main._cost_tunnel_per_tile = val; break;
+			case "coast":			  this._main._cost_coast = val; break;
+			case "drive_through":	  this._main._cost_drive_through = val; break;
 			case "max_bridge_length": this._main._max_bridge_length = val; break;
 			case "max_tunnel_length": this._main._max_tunnel_length = val; break;
 			default: throw("the index '" + idx + "' does not exist");
@@ -104,15 +104,15 @@ class Road.Cost
 	function _get(idx)
 	{
 		switch (idx) {
-			case "max_cost":          return this._main._max_cost;
-			case "tile":              return this._main._cost_tile;
+			case "max_cost":		  return this._main._max_cost;
+			case "tile":			  return this._main._cost_tile;
 			case "no_existing_road":  return this._main._cost_no_existing_road;
-			case "turn":              return this._main._cost_turn;
-			case "slope":             return this._main._cost_slope;
-			case "bridge_per_tile":   return this._main._cost_bridge_per_tile;
-			case "tunnel_per_tile":   return this._main._cost_tunnel_per_tile;
-			case "coast":             return this._main._cost_coast;
-			case "drive_through":     return this._main._cost_drive_through;
+			case "turn":			  return this._main._cost_turn;
+			case "slope":			  return this._main._cost_slope;
+			case "bridge_per_tile":	  return this._main._cost_bridge_per_tile;
+			case "tunnel_per_tile":	  return this._main._cost_tunnel_per_tile;
+			case "coast":			  return this._main._cost_coast;
+			case "drive_through":	  return this._main._cost_drive_through;
 			case "max_bridge_length": return this._main._max_bridge_length;
 			case "max_tunnel_length": return this._main._max_tunnel_length;
 			default: throw("the index '" + idx + "' does not exist");
@@ -162,7 +162,7 @@ function Road::_CostHelperEfficient(self, path, new_tile, coast_cost_only = null
 	local prev_tile = path.GetTile();
 	local cost = 0;
 
-    if (coast_cost_only != true) {
+	if (coast_cost_only != true) {
 		cost += self._cost_tile;
 
 		local dist = 0;
@@ -292,7 +292,7 @@ function Road::_Neighbours(self, path, cur_node,
 			/* We add them to the to the neighbours-list if one of the following applies:
 			 * 1) There already is a connection between the current tile and the next tile, and it's not a level crossing.
 			 * 2) We can build a road to the next tile, except when it's a level crossing.
-			 *    We can connect to a regular road station or a road depot owned by us.
+			 *	  We can connect to a regular road station or a road depot owned by us.
 			 * 3) The next tile is the entrance of a tunnel / bridge in the correct direction. */
 			if (_AIRoad.AreRoadTilesConnected(cur_node, next_tile) && !_AIRail.IsLevelCrossingTile(next_tile)) {
 				tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);

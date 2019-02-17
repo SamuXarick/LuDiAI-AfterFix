@@ -1,9 +1,9 @@
 /**
  * Fibonacci heap.
- *  This heap is heavily optimized for the Insert and Pop functions.
- *  Pop always return the current lowest value in the list.
- *  Insert is implemented as a lazy insert, as it will simply add the new
- *  node to the root list. Sort is done on every Pop operation.
+ *	This heap is heavily optimized for the Insert and Pop functions.
+ *	Pop always return the current lowest value in the list.
+ *	Insert is implemented as a lazy insert, as it will simply add the new
+ *	node to the root list. Sort is done on every Pop operation.
  */
 class FibonacciHeap {
 	_min = null;
@@ -27,7 +27,7 @@ class FibonacciHeap {
 
 	/**
 	 * Insert a new entry in the heap.
-	 *  The complexity of this operation is O(1).
+	 *	The complexity of this operation is O(1).
 	 * @param item The item to add to the list.
 	 * @param priority The priority this item has.
 	 */
@@ -35,15 +35,15 @@ class FibonacciHeap {
 
 	/**
 	 * Pop the first entry of the list.
-	 *  This is always the item with the lowest priority.
-	 *  The complexity of this operation is O(ln n).
+	 *	This is always the item with the lowest priority.
+	 *	The complexity of this operation is O(ln n).
 	 * @return The item of the entry with the lowest priority.
 	 */
 	function Pop();
 
 	/**
 	 * Get the amount of current items in the list.
-	 *  The complexity of this operation is O(1).
+	 *	The complexity of this operation is O(1).
 	 * @return The amount of items currently in the list.
 	 */
 	function Count();
@@ -108,8 +108,8 @@ function FibonacciHeap::Pop() {
 	}
 
 	/* The root_cache contains all the nodes which will form the
-	 *  new rootList. We reset the priority to the maximum number
-	 *  for a 32 signed integer to find a new minumum. */
+	 *	new rootList. We reset the priority to the maximum number
+	 *	for a 32 signed integer to find a new minumum. */
 	tmp_root_list.resize(root_cache.len());
 	local i = 0;
 	local tmp_min_priority = 0x7FFFFFFF;
