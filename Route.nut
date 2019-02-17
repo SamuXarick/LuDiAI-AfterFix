@@ -687,27 +687,6 @@ class Route extends RouteManager {
 			}
 		}
 
-		vehicleList = this.vehicleList();
-		local share_orders_vid = AIVehicle.VEHICLE_INVALID;
-		for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
-			local vehicle_name = AIVehicle.GetName(vehicle);
-			if (AIVehicle.GetGroupID(vehicle) != m_group && AIVehicle.GetGroupID(vehicle) != m_sentToDepotRoadGroup[0] && AIVehicle.GetGroupID(vehicle) != m_sentToDepotRoadGroup[1]) {
-				AIGroup.MoveVehicle(m_group, vehicle);
-
-				local depot_order_flags = AIOrder.OF_SERVICE_IF_NEEDED | AIOrder.OF_NON_STOP_INTERMEDIATE;
-
-				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
-					if (AIOrder.GetOrderFlags(vehicle, 0) == depot_order_flags) {
-						share_orders_vid = vehicle;
-					}
-				} else {
-					if (!AIVehicle.HasSharedOrders(vehicle)) {
-						AIOrder.ShareOrders(vehicle, share_orders_vid);
-					}
-				}
-			}
-		}
-
 		return m_group;
 	}
 
@@ -734,6 +713,7 @@ class Route extends RouteManager {
 		route.append(m_expandedFromCount);
 		route.append(m_expandedToCount);
 		route.append(m_sentToDepotRoadGroup);
+		route.append(m_group);
 
 		return route;
 	}
@@ -765,6 +745,7 @@ class Route extends RouteManager {
 		route.m_activeRoute = data[9];
 		route.m_expandedFromCount = data[10];
 		route.m_expandedToCount = data[11];
+		route.m_group = data[13];
 
 		return [route, i];
 	}
