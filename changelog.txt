@@ -1,6 +1,9 @@
 LuDiAI AfterFix
 ===============
 
+v9 (21-02-2019)
+- Fixed a bug that caused aircraft to be in the wrong group
+
 v8 (17-02-2019)
 - Added SCP support for Company Value GS
 - Added vehicle groups for routes
