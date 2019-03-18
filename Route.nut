@@ -236,6 +236,9 @@ class Route extends RouteManager {
 						local new_vehicle_order_0_flags = AIOrder.GetOrderFlags(new_vehicle, 0);
 						if (new_vehicle_order_0_flags != depot_order_flags) {
 							AILog.Error("Order Flags of " + AIVehicle.GetName(new_vehicle) + " mismatch! " + new_vehicle_order_0_flags + " != " + depot_order_flags + " ; clone_vehicle_id = " + (!AIVehicle.IsValidVehicle(clone_vehicle_id) ? "null" : AIVehicle.GetName(clone_vehicle_id)) + " ; share_orders_vid = " + (AIVehicle.IsValidVehicle(share_orders_vid) ? "null" : AIVehicle.GetName(share_orders_vid)));
+							AIVehicle.SellVehicle(new_vehicle);
+							Utils.RepayLoan();
+							return null;
 						} else {
 							vehicle_ready_to_start = true;
 						}
@@ -254,7 +257,7 @@ class Route extends RouteManager {
 							vehicle_ready_to_start = true;
 						} else {
 							AIVehicle.SellVehicle(new_vehicle);
-							Utils.ReplayLoan();
+							Utils.RepayLoan();
 							return null;
 						}
 					} else {
@@ -273,6 +276,8 @@ class Route extends RouteManager {
 					if (new_vehicle_order_0_flags != depot_order_flags) {
 						AILog.Error("Order Flags of " + AIVehicle.GetName(new_vehicle) + " mismatch! " + new_vehicle_order_0_flags + " != " + depot_order_flags + " ; clone_vehicle_id = " + (!AIVehicle.IsValidVehicle(clone_vehicle_id) ? "null" : AIVehicle.GetName(clone_vehicle_id)) + " ; share_orders_vid = " + (AIVehicle.IsValidVehicle(share_orders_vid) ? "null" : AIVehicle.GetName(share_orders_vid)));
 						AIVehicle.SellVehicle(new_vehicle);
+						Utils.RepayLoan();
+						return null;
 					} else {
 						vehicle_ready_to_start = true;
 					}

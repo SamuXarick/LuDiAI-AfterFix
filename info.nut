@@ -9,13 +9,13 @@ class LuDiAIAfterFix extends AIInfo {
 	return "Transports passengers or mail with trucks, buses, airplanes and helicopters";
   }
   function GetVersion() {
-	return 9;
+	return 10;
   }
   function MinVersionToLoad() {
 	return 8;
   }
   function GetDate() {
-	return "21-02-2019";
+	return "18-03-2019";
   }
   function CreateInstance() {
 	return "LuDiAIAfterFix";

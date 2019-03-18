@@ -1,6 +1,10 @@
 LuDiAI AfterFix
 ===============
 
+v10 (18-03-2019)
+- Fixed a crash that could occur when attempting to sell a road vehicle
+- Ensure no depots are in use before removing them
+
 v9 (21-02-2019)
 - Fixed a bug that caused aircraft to be in the wrong group
 

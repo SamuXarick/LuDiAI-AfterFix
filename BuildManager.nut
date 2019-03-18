@@ -1351,7 +1351,6 @@ class BuildManager {
 		m_stationTo = data[3];
 		m_depotTile = data[4];
 
-//		local m_bridgeTiles = AIList();
 		local bridgeTable = data[5];
 		local i = 0;
 		while(bridgeTable.rawin(i)) {
