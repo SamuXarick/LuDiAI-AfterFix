@@ -207,27 +207,8 @@ class LuDiAIAfterFix extends AIController {
 					}
 				}
 				else if (AIRoad.IsRoadDepotTile(tile)) {
-					if (AIVehicleList_Depot(tile).Count()) {
-						// there are vehicles heading to this depot;
+					if (TestRemoveRoadDepot().TryRemove(tile)) {
 						clearedList.AddItem(tile, 0);
-					} else {
-						local vehicleList = AIVehicleList();
-						vehicleList.Valuate(AIVehicle.GetVehicleType);
-						vehicleList.KeepValue(AIVehicle.VT_ROAD);
-						vehicleList.Valuate(AIVehicle.GetRoadType);
-						vehicleList.KeepValue(AIRoad.ROADTYPE_ROAD);
-						vehicleList.Valuate(AIVehicle.GetState);
-						vehicleList.RemoveValue(AIVehicle.VS_CRASHED);
-						local depot_in_use = false;
-						for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
-							if (AIOrder.GetOrderDestination(vehicle, AIOrder.ORDER_CURRENT) == tile) {
-								depot_in_use = true;
-								break;
-							}
-						}
-						if (!depot_in_use && TestRemoveRoadDepot().TryRemove(tile)) {
-							clearedList.AddItem(tile, 0);
-						}
 					}
 				}
 				else {
@@ -236,33 +217,9 @@ class LuDiAIAfterFix extends AIController {
 				}
 			}
 			// Remove using demolish
-			else if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile)) {
+			else if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile) || AIRoad.IsRoadDepotTile(tile)) {
 				if (TestDemolishTile().TryDemolish(tile)) {
 					clearedList.AddItem(tile, 1);
-				}
-			}
-			else if (AIRoad.IsRoadDepotTile(tile)) {
-				if (AIVehicleList_Depot(tile).Count()) {
-					// there are vehicles heading to this depot;
-					clearedList.AddItem(tile, 1);
-				} else {
-					local vehicleList = AIVehicleList();
-					vehicleList.Valuate(AIVehicle.GetVehicleType);
-					vehicleList.KeepValue(AIVehicle.VT_ROAD);
-					vehicleList.Valuate(AIVehicle.GetRoadType);
-					vehicleList.KeepValue(AIRoad.ROADTYPE_ROAD);
-					vehicleList.Valuate(AIVehicle.GetState);
-					vehicleList.RemoveValue(AIVehicle.VS_CRASHED);
-					local depot_in_use = false;
-					for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
-						if (AIOrder.GetOrderDestination(vehicle, AIOrder.ORDER_CURRENT) == tile) {
-							depot_in_use = true;
-							break;
-						}
-					}
-					if (!depot_in_use && TestDemolishTile().TryDemolish(tile)) {
-						clearedList.AddItem(tile, 1);
-					}
 				}
 			}
 			else {

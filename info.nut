@@ -15,7 +15,7 @@ class LuDiAIAfterFix extends AIInfo {
 	return 8;
   }
   function GetDate() {
-	return "18-03-2019";
+	return "20-03-2019";
   }
   function CreateInstance() {
 	return "LuDiAIAfterFix";
