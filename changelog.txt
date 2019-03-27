@@ -1,8 +1,9 @@
 LuDiAI AfterFix
 ===============
 
-v10 (20-03-2019)
+v10 (27-03-2019)
 - Fixed a crash that could occur when attempting to sell a road vehicle
+- Avoid using valuators when looking for a suitable airport location
 
 v9 (21-02-2019)
 - Fixed a bug that caused aircraft to be in the wrong group

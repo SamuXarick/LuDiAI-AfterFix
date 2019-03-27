@@ -883,26 +883,68 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			local tileList = AITileList();
 			tileList.AddRectangle(rectangleCoordinates[0], rectangleCoordinates[1]);
 
-			if (airport1_tile != 0) {
-				/* If we have the tile of the first airport, we don't want the second airport to be as close or as further */
-				tileList.Valuate(AITile.GetDistanceSquareToTile, airport1_tile);
-				tileList.KeepBetweenValue(min_dist, max_dist);
-				tileList.Valuate(WrightAI.DistanceRealFake, airport1_tile);
-				tileList.KeepBelowValue(fakedist);
-				if (tileList.Count() == 0) continue;
+			local tempList = AITileList();
+			tempList.AddList(tileList);
+			for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+				if (airport1_tile != 0) {
+					/* If we have the tile of the first airport, we don't want the second airport to be as close or as further */
+					local distance_square = AITile.GetDistanceSquareToTile(tile, airport1_tile);
+					if (!(distance_square > min_dist)) {
+						tempList.RemoveItem(tile);
+						continue;
+					}
+					if (!(distance_square < max_dist)) {
+						tempList.RemoveItem(tile);
+						continue;
+					}
+					if (!(WrightAI.DistanceRealFake(tile, airport1_tile) < fakedist)) {
+						tempList.RemoveItem(tile);
+						continue;
+					}
+				}
+
+				if (!(AITile.IsBuildableRectangle(tile, airport_x, airport_y))) {
+					tempList.RemoveItem(tile);
+					continue;
+				}
+
+				/* Sort on acceptance, remove places that don't have acceptance */
+				if (AITile.GetCargoAcceptance(tile, this.cargoId, airport_x, airport_y, airport_rad) < 10) {
+					tempList.RemoveItem(tile);
+					continue;
+				}
+				
+				local cargo_production = AITile.GetCargoProduction(tile, this.cargoId, airport_x, airport_y, airport_rad);
+				if (cargo_production < 18) {
+					tempList.RemoveItem(tile);
+					continue;
+				} else {
+					tempList.SetValue(tile, cargo_production);
+				}
 			}
+			tileList.Clear();
+			tileList.AddList(tempList);
 
-			tileList.Valuate(AITile.IsBuildableRectangle, airport_x, airport_y);
-			tileList.KeepValue(1)
-			if (tileList.Count() == 0) continue;
-
-			/* Sort on acceptance, remove places that don't have acceptance */
-			tileList.Valuate(AITile.GetCargoAcceptance, this.cargoId, airport_x, airport_y, airport_rad);
-			tileList.RemoveBelowValue(10);
-			if (tileList.Count() == 0) continue;
-
-			tileList.Valuate(AITile.GetCargoProduction, this.cargoId, airport_x, airport_y, airport_rad);
-			tileList.RemoveBelowValue(18);
+//			if (airport1_tile != 0) {
+//				/* If we have the tile of the first airport, we don't want the second airport to be as close or as further */
+//				tileList.Valuate(AITile.GetDistanceSquareToTile, airport1_tile);
+//				tileList.KeepBetweenValue(min_dist, max_dist);
+//				tileList.Valuate(WrightAI.DistanceRealFake, airport1_tile);
+//				tileList.KeepBelowValue(fakedist);
+//				if (tileList.Count() == 0) continue;
+//			}
+//
+//			tileList.Valuate(AITile.IsBuildableRectangle, airport_x, airport_y);
+//			tileList.KeepValue(1)
+//			if (tileList.Count() == 0) continue;
+//
+//			/* Sort on acceptance, remove places that don't have acceptance */
+//			tileList.Valuate(AITile.GetCargoAcceptance, this.cargoId, airport_x, airport_y, airport_rad);
+//			tileList.RemoveBelowValue(10);
+//			if (tileList.Count() == 0) continue;
+//
+//			tileList.Valuate(AITile.GetCargoProduction, this.cargoId, airport_x, airport_y, airport_rad);
+//			tileList.RemoveBelowValue(18);
 			/* Couldn't find a suitable place for this town, skip to the next */
 			if (tileList.Count() == 0) continue;
 			tileList.Sort(AIList.SORT_BY_VALUE, false);
