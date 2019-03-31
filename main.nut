@@ -619,6 +619,23 @@ function LuDiAIAfterFix::Start() {
 
 	local cityFrom = null;
 	while (AIController.Sleep(1)) {
+//		local alltiles = AIMap.GetMapSize();
+//		for (local type = 0; type <= 8; type++) {
+//			AILog.Info("type: " + WrightAI.GetAirportTypeName(type));
+//			local percent = -1;
+//			for (local tile = 0; tile < alltiles; tile++) {
+//				local noise = AIAirport.GetNoiseLevelIncrease(tile, type);
+//				local allowed_noise = AITown.GetAllowedNoise(AIAirport.GetNearestTown(tile, type));
+//				local old_result = (noise != -1 && allowed_noise != -1 && noise <= allowed_noise);
+//				assert(old_result == AIAirport.IsNoiseLevelIncreaseAllowed(tile, type));
+//				local new_result = AIAirport.IsNoiseLevelIncreaseAllowed(tile, type);
+//				assert(old_result == new_result;);
+//				local newpercent = (tile + 1) * 100 / alltiles;
+//				if (percent != newpercent) AILog.Info(newpercent + "%");
+//				percent = newpercent;
+//			}
+//		}
+//		AIController.Break("Iterated all types and tiles");
 		//pay loan
 		Utils.RepayLoan();
 
