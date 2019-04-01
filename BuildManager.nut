@@ -977,6 +977,14 @@ class BuildManager {
 //										if (!silent_mode) AILog.Warning("We found a road already built at tiles " + path.GetTile() + " and " + par.GetTile());
 										break;
 									}
+									else if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" && AITunnel.IsTunnelTile(path.GetTile()) && AITunnel.GetOtherTunnelEnd(path.GetTile()) == par.GetTile()) {
+//										if (!silent_mode) AILog.Warning("We found a tunnel already built at tiles " + path.GetTile() + " and " + par.GetTile());
+										break;
+									}
+									else if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" && AIBridge.IsBridgeTile(path.GetTile()) && AIBridge.GetOtherBridgeEnd(path.GetTile()) == par.GetTile()) {
+//										if (!silent_mode) AILog.Warning("We found a bridge already built at tiles " + path.GetTile() + " and " + par.GetTile());
+										break;
+									}
 									else if (AIError.GetLastErrorString() == "ERR_LAND_SLOPED_WRONG" || AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY") {
 										if (m_pathfinderTries < max_pathfinderTries && last_node != null) {
 											if (!silent_mode) AILog.Warning("Couldn't build road at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");

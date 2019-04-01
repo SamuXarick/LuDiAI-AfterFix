@@ -1,6 +1,10 @@
 LuDiAI AfterFix
 ===============
 
+v11 (01-04-2019)
+- Failure to detect a 2 tile sized tunnel or bridge was preventing road
+  construction
+
 v10 (27-03-2019)
 - Fixed a crash that could occur when attempting to sell a road vehicle
 - Avoid using valuators when looking for a suitable airport location

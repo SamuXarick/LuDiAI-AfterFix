@@ -925,26 +925,6 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			tileList.Clear();
 			tileList.AddList(tempList);
 
-//			if (airport1_tile != 0) {
-//				/* If we have the tile of the first airport, we don't want the second airport to be as close or as further */
-//				tileList.Valuate(AITile.GetDistanceSquareToTile, airport1_tile);
-//				tileList.KeepBetweenValue(min_dist, max_dist);
-//				tileList.Valuate(WrightAI.DistanceRealFake, airport1_tile);
-//				tileList.KeepBelowValue(fakedist);
-//				if (tileList.Count() == 0) continue;
-//			}
-//
-//			tileList.Valuate(AITile.IsBuildableRectangle, airport_x, airport_y);
-//			tileList.KeepValue(1)
-//			if (tileList.Count() == 0) continue;
-//
-//			/* Sort on acceptance, remove places that don't have acceptance */
-//			tileList.Valuate(AITile.GetCargoAcceptance, this.cargoId, airport_x, airport_y, airport_rad);
-//			tileList.RemoveBelowValue(10);
-//			if (tileList.Count() == 0) continue;
-//
-//			tileList.Valuate(AITile.GetCargoProduction, this.cargoId, airport_x, airport_y, airport_rad);
-//			tileList.RemoveBelowValue(18);
 			/* Couldn't find a suitable place for this town, skip to the next */
 			if (tileList.Count() == 0) continue;
 			tileList.Sort(AIList.SORT_BY_VALUE, false);
