@@ -15,7 +15,7 @@ class LuDiAIAfterFix extends AIInfo {
 	return 8;
   }
   function GetDate() {
-	return "01-04-2019";
+	return "08-04-2019";
   }
   function CreateInstance() {
 	return "LuDiAIAfterFix";
@@ -126,8 +126,9 @@ class LuDiAIAfterFix extends AIInfo {
 	  medium_value = 60,
 	  hard_value = 85,
 	  custom_value = 40,
+	  random_deviation = 15,
 	  step_size = 15,
-	  flags = CONFIG_RANDOM
+	  flags = CONFIG_NONE
 	});
 
 	AddSetting({

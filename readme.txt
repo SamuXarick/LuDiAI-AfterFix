@@ -110,8 +110,8 @@ Minimum distance between towns for road routes:
     This distance is Manhattan. Lower values may help pathfinding faster,
     but at the cost of lesser profits. Higher values may slow pathfinding
     and may not necessarily yield the best profits, assuming the default
-    engines are being used. If the AI started as Random AI, the choice is
-    randomized on startup, between 20 and 130.
+    engines are being used. A random value of up to -15/+15 is added on
+    startup, and the limit can never go below 20 or above 130.
 
 
 Road pathfinder profile:

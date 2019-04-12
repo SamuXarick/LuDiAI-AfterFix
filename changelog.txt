@@ -1,9 +1,11 @@
 LuDiAI AfterFix
 ===============
 
-v11 (01-04-2019)
+v11 (08-04-2019)
 - Failure to detect a 2 tile sized tunnel or bridge was preventing road
   construction
+- "Minimum distance between towns for road routes" setting has a random
+  deviation of 15
 
 v10 (27-03-2019)
 - Fixed a crash that could occur when attempting to sell a road vehicle
