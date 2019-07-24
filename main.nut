@@ -166,7 +166,9 @@ class LuDiAIAfterFix extends AIController {
 				if (unfinished || cityFrom != null && cityTo != null) {
 					if (!unfinished) {
 						AILog.Info("New near city found: " + AITown.GetName(cityTo));
-						AILog.Info("AICargo.GetTownEffect = " + AICargo.GetTownEffect(cargo));
+						local cargoeffect = AICargo.GetTownEffect(cargo);
+						local effectgoal = AITown.GetCargoGoal(cityTo, cargoeffect);
+						AILog.Info("AICargo.GetTownEffect = " + cargoeffect + "AITown.GetCargoGoal(cityTo, cargoeffect) = " + effectgoal);
 					}
 
 					if (!unfinished) buildTimer = 0;
