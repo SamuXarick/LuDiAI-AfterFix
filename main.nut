@@ -168,7 +168,7 @@ class LuDiAIAfterFix extends AIController {
 						AILog.Info("New near city found: " + AITown.GetName(cityTo));
 						local cargolist = AICargoList();
 						cargolist.Valuate(AICargo.GetTownEffect);
-						cargolist.RemoveValue(AICargo.TE_NONE);
+						//cargolist.RemoveValue(AICargo.TE_NONE);
 						for (local i = cargolist.Begin(); !cargolist.IsEnd; i = cargolist.Next()) {
 							AILog.Info("Cargo effect " + i);
 						}
