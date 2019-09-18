@@ -32,21 +32,22 @@ class BuildManager {
 	m_pathfinderTries = 0;
 	m_builtTiles = [];
 	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	m_best_routes_built = null;
 
 	constructor() {
 
 	}
 
-	function buildTownStation(town, cargoClass, stationTile, otherTown, articulated);
+	function buildTownStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built);
 	function estimateTownRectangle(town);
 	function buildRoad(fromTile, toTile, silent_mode, pathfinder);
 	function findRoadTileDepot(tile);
 	function buildDepotOnRoad(roadArray);
 	function saveBuildManager();
-	function buildRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup);
+	function buildRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built);
 
 	function hasUnfinishedRoute() {
-		if(m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
+		if (m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
 			return 1;
 		}
 
@@ -64,25 +65,31 @@ class BuildManager {
 		m_articulated = -1;
 		m_builtTiles = [];
 		m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+		m_best_routes_built = null;
 	}
 
-	function buildRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup) {
+	function buildRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built) {
 		m_cityFrom = cityFrom;
 		m_cityTo = cityTo;
 		m_cargoClass = cargoClass;
 		m_articulated = articulated;
 		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
+		m_best_routes_built = best_routes_built;
 
 		local list = AIVehicleList();
-		list.Valuate(AIVehicle.GetVehicleType);
-		list.KeepValue(AIVehicle.VT_ROAD);
-		if (list.Count() >= AIGameSettings.GetValue("max_roadveh") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD)) {
-			setRouteFinish();
-			return null;
+		local num_vehicles = 0;
+		for (local v = list.Begin(); !list.IsEnd(); v = list.Next()) {
+			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_ROAD) {
+				num_vehicles++;
+			}
+		}
+		if (num_vehicles >= AIGameSettings.GetValue("max_roadveh") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD)) {
+			/* Don't terminate the route, or it may leave already built stations behind. */
+			return 0;
 		}
 
 		if (m_stationFrom == -1) {
-			m_stationFrom = buildTownStation(m_cityFrom, m_cargoClass, null, m_cityTo, m_articulated);
+			m_stationFrom = buildTownStation(m_cityFrom, m_cargoClass, null, m_cityTo, m_articulated, m_best_routes_built);
 			if (m_stationFrom == null) {
 				setRouteFinish();
 				return null;
@@ -90,7 +97,7 @@ class BuildManager {
 		}
 
 		if (m_stationTo == -1) {
-			m_stationTo = buildTownStation(m_cityTo, cargoClass, null, m_cityFrom, m_articulated);
+			m_stationTo = buildTownStation(m_cityTo, cargoClass, null, m_cityFrom, m_articulated, m_best_routes_built);
 			if (m_stationTo == null) {
 				if (m_stationFrom != null) {
 					local drivethrough = AIRoad.IsDriveThroughRoadStationTile(m_stationFrom);
@@ -132,7 +139,7 @@ class BuildManager {
 			m_depotTile = buildDepotOnRoad(roadArray[0]);
 		}
 
-		if ((m_depotTile == null)) {
+		if (m_depotTile == null) {
 			if (m_stationFrom != null) {
 				local drivethrough = AIRoad.IsDriveThroughRoadStationTile(m_stationFrom);
 				local counter = 0;
@@ -195,8 +202,8 @@ class BuildManager {
 		return Route(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_sentToDepotRoadGroup);
 	}
 
-	function buildTownStation(town, cargoClass, stationTile, otherTown, articulated) {
-		local stationId = (stationTile == null) ?  AIStation.STATION_NEW : AIStation.GetStationID(stationTile);
+	function buildTownStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built) {
+		local stationId = (stationTile == null) ? AIStation.STATION_NEW : AIStation.GetStationID(stationTile);
 		local vehicleType = (cargoClass == AICargo.CC_MAIL) ? AIRoad.ROADVEHTYPE_TRUCK : AIRoad.ROADVEHTYPE_BUS;
 //		local max_spread = AIController.GetSetting("station_spread") && AIGameSettings.GetValue("distant_join_stations");
 
@@ -204,32 +211,48 @@ class BuildManager {
 		local radius = cargoClass == AICargo.CC_PASSENGERS ? AIStation.GetCoverageRadius(AIStation.STATION_BUS_STOP) : AIStation.GetCoverageRadius(AIStation.STATION_TRUCK_STOP);
 
 		local tileList = AITileList();
-		if(stationTile == null) {
-			//stationTile = AIStation.STATION_NEW;
-			//build square around @town and find suitable tiles for truck stops
+		if (stationTile == null) {
+			/* stationTile = AIStation.STATION_NEW; */
+			/* build square around @town and find suitable tiles for truck stops */
 			local rectangleCoordinates = estimateTownRectangle(town);
 
 			tileList.AddRectangle(rectangleCoordinates[0], rectangleCoordinates[1]);
 
-			tileList.Valuate(Utils.IsStationBuildableTile);
-			tileList.RemoveValue(0);
-
-			//valuate and sort by the number of cargo tiles the station covers
-			tileList.Valuate(AITile.GetCargoAcceptance, cargoType, 1, 1, radius);
-			tileList.RemoveBelowValue(8);
-
-			tileList.Valuate(AITile.GetCargoProduction, cargoType, 1, 1, radius);
-			tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); //starts from corners if without sort
-
-			for(local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-				if (Utils.AreOtherStationsNearby(tile, cargoClass, stationId)) {
-					tileList.RemoveTile(tile);
+			local templist = AITileList();
+			templist.AddList(tileList);
+			for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+				if (!Utils.IsStationBuildableTile(tile)) {
+					templist.RemoveTile(tile);
+					continue;
 				}
+
+				if (AITile.GetCargoAcceptance(tile, cargoType, 1, 1, radius) < 8) {
+					templist.RemoveTile(tile);
+					continue;
+				}
+
+				if (Utils.AreOtherStationsNearby(tile, cargoClass, stationId)) {
+					templist.RemoveTile(tile);
+					continue;
+				}
+				local cargo_production = AITile.GetCargoProduction(tile, cargoType, 1, 1 radius);
+				local pick_mode = AIController.GetSetting("pick_mode");
+				if (pick_mode != 1 && !best_routes_built && cargo_production < 8) {
+					templist.RemoveTile(tile);
+					continue;
+				} else {
+					templist.SetValue(tile, cargo_production);
+				}
+//				templist.SetValue(tile, AITile.GetCargoProduction(tile, cargoType, 1, 1, radius));
 			}
+			tileList.Clear();
+			tileList.AddList(templist);
+			/* valuate and sort by the number of cargo tiles the station covers */
+			tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); //starts from corners if without sort
 		}
 		else {
-			//expanding existing station
-			if(!AIStation.IsValidStation(stationId)) {
+			/* expanding existing station */
+			if (!AIStation.IsValidStation(stationId)) {
 				return null;
 			}
 
@@ -238,36 +261,51 @@ class BuildManager {
 			tileList.AddRectangle(Utils.getValidOffsetTile(stationTile, -1 * squareSize, -1 * squareSize),
 				Utils.getValidOffsetTile(stationTile, squareSize, squareSize));
 
-			tileList.Valuate(Utils.IsStationBuildableTile);
-			tileList.RemoveValue(0);
+			local templist = AITileList();
+			templist.AddList(tileList);
+			for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+				if (!Utils.IsStationBuildableTile(tile)) {
+					templist.RemoveTile(tile);
+					continue;
+				}
 
-			tileList.Valuate(AITile.GetCargoProduction, cargoType, 1, 1, radius);
-			tileList.RemoveValue(0);
-			tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-
-			for(local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
 				if (Utils.AreOtherStationsNearby(tile, cargoClass, stationId)) {
-					tileList.RemoveTile(tile);
+					templist.RemoveTile(tile);
+					continue;
+				}
+
+				local cargo_production = AITile.GetCargoProduction(tile, cargoType, 1, 1 radius);
+				if (cargo_production == 0) {
+					templist.RemoveTile(tile);
+					continue;
+				} else {
+					templist.SetValue(tile, cargo_production);
 				}
 			}
+			tileList.Clear();
+			tileList.AddList(templist);
+
+			tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 		}
 
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
 			if (stationTile == null && AITile.GetClosestTown(tile) != town) continue;
 
-			//get adjacent tiles
+			/* get adjacent tiles */
 			local adjTileList = Utils.getAdjacentTiles(tile);
 			local adjRoadTiles = AITileList();
-			adjRoadTiles.AddList(adjTileList);
-			adjRoadTiles.Valuate(AIRoad.IsRoadTile);
-			adjRoadTiles.KeepValue(1);
+			for (local tile = adjTileList.Begin(); !adjTileList.IsEnd(); tile = adjTileList.Next()) {
+				if (AIRoad.IsRoadTile(tile)) {
+					adjRoadTiles.AddTile(tile);
+				}
+			}
 
 			AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
 			local adjRoadCount = adjRoadTiles.Count();
 			local adjacentAirport = Utils.checkAdjacentAirport(tile, cargoClass, stationId);
 
 			switch (adjRoadCount) {
-			//case where station tile has no adjacent road tiles
+			/* case where station tile has no adjacent road tiles */
 				case 0:
 					if (stationTile != null) {
 						continue;
@@ -322,7 +360,7 @@ class BuildManager {
 						}
 						AIController.Sleep(1);
 					} while(counter < 1);
-					if(counter == 1) {
+					if (counter == 1) {
 						continue;
 					}
 
@@ -353,7 +391,7 @@ class BuildManager {
 
 					local heighDifference = abs(AITile.GetMaxHeight(tile) - AITile.GetMaxHeight(adjTile));
 
-					if(heighDifference != 0) {
+					if (heighDifference != 0) {
 						continue;
 					}
 
@@ -377,7 +415,7 @@ class BuildManager {
 							/* With the road station built, try to connect it to the road */
 							local counter = 0;
 							do {
-								if(!TestBuildRoad().TryBuild(tile, adjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
+								if (!TestBuildRoad().TryBuild(tile, adjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
 									++counter;
 								}
 								else {
@@ -385,7 +423,7 @@ class BuildManager {
 								}
 								AIController.Sleep(1);
 							} while(counter < (stationTile == null ? 500 : 1));
-							if(counter == (stationTile == null ? 500 : 1)) {
+							if (counter == (stationTile == null ? 500 : 1)) {
 								/* Failed to connect road to the station. Try to remove the station we had built then */
 								local counter = 0;
 								do {
@@ -444,7 +482,7 @@ class BuildManager {
 									}
 									AIController.Sleep(1);
 								} while(counter < (stationTile == null ? 500 : 1));
-								if(counter == (stationTile == null ? 500 : 1)) {
+								if (counter == (stationTile == null ? 500 : 1)) {
 									/* Failed to connect road to the station. Try to remove the station we had built then */
 									local counter = 0;
 									do {
@@ -503,18 +541,18 @@ class BuildManager {
 
 					//check whether adjacent tiles are opposite
 					local opposite = false;
-					if((AIMap.GetTileX(adjTile) == AIMap.GetTileX(nextAdjTile))
+					if ((AIMap.GetTileX(adjTile) == AIMap.GetTileX(nextAdjTile))
 						|| (AIMap.GetTileY(adjTile) == AIMap.GetTileY(nextAdjTile))) {
 							opposite = true;
 					}
 
-					if(AIRoad.IsRoadTile(tile)) {
-						if(!opposite) {
+					if (AIRoad.IsRoadTile(tile)) {
+						if (!opposite) {
 							continue;
 						}
 					}
 
-					if(opposite) {
+					if (opposite) {
 						local has_road = AIRoad.IsRoadTile(tile);
 						local heighDifference = abs(AITile.GetMaxHeight(nextAdjTile) - AITile.GetMaxHeight(adjTile));
 						if (heighDifference != 0) {
@@ -524,8 +562,8 @@ class BuildManager {
 						local counter = 0;
 						do {
 							if (!TestBuildDriveThroughRoadStation().TryBuild(tile, adjTile, vehicleType, adjacentAirport)) {
-								if((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
-									if(AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
+								if ((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
+									if (AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
 										//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
 									}
 								}
@@ -542,7 +580,7 @@ class BuildManager {
 						else {
 							local counter = 0;
 							do {
-								if(!TestBuildRoad().TryBuild(adjTile, nextAdjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
+								if (!TestBuildRoad().TryBuild(adjTile, nextAdjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
 									++counter;
 								}
 								else {
@@ -550,7 +588,7 @@ class BuildManager {
 								}
 								AIController.Sleep(1);
 							} while(counter < (stationTile == null ? 500 : 1));
-							if(counter == (stationTile == null ? 500 : 1)) {
+							if (counter == (stationTile == null ? 500 : 1)) {
 								local counter = 0;
 								local removed = false;
 								do {
@@ -607,8 +645,8 @@ class BuildManager {
 						local counter = 0;
 						do {
 							if (!TestBuildRoadStation().TryBuild(tile, adjTile, vehicleType, adjacentAirport)) {
-								if((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
-									if(AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
+								if ((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
+									if (AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
 										//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
 									}
 								}
@@ -625,7 +663,7 @@ class BuildManager {
 						else {
 							local counter = 0;
 							do {
-								if(!TestBuildRoad().TryBuild(tile, adjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
+								if (!TestBuildRoad().TryBuild(tile, adjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
 									++counter;
 								}
 								else {
@@ -633,7 +671,7 @@ class BuildManager {
 								}
 								AIController.Sleep(1);
 							} while(counter < (stationTile == null ? 500 : 1));
-							if(counter == (stationTile == null ? 500 : 1)) {
+							if (counter == (stationTile == null ? 500 : 1)) {
 								local counter = 0;
 								do {
 									if (!TestRemoveRoadStation().TryRemove(tile)) {
@@ -667,7 +705,7 @@ class BuildManager {
 				case 4:
 					//similar to case 2 but always builds drivethrough station
 
-					if(AIRoad.IsRoadTile(tile)) {
+					if (AIRoad.IsRoadTile(tile)) {
 						continue;
 					}
 
@@ -693,15 +731,15 @@ class BuildManager {
 					}
 
 					local heighDifference = abs(AITile.GetMaxHeight(nextAdjTile) - AITile.GetMaxHeight(adjTile));
-					if(heighDifference != 0) {
+					if (heighDifference != 0) {
 						continue;
 					}
 
 					local counter = 0;
 					do {
 						if (!TestBuildDriveThroughRoadStation().TryBuild(tile, adjTile, vehicleType, adjacentAirport)) {
-							if((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
-								if(AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
+							if ((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
+								if (AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
 									//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
 								}
 							}
@@ -718,7 +756,7 @@ class BuildManager {
 					else {
 						local counter = 0;
 						do {
-							if(!TestBuildRoad().TryBuild(adjTile, nextAdjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
+							if (!TestBuildRoad().TryBuild(adjTile, nextAdjTile) && AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") {
 								++counter;
 							}
 							else {
@@ -726,7 +764,7 @@ class BuildManager {
 							}
 							AIController.Sleep(1);
 						} while(counter < (stationTile == null ? 500 : 1));
-						if(counter == (stationTile == null ? 500 : 1)) {
+						if (counter == (stationTile == null ? 500 : 1)) {
 							local counter = 0;
 							do {
 								if (!TestDemolishTile().TryDemolish(tile)) {
@@ -855,25 +893,24 @@ class BuildManager {
 		return [topCornerTile, bottomCornerTile];
 	}
 
-	//find road way between fromTile and toTile
+	// find road way between fromTile and toTile
 	function buildRoad(fromTile, toTile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0) {
 		//can store road tiles into array
 
 		if (fromTile != toTile) {
-			++m_pathfinderTries;
 			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
 			local profile = AIController.GetSetting("pf_profile");
 			local max_pathfinderTries = route_dist;
 			if (profile == 0) {
-				max_pathfinderTries = 1 + route_dist / 4;
+				max_pathfinderTries = 1250 * route_dist;
 			} else if (profile == 1) {
-				max_pathfinderTries = 1 + route_dist / 10;
+				max_pathfinderTries = 500 * route_dist;
 			} else {
-				max_pathfinderTries = 1 + route_dist / 31;
+				max_pathfinderTries = 5000 * route_dist / 15 + 5000 * route_dist % 15;
 			}
 
 			//* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (attempt " + m_pathfinderTries + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			// Tell OpenTTD we want to build normal road (no tram tracks). */
 			AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
@@ -897,6 +934,7 @@ class BuildManager {
 /*0*/					pathfinder.cost.drive_through = 800;
 /*10*/					pathfinder.cost.max_bridge_length = Utils.HasMoney(AICompany.GetMaxLoanAmount() * 2) ? AIGameSettings.GetValue("max_bridge_length") + 2 : 13;
 /*20*/					pathfinder.cost.max_tunnel_length = Utils.HasMoney(AICompany.GetMaxLoanAmount() * 2) ? AIGameSettings.GetValue("max_tunnel_length") + 2 : 11;
+/*0*/					pathfinder.cost.search_range = min(route_dist / 5, 25);
 						break;
 
 					case 2:
@@ -913,6 +951,7 @@ class BuildManager {
 						pathfinder.cost.drive_through;
 						pathfinder.cost.max_bridge_length = 3;
 						pathfinder.cost.max_tunnel_length = 0;
+						pathfinder.cost.search_range = 3;
 						break;
 
 					case 1:
@@ -930,6 +969,7 @@ class BuildManager {
 						pathfinder.cost.drive_through;
 						pathfinder.cost.max_bridge_length;
 						pathfinder.cost.max_tunnel_length;
+						pathfinder.cost.search_range;
 						break;
 
 				}
@@ -937,30 +977,45 @@ class BuildManager {
 				pathfinder.InitializePath(fromTile, toTile);
 			}
 
-			local cur_tick = AIController.GetTick();
-			local path = pathfinder.FindPath(5000);
-			AILog.Info("pathfinder: FindPath ticks = " + (AIController.GetTick() - cur_tick));
+			local cur_date = AIDate.GetCurrentDate();
+			local path;
+			
+//			local count = 0;
+			do {
+				++m_pathfinderTries;
+//				++count;
+				path = pathfinder.FindPath(1);
 
-			if (path == false) {
-				if (m_pathfinderTries < max_pathfinderTries) {
-					return [null, pathfinder];
-				} else {
-					// Timed out
-					if (!silent_mode) AILog.Error("pathfinder: FindPath return false (timed out)");
+				if (path == false) {
+					if (m_pathfinderTries < max_pathfinderTries) {
+						if (AIDate.GetCurrentDate() - cur_date > 1) {
+//							if (!silent_mode) AILog.Info("pathfinder: FindPath iterated: " + count);
+							local signList = AISignList();
+							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
+								if (signList.Count() < 64000) break;
+								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
+							}
+							return [null, pathfinder];
+						}
+					} else {
+						// Timed out
+						if (!silent_mode) AILog.Error("pathfinder: FindPath return false (timed out)");
+						m_pathfinderTries = 0;
+						return [null, null];
+					}
+				}
+
+				if (path == null ) {
+					// No path was found. */
+					if (!silent_mode) AILog.Error("pathfinder: FindPath return null (no path)");
 					m_pathfinderTries = 0;
 					return [null, null];
 				}
-			}
+			} while(path == false);
 
-			if (path == null ) {
-				// No path was found. */
-				if (!silent_mode) AILog.Error("pathfinder: FindPath return null (no path)");
-				m_pathfinderTries = 0;
-				return [null, null];
-			}
-
-			if (!silent_mode) AILog.Info("Path found! Building road... ");
-			AILog.Info("pathfinder: FindPath cost: " + path.GetCost());
+//			if (!silent_mode && m_pathfinderTries != count) AILog.Info("pathfinder: FindPath iterated: " + count);
+			if (!silent_mode) AILog.Info("Path found! FindPath iterated: " + m_pathfinderTries + ". Building road... ");
+			if (!silent_mode) AILog.Info("pathfinder: FindPath cost: " + path.GetCost());
 			local road_cost = cost_so_far;
 			// If a path was found, build a road over it. */
 			local last_node = null;
@@ -1093,7 +1148,9 @@ class BuildManager {
 							else {
 								local bridge_length = AIMap.DistanceManhattan(path.GetTile(), par.GetTile()) + 1;
 								local bridge_list = AIBridgeList_Length(bridge_length);
-								bridge_list.Valuate(AIBridge.GetMaxSpeed);
+								for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
+									bridge_list.SetValue(bridge, AIBridge.GetMaxSpeed(bridge));
+								}
 								bridge_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 								local counter = 0;
 								do {
@@ -1105,7 +1162,9 @@ class BuildManager {
 											break;
 										}
 										else if (AIError.GetLastErrorString() == "ERR_NOT_ENOUGH_CASH") {
-											bridge_list.Valuate(AIBridge.GetPrice, bridge_length);
+											for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
+												bridge_list.SetValue(bridge, AIBridge.GetPrice(bridge, bridge_length));
+											}
 											bridge_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 										}
 										else if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY") {
@@ -1150,19 +1209,20 @@ class BuildManager {
 	}
 
 	function findRoadTileDepot(tile) {
-		if(!AIRoad.IsRoadTile(tile)) {
+		if (!AIRoad.IsRoadTile(tile)) {
 			return null;
 		}
 
 		local depotTile = null;
 
 		local adjacentTiles = Utils.getAdjacentTiles(tile);
-		adjacentTiles.Valuate(AIRoad.IsRoadTile);
-		adjacentTiles.RemoveValue(1);
-
-		local roadTiles = Utils.getAdjacentTiles(tile);
-		roadTiles.Valuate(AIRoad.IsRoadTile);
-		roadTiles.KeepValue(1);
+		local roadTiles = AITileList();
+		for (local tile = adjacentTiles.Begin(); !adjacentTiles.IsEnd(); tile = adjacentTiles.Next()) {
+			if (AIRoad.IsRoadTile(tile)) {
+				roadTiles.AddTile(tile);
+			}
+		}
+		adjacentTiles.RemoveList(roadTiles);
 
 		local roadTile = null;
 		for (roadTile = roadTiles.Begin(); !roadTiles.IsEnd(); roadTile = roadTiles.Next()) {
@@ -1191,7 +1251,7 @@ class BuildManager {
 		local depotTile = findRoadTileDepot(t);
 		local depotFrontTile = t;
 
-		if(depotTile != null) {
+		if (depotTile != null) {
 			local counter = 0;
 			do {
 				if (!TestBuildRoadDepot().TryBuild(depotTile, depotFrontTile)) {
@@ -1246,13 +1306,13 @@ class BuildManager {
 	}
 
 	function buildDepotOnRoad(roadArray) {
-		if(roadArray == null) {
+		if (roadArray == null) {
 			return null;
 		}
 
 		local depotTile = null;
 
-		//first attempt, build next to the road route
+		/* first attempt, build next to the road route */
 		local arrayMiddleTile = roadArray[roadArray.len() / 2].m_tile;
 		local roadTiles = AITileList();
 		for (local index = 1; index < roadArray.len() - 1; ++index) {
@@ -1268,15 +1328,20 @@ class BuildManager {
 
 		local squareSize = AIGameSettings.GetValue("station_spread");
 
-		//second attempt, build closer to the destination
+		/* second attempt, build closer to the destination */
 		local tileList = AITileList();
-
 		tileList.AddRectangle(Utils.getValidOffsetTile(m_stationTo, -1 * squareSize, -1 * squareSize),
 			Utils.getValidOffsetTile(m_stationTo, squareSize, squareSize));
 
-		tileList.Valuate(AIRoad.IsRoadTile);
-		tileList.KeepValue(1);
-		tileList.Valuate(AIMap.DistanceManhattan, m_stationTo);
+		local removelist = AITileList();
+		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+			if (!AIRoad.IsRoadTile(tile)) {
+				removelist.AddTile(tile);
+			} else {
+				tileList.SetValue(tile, AIMap.DistanceManhattan(tile, m_stationTo));
+			}
+		}
+		tileList.RemoveList(removelist);
 		tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
@@ -1286,15 +1351,21 @@ class BuildManager {
 			}
 		}
 
-		//third attempt, build closer to the source
+		/* third attempt, build closer to the source */
 		tileList.Clear();
 
 		tileList.AddRectangle(Utils.getValidOffsetTile(m_stationFrom, -1 * squareSize, -1 * squareSize),
 			Utils.getValidOffsetTile(m_stationFrom, squareSize, squareSize));
 
-		tileList.Valuate(AIRoad.IsRoadTile);
-		tileList.KeepValue(1);
-		tileList.Valuate(AIMap.DistanceManhattan, m_stationFrom);
+		removelist.Clear();
+		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+			if (!AIRoad.IsRoadTile(tile)) {
+				removelist.AddTile(tile);
+			} else {
+				tileList.SetValue(tile, AIMap.DistanceManhattan(tile, m_stationFrom));
+			}
+		}
+		tileList.RemoveList(removelist);
 		tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
@@ -1311,23 +1382,23 @@ class BuildManager {
 	function saveBuildManager() {
 		local route = [];
 
-		if(m_cityFrom == null) {
+		if (m_cityFrom == null) {
 			m_cityFrom = -1;
 		}
 
-		if(m_cityTo == null) {
+		if (m_cityTo == null) {
 			m_cityTo = -1;
 		}
 
-		if(m_stationFrom == null) {
+		if (m_stationFrom == null) {
 			m_stationFrom = -1;
 		}
 
-		if(m_stationTo == null) {
+		if (m_stationTo == null) {
 			m_stationTo = -1;
 		}
 
-		if(m_depotTile == null) {
+		if (m_depotTile == null) {
 			m_depotTile = -1;
 		}
 
@@ -1336,10 +1407,10 @@ class BuildManager {
 			bridgeTilesTable.rawset(i, [bridge, m_bridgeTiles.GetValue(bridge)]);
 		}
 
-		if(m_articulated == null) {
+		if (m_articulated == null) {
 			m_articulated = -1;
 		}
-
+		
 		route.append(m_cityFrom);
 		route.append(m_cityTo);
 		route.append(m_stationFrom);
@@ -1348,27 +1419,38 @@ class BuildManager {
 		route.append(bridgeTilesTable);
 		route.append(m_cargoClass);
 		route.append(m_articulated);
+		route.append(m_best_routes_built);
 
 		return route;
 	}
 
 	function loadBuildManager(data) {
 		m_cityFrom = data[0];
+//		AILog.Info("m_cityFrom == " + m_cityFrom);
 		m_cityTo = data[1];
+//		AILog.Info("m_cityTo == " + m_cityTo);
 		m_stationFrom = data[2];
+//		AILog.Info("m_stationFrom == " + m_stationFrom);
 		m_stationTo = data[3];
+//		AILog.Info("m_stationTo == " + m_stationTo);
 		m_depotTile = data[4];
+//		AILog.Info("m_depotTile == " + m_depotTile);
 
 		local bridgeTable = data[5];
 		local i = 0;
 		while(bridgeTable.rawin(i)) {
 			local tile = bridgeTable.rawget(i);
 			m_bridgeTiles.AddItem(tile[0], tile[1]);
+			AILog.Info("m_bridgeTiles == " + tile[0] + ", " + tile[1]);
 			++i;
 		}
 
 		m_cargoClass = data[6];
+//		AILog.Info("m_cargoClass == " + m_cargoClass);
 		m_articulated = data[7];
+//		AILog.Info("m_articulated == " + m_articulated);
+		m_best_routes_built = data[8];
+//		AILog.Info("m_best_routes_built == " + m_best_routes_built);
 
 		return;
 	}

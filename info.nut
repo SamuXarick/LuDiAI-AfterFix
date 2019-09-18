@@ -9,13 +9,13 @@ class LuDiAIAfterFix extends AIInfo {
 	return "Transports passengers or mail with trucks, buses, airplanes and helicopters";
   }
   function GetVersion() {
-	return 11;
+	return 12;
   }
   function MinVersionToLoad() {
-	return 8;
+	return 12;
   }
   function GetDate() {
-	return "08-04-2019";
+	return "01-08-2019";
   }
   function CreateInstance() {
 	return "LuDiAIAfterFix";
@@ -34,18 +34,19 @@ class LuDiAIAfterFix extends AIInfo {
 	AddSetting({
 	  name = "select_town_cargo",
 	  description = "Town cargo",
-	  easy_value = 0,
-	  medium_value = 0,
-	  hard_value = 0,
+	  easy_value = 2,
+	  medium_value = 2,
+	  hard_value = 2,
 	  custom_value = 0,
 	  flags = CONFIG_RANDOM,
 	  min_value = 0,
-	  max_value = 1
+	  max_value = 2
 	});
 
 	AddLabels("select_town_cargo", {
 	  _0 = "Passengers",
-	  _1 = "Mail"
+	  _1 = "Mail",
+	  _2 = "Passengers and Mail"
 	});
 
 	AddSetting({
@@ -62,8 +63,8 @@ class LuDiAIAfterFix extends AIInfo {
 	  name = "pick_mode",
 	  description = "Town choice priority",
 	  easy_value = 1,
-	  medium_value = 0,
-	  hard_value = 2,
+	  medium_value = 2,
+	  hard_value = 0,
 	  custom_value = 0,
 	  flags =  CONFIG_RANDOM,
 	  min_value = 0,
@@ -117,17 +118,31 @@ class LuDiAIAfterFix extends AIInfo {
 	  flags = CONFIG_BOOLEAN | CONFIG_RANDOM | CONFIG_INGAME
 	});
 
+//	AddSetting({
+//	  name = "road_min_dist",
+//	  description = "Minimum distance between towns for road routes",
+//	  min_value = 20,
+//	  max_value = 130,
+//	  easy_value = 40,
+//	  medium_value = 60,
+//	  hard_value = 85,
+//	  custom_value = 40,
+//	  random_deviation = 15,
+//	  step_size = 15,
+//	  flags = CONFIG_NONE
+//	});
+	
 	AddSetting({
-	  name = "road_min_dist",
-	  description = "Minimum distance between towns for road routes",
-	  min_value = 20,
-	  max_value = 130,
-	  easy_value = 40,
-	  medium_value = 60,
-	  hard_value = 85,
-	  custom_value = 40,
-	  random_deviation = 15,
-	  step_size = 15,
+	  name = "road_days_in_transit",
+	  description = "Aproximate number of days in transit for road routes",
+	  min_value = 10,
+	  max_value = 150,
+	  easy_value = 30,
+	  medium_value = 45,
+	  hard_value = 65,
+	  custom_value = 85,
+	  random_deviation = 5,
+	  step_size = 5,
 	  flags = CONFIG_NONE
 	});
 
@@ -165,6 +180,24 @@ class LuDiAIAfterFix extends AIInfo {
 	  _0 = "Maximum of 25 road vehicles",
 	  _1 = "Estimate maximum number of road vehicles",
 	  _2 = "Adjust number of road vehicles dynamically"
+	});
+
+	AddSetting({
+	  name = "road_load_mode",
+	  description = "Road route load orders mode",
+	  easy_value = 2,
+	  medium_value = 2,
+	  hard_value = 1,
+	  custom_value = 0,
+	  flags = CONFIG_RANDOM | CONFIG_INGAME,
+	  min_value = 0,
+	  max_value = 2
+	});
+
+	AddLabels("road_load_mode", {
+	  _0 = "Full load before departing",
+	  _1 = "Load something before departing",
+	  _2 = "May load nothing before departing"
 	});
 
 	AddSetting({

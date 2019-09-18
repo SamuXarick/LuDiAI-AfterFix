@@ -25,21 +25,22 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 /// @param n - The order of the item.
 /// @return - The n-th item of the list, null if not found.
 function Utils::getNthItem(list, n) {
-	if(list.Count() == 0) {
+	if (list.Count() == 0) {
 		AILog.Warning("getNthItem: list is empty!");
 		return null;
 	}
 
-	if(n >= list.Count()) {
+	if (n + 1 > list.Count()) {
 		AILog.Warning("getNthItem: list is too short!");
 		return null;
 	}
 
-	for (local item = list.Begin(), i = 0; !list.IsEnd(); item = list.Next(), ++i) {
-		if(i == n) {
+	for (local item = list.Begin(); !list.IsEnd(); item = list.Next()) {
+		if (n == 0) {
 			//AILog.Info("getNthItem: Found: " + item + " " + list.GetValue(item));
 			return item;
 		}
+		n--;
 	}
 
 	return null;
@@ -100,7 +101,8 @@ function Utils::getOffsetTile(tile, offsetX, offsetY) {
 	local newX = oldX + offsetX;
 	local newY = oldY + offsetY;
 
-	if (((newX < 1) || (newY < 1)) // 0 if freeform_edges off
+	local freeform = AIMap.IsValidTile(0) ? 0 : 1;
+	if (((newX < freeform) || (newY < freeform)) // 0 if freeform_edges off
 		&& (((newX > AIMap.GetMapSizeX() - 2) || (newY > AIMap.GetMapSizeY() - 2)))) {
 		return AIMap.TILE_INVALID;
 	}
@@ -151,7 +153,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 
 	//check if there are other stations squareSize squares nearby
 	local squareSize = AIStation.GetCoverageRadius(stationType);
-	if (stationId == null) {
+	if (stationId == AIStation.STATION_NEW) {
 		squareSize = squareSize * 2;
 	}
 
@@ -163,7 +165,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 
 		//if another road station of mine is nearby return true
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-			if(Utils.isTileMyRoadStation(tile, cargoClass)) { //negate second expression to merge your stations
+			if (Utils.isTileMyRoadStation(tile, cargoClass)) { //negate second expression to merge your stations
 				return true;
 			}
 		}
@@ -192,7 +194,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 
 function Utils::isTileMyRoadStation(tile, cargoClass) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
-		AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
+			AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return 1;
 	}
 
@@ -201,7 +203,7 @@ function Utils::isTileMyRoadStation(tile, cargoClass) {
 
 function Utils::isTileMyStationWithoutAirport(tile) { // Checks RoadStation
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
-		!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_AIRPORT)) {
+			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_AIRPORT)) {
 		return 1;
 	}
 
@@ -210,10 +212,20 @@ function Utils::isTileMyStationWithoutAirport(tile) { // Checks RoadStation
 
 function Utils::isTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks Airport
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
-		!AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
+			!AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return 1;
 	}
 
+	return 0;
+}
+
+function Utils::isTileMyStationWithoutRoadStationOfAnyType(tile) {
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_BUS_STOP) &&
+			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP)) {
+		return 1;
+	}
+	
 	return 0;
 }
 
@@ -223,11 +235,77 @@ function Utils::isTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks 
 /// @return - Cargo list.
 function Utils::getCargoId(cargoClass) {
 	local cargoList = AICargoList();
-	cargoList.Valuate(AICargo.HasCargoClass, cargoClass);
-	cargoList.KeepValue(1);
+	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
 
-	//both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should have only one cargo
-	return cargoList.Begin();
+	local cargoId = null;
+	for (cargoId = cargoList.Begin(); !cargoList.IsEnd(); cargoId = cargoList.Next()) {
+		if (AICargo.HasCargoClass(cargoId, cargoClass)) {
+			break;
+		}
+	}
+
+	/* both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should return the first available cargo */
+	return cargoId;
+}
+
+function Utils::IsTownGrowing(town, cargo) {
+//	return true;
+	if (!AIGameSettings.GetValue("town_growth_rate")) return true; // no town grows, just work with it
+
+	local cargoList = AICargoList();
+	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
+	local cargoRequired = AIList();
+	for (local cargo_type = cargoList.Begin(); !cargoList.IsEnd(); cargo_type = cargoList.Next()) {
+		local town_effect = AICargo.GetTownEffect(cargo_type);
+		local class_name = "";
+//		for (local cc = 0; cc <= 15; cc++) {
+//			local cargo_class = 1 << cc;
+//			if (AICargo.HasCargoClass(cargo_type, cargo_class)) {
+//				if (class_name != "") class_name += ", ";
+//				switch(cargo_class) {
+//					case AICargo.CC_PASSENGERS: class_name += "CC_PASSENGERS"; break;
+//					case AICargo.CC_MAIL: class_name += "CC_MAIL"; break;
+//					case AICargo.CC_EXPRESS: class_name += "CC_EXPRESS"; break;
+//					case AICargo.CC_ARMOURED: class_name += "CC_ARMOURED"; break;
+//					case AICargo.CC_BULK: class_name += "CC_BULK"; break;
+//					case AICargo.CC_PIECE_GOODS: class_name += "CC_PIECE_GOODS"; break;
+//					case AICargo.CC_LIQUID: class_name += "CC_LIQUID"; break;
+//					case AICargo.CC_REFRIGERATED: class_name += "CC_REFRIGERATED"; break;
+//					case AICargo.CC_HAZARDOUS: class_name += "CC_HAZARDOUS"; break;
+//					case AICargo.CC_COVERED: class_name += "CC_COVERED"; break;
+//					case 1 << 15: class_name += "CC_SPECIAL"; break;
+//					default: class_name += "CC_NOAVAILABLE (" + cargo_class + ")"; break;
+//				}
+//			}
+//		}
+//		AILog.Info("Cargo " + cargo_type + ": " + AICargo.GetCargoLabel(cargo_type) + (class_name == "" ? "" : "; CargoClass = " + class_name));
+		if (town_effect != AICargo.TE_NONE) {
+			local effect_name;
+			switch(town_effect) {
+				case AICargo.TE_PASSENGERS: effect_name = "TE_PASSENGERS"; break;
+				case AICargo.TE_MAIL: effect_name = "TE_MAIL"; break;
+				case AICargo.TE_GOODS: effect_name = "TE_GOODS"; break;
+				case AICargo.TE_WATER: effect_name = "TE_WATER"; break;
+				case AICargo.TE_FOOD: effect_name = "TE_FOOD"; break;
+			}
+//			AILog.Info(" - Effect of " + AICargo.GetCargoLabel(cargo_type) + " in " + AITown.GetName(town) + " is " + effect_name);
+			local cargo_goal = AITown.GetCargoGoal(town, town_effect);
+			if (cargo_goal != 0) {
+//				AILog.Info(" - An amount of " + cargo_goal + " " + AICargo.GetCargoLabel(cargo_type) + " is required to grow " + AITown.GetName(town));
+				cargoRequired.AddItem(cargo_type, cargo_goal);
+			}
+		}
+	}
+//	AILog.Info(" ");
+	local num_cargo_types_required = cargoRequired.Count();
+	local result = null;
+	if (num_cargo_types_required == 0 || cargoRequired.HasItem(cargo) && num_cargo_types_required == 1) {
+		result = true;
+	} else {
+		result = false;
+	}
+//	AILog.Info("-- Result for town " + AITown.GetName(town) + ": " + result + " - " + num_cargo_types_required + " --");
+	return result;
 }
 
 function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
@@ -246,9 +324,15 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	local spreadrectangle = [Utils.getValidOffsetTile(stationTile, (-1) * spread_rad, (-1) * spread_rad), Utils.getValidOffsetTile(stationTile, spread_rad, spread_rad)];
 	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
 
-	tileList.Valuate(Utils.isTileMyStationWithoutRoadStation, cargoClass);
-	tileList.KeepValue(1);
-	tileList.Valuate(AIStation.GetStationID);
+	local templist = AITileList();
+	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+		if (Utils.isTileMyStationWithoutRoadStationOfAnyType(tile)) {
+			tileList.SetValue(tile, AIStation.GetStationID(tile));
+		} else {
+			templist.AddTile(tile);
+		}
+	}
+	tileList.RemoveList(templist);
 
 	local airportList = AIList();
 
@@ -296,9 +380,9 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	list.Sort(AIList.SORT_BY_VALUE, true);
 
 	local adjacentStation = AIStation.STATION_NEW;
-	if(list.Count()) {
+	if (list.Count()) {
 		adjacentStation = list.Begin();
-//		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
+		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
 	}
 
 	return adjacentStation;

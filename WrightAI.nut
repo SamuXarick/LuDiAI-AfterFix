@@ -1,20 +1,34 @@
 class WrightAI extends AIController {
 	towns_used = null;
 	triedTowns = null;
+	triedTowns2 = null;
+	best_air_routes_built = null;
 	vehicle_to_depot = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
 	cargoId = null;
 	cargoClass = null;
 
 	days_interval = 10;
+	buildTimer = 0;
 
 	big_engine_list = null;
 	small_engine_list = null;
 	helicopter_list = null;
+	
+	from_location = null;
+	from_type = null;
+	from_stationId = null;
+	small_aircraft_route = null;
+	large_aircraft_route = null;
+	helicopter_route = null;
+	
+	airportTypes = null;
 
 	constructor(CargoClass, sentToDepotAirGroup) {
 		this.towns_used = AIList();
 		triedTowns = AIList();
+		triedTowns2 = AIList();
+		best_air_routes_built = false;
 		big_engine_list = AIList();
 		small_engine_list = AIList();
 		helicopter_list = AIList();
@@ -22,54 +36,44 @@ class WrightAI extends AIController {
 		cargoId = Utils.getCargoId(CargoClass);
 		cargoClass = CargoClass
 		vehicle_to_depot = sentToDepotAirGroup;
+		
+		from_location = -1;
+		from_type = AIAirport.AT_INVALID;
+		from_stationId = -1;
+		small_aircraft_route = -1;
+		large_aircraft_route = -1;
+		helicopter_route = -1;
+		
+		airportTypes = AIList();
 	}
 };
 
 function WrightAI::UpdateAircraftLists() {
-	/* Create a list only with big planes */
-	big_engine_list = AIEngineList(AIVehicle.VT_AIR);
-	big_engine_list.Valuate(AIEngine.IsValidEngine);
-	big_engine_list.KeepValue(1);
-	big_engine_list.Valuate(AIEngine.IsBuildable);
-	big_engine_list.KeepValue(1);
-	big_engine_list.Valuate(AIEngine.CanRefitCargo, this.cargoId);
-	big_engine_list.KeepValue(1);
-	big_engine_list.Valuate(AIEngine.GetPlaneType);
-	big_engine_list.KeepValue(AIAirport.PT_BIG_PLANE);
-	big_engine_list.Valuate(AIEngine.GetPrice);
-	big_engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-//	big_engine_list.Valuate(AIEngine.GetMaxSpeed);
-//	if (big_engine_list.Count() > 0) AILog.Info("big_engine_list contains " + big_engine_list.Count() + " aircraft. Fastest model is " + AIEngine.GetName(big_engine_list.Begin()));
+	big_engine_list.Clear();
+	small_engine_list.Clear();
+	helicopter_list.Clear();
 
-	/* Create a list only with small planes */
-	small_engine_list = AIEngineList(AIVehicle.VT_AIR);
-	small_engine_list.Valuate(AIEngine.IsValidEngine);
-	small_engine_list.KeepValue(1);
-	small_engine_list.Valuate(AIEngine.IsBuildable);
-	small_engine_list.KeepValue(1);
-	small_engine_list.Valuate(AIEngine.CanRefitCargo, this.cargoId);
-	small_engine_list.KeepValue(1);
-	small_engine_list.Valuate(AIEngine.GetPlaneType);
-	small_engine_list.KeepValue(AIAirport.PT_SMALL_PLANE);
-	small_engine_list.Valuate(AIEngine.GetPrice);
-	small_engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-//	small_engine_list.Valuate(AIEngine.GetMaxSpeed);
-//	if (small_engine_list.Count() > 0) AILog.Info("small_engine_list contains " + small_engine_list.Count() + " aircraft. Fastest model is " + AIEngine.GetName(small_engine_list.Begin()));
-
-	/* Create a list only with helicopters */
-	helicopter_list = AIEngineList(AIVehicle.VT_AIR);
-	helicopter_list.Valuate(AIEngine.IsValidEngine);
-	helicopter_list.KeepValue(1);
-	helicopter_list.Valuate(AIEngine.IsBuildable);
-	helicopter_list.KeepValue(1);
-	helicopter_list.Valuate(AIEngine.CanRefitCargo, this.cargoId);
-	helicopter_list.KeepValue(1);
-	helicopter_list.Valuate(AIEngine.GetPlaneType);
-	helicopter_list.KeepValue(AIAirport.PT_HELICOPTER);
-	helicopter_list.Valuate(AIEngine.GetPrice);
-	helicopter_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-//	helicopter_list.Valuate(AIEngine.GetMaxSpeed);
-//	if (helicopter_list.Count() > 0) AILog.Info("helicopter_list contains " + helicopter_list.Count() + " aircraft. Fastest model is " + AIEngine.GetName(helicopter_list.Begin()));
+	local all_engines = AIEngineList(AIVehicle.VT_AIR);
+	for (local engine = all_engines.Begin(); !all_engines.IsEnd(); engine = all_engines.Next()) {
+		if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, this.cargoId)) {
+			local price = AIEngine.GetPrice(engine);
+			switch (AIEngine.GetPlaneType(engine)) {
+				case AIAirport.PT_BIG_PLANE:
+					big_engine_list.AddItem(engine, price);
+					break;
+				case AIAirport.PT_SMALL_PLANE:
+					small_engine_list.AddItem(engine, price);
+					break;
+				case AIAirport.PT_HELICOPTER:
+					helicopter_list.AddItem(engine, price);
+					break;
+			}
+		}
+	}
+	
+	if (big_engine_list.Count() > 1) big_engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
+	if (small_engine_list.Count() > 1) small_engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
+	if (helicopter_list.Count() > 1) helicopter_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 }
 
 /**
@@ -80,9 +84,11 @@ function WrightAI::BuildAirportRoute()
 {
 	/* Check if we can build more aircraft. */
 	if (GetAircraftCount() >= AIGameSettings.GetValue("max_aircraft") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_AIR)) return [0, null, null];
+	
+	if (this.from_location != -1) return BuildAirportRoutePart2();
 
 	/* Create a list of available airports */
-	local airportTypes = AIList();
+//	local airportTypes = AIList();
 	airportTypes.AddItem(AIAirport.AT_INTERCON, AIAirport.GetPrice(AIAirport.AT_INTERCON));			  // 7
 	airportTypes.AddItem(AIAirport.AT_INTERNATIONAL, AIAirport.GetPrice(AIAirport.AT_INTERNATIONAL)); // 4
 	airportTypes.AddItem(AIAirport.AT_METROPOLITAN, AIAirport.GetPrice(AIAirport.AT_METROPOLITAN));	  // 3
@@ -168,8 +174,13 @@ function WrightAI::BuildAirportRoute()
 	/* Ensure there are at least 2 unused towns */
 	local town_list = AITownList();
 	if (AIController.GetSetting("cities_only")) {
-		town_list.Valuate(AITown.IsCity);
-		town_list.KeepValue(1);
+		local removelist = AIList();
+		for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
+			if (!AITown.IsCity(town)) {
+				removelist.AddItem(town, 0);
+			}
+		}
+		town_list.RemoveList(removelist);
 	}
 	if (town_list.Count() - this.towns_used.Count() < 2) return [0, null, null];
 
@@ -177,38 +188,44 @@ function WrightAI::BuildAirportRoute()
 
 	local tile_1 = this.FindSuitableAirportSpot(airportTypes, 0, false, false, false);
 
-	local airport1_location = tile_1[0];
-	local airport1_type = tile_1[1];
-	local airport1_stationId = tile_1[5];
+	this.from_location = tile_1[0];
+	this.from_type = tile_1[1];
+	this.from_stationId = tile_1[5];
 
-	if (airport1_location < 0) {
+	if (this.from_location < 0) {
 		AILog.Error("Couldn't find a suitable town to build the first airport in");
 		return [-1, null, null];
 	}
 
-	if (airport1_type == AIAirport.AT_HELIPORT) {
+	if (this.from_type == AIAirport.AT_HELIPORT) {
 		airportTypes.RemoveItem(AIAirport.AT_HELIPORT);
 		airportTypes.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 	}
 
-	local large_aircraft = tile_1[2];
-	local small_aircraft = tile_1[3];
-	local helicopter = tile_1[4];
+	this.large_aircraft_route = tile_1[2];
+	this.small_aircraft_route = tile_1[3];
+	this.helicopter_route = tile_1[4];
+	
+	return [null, null, null];
+}
 
-	local tile_2 = this.FindSuitableAirportSpot(airportTypes, airport1_location, large_aircraft, small_aircraft, helicopter);
+function BuildAirportRoutePart2()
+{
+	local tile_2 = this.FindSuitableAirportSpot(this.airportTypes, this.from_location, this.large_aircraft_route, this.small_aircraft_route, this.helicopter_route);
 
 	local airport2_location = tile_2[0];
 	local airport2_type = tile_2[1];
 	local airport2_stationId = tile_2[5];
 
+	if (airport2_location == null) return [null, null, null];
 	if (airport2_location < 0) {
 		AILog.Error("Couldn't find a suitable town to build the second airport in");
 		return [-1, null, null];
 	}
 
 	/* Build the airports for real */
-	if (!(TestBuildAirport().TryBuild(airport1_location, airport1_type, airport1_stationId))) {
-		AILog.Error("Although the testing told us we could build 2 airports, it still failed on the first airport at tile " + airport1_location + ".");
+	if (!(TestBuildAirport().TryBuild(this.from_location, this.from_type, this.from_stationId))) {
+		AILog.Error("Although the testing told us we could build 2 airports, it still failed on the first airport at tile " + this.from_location + ".");
 		return [-1, null, null];
 	}
 
@@ -217,18 +234,24 @@ function WrightAI::BuildAirportRoute()
 		return [-1, null, null];
 	}
 
-	local ret = this.BuildAircraft(airport1_location, airport2_location, false, GetAircraftCount() == 0 ? true : false);
+	local station_Id1 = AIStation.GetStationID(this.from_location);
+	local station_Id2 = AIStation.GetStationID(airport2_location);
+	local ret = this.BuildAircraft(this.from_location, airport2_location, false, GetAircraftCount() == 0 ? true : false);
 	if (ret == 0) {
-		return [ret, null, null];
+		if (WrightAI.VehicleList_Station(station_Id1).Count() == 0) {
+			return [ret, null, null];
+		} else {
+			ret = 1;
+		}
 	}
 
-	local airport1_town = AITile.GetClosestTown(airport1_location);
+	local airport1_town = AITile.GetClosestTown(this.from_location);
 	local airport2_town = AITile.GetClosestTown(airport2_location);
-	this.towns_used.AddItem(airport1_town, airport1_location);
+	this.towns_used.AddItem(airport1_town, this.from_location);
 	this.towns_used.AddItem(airport2_town, airport2_location);
 
 //	AILog.Warning("Done building aicraft route.");
-	return [ret, AIStation.GetStationID(airport1_location), AIStation.GetStationID(airport2_location)];
+	return [ret, station_Id1, station_Id2];
 }
 
 function WrightAI::GetBestAirportEngine(type, return_list = false, squared_dist = null) {
@@ -251,70 +274,66 @@ function WrightAI::GetBestAirportEngine(type, return_list = false, squared_dist 
 	}
 
 	if (squared_dist != null) {
-		engine_list.Valuate(WrightAI.GetMaximumOrderDistance);
-		engine_list.KeepAboveValue(squared_dist - 1);
+		local templist = AIList();
+		for (local engine = engine_list.Begin(); !engine_list.IsEnd(); engine = engine_list.Next()) {
+			local maximumorderdistance = WrightAI.GetMaximumOrderDistance(engine);
+			if (maximumorderdistance >= squared_dist) {
+				engine_list.SetValue(engine, maximumorderdistance);
+			} else {
+				templist.AddItem(engine, 0);
+			}
+		}
+		engine_list.RemoveList(templist);
 	}
+
 	if (engine_list.Count() == 0) {
 		return null;
 	} else {
 		if (return_list) {
 			return engine_list;
 		} else {
-//			engine_list.Valuate(AIEngine.GetMaxSpeed);
-//			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 			return engine_list.Begin();
 		}
 	}
 }
 
 function WrightAI::GetBestRouteEngine(tile_1, tile_2) {
-	local engine_list = AIEngineList(AIVehicle.VT_AIR);
-	engine_list.Valuate(AIEngine.IsValidEngine);
-	engine_list.KeepValue(1);
-	engine_list.Valuate(AIEngine.IsBuildable);
-	engine_list.KeepValue(1);
-	engine_list.Valuate(AIEngine.CanRefitCargo, this.cargoId);
-	engine_list.KeepValue(1);
-
 	local small_aircraft = AIAirport.GetAirportType(tile_1) == AIAirport.AT_SMALL || AIAirport.GetAirportType(tile_2) == AIAirport.AT_SMALL ||
-						   AIAirport.GetAirportType(tile_1) == AIAirport.AT_COMMUTER || AIAirport.GetAirportType(tile_2) == AIAirport.AT_COMMUTER;
-	if (small_aircraft) {
-		engine_list.Valuate(AIEngine.GetPlaneType);
-		engine_list.RemoveValue(AIAirport.PT_BIG_PLANE);
-	}
-
+		AIAirport.GetAirportType(tile_1) == AIAirport.AT_COMMUTER || AIAirport.GetAirportType(tile_2) == AIAirport.AT_COMMUTER;
+		
 	local helicopter = AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELIPORT || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELIPORT ||
-					   AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELIDEPOT || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELIDEPOT ||
-					   AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELISTATION || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELISTATION;
-	if (helicopter) {
-		engine_list.Valuate(AIEngine.GetPlaneType);
-		engine_list.KeepValue(AIAirport.PT_HELICOPTER);
-	}
+		AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELIDEPOT || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELIDEPOT ||
+		AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELISTATION || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELISTATION;
 
 	local dist = AIMap.DistanceSquare(tile_1, tile_2);
-	engine_list.Valuate(WrightAI.GetMaximumOrderDistance);
-	engine_list.KeepAboveValue(dist - 1);
+//	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
+	local fakedist = WrightAI.DistanceRealFake(tile_1, tile_2);
 
-	if (AIGameSettings.GetValue("vehicle_breakdowns")) {
-		local reliability_list = AIList();
-		reliability_list.AddList(engine_list);
-		reliability_list.Valuate(AIEngine.GetReliability);
-		reliability_list.KeepBelowValue(75);
-		if (reliability_list.Count() < engine_list.Count()) {
-			engine_list.RemoveList(reliability_list);
+	local engine_list = AIEngineList(AIVehicle.VT_AIR);
+	local removelist = AIList();
+	for (local engine = engine_list.Begin(); !engine_list.IsEnd(); engine = engine_list.Next()) {
+		if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, this.cargoId)) {
+			if (small_aircraft && AIEngine.GetPlaneType(engine) == AIAirport.PT_BIG_PLANE) {
+				removelist.AddItem(engine, 0);
+				continue;
+			}
+			if (helicopter && AIEngine.GetPlaneType(engine) != AIAirport.PT_HELICOPTER) {
+				removelist.AddItem(engine, 0);
+				continue;
+			}
+			if (WrightAI.GetMaximumOrderDistance(engine) < dist) {
+				removelist.AddItem(engine, 0);
+				continue;
+			}
+			engine_list.SetValue(engine, WrightAI.GetEngineRouteIncome(engine, this.cargoId, fakedist));
 		}
 	}
-
-	local fakedist = WrightAI.DistanceRealFake(tile_1, tile_2);
-	engine_list.Valuate(WrightAI.GetEngineRouteIncome, this.cargoId, fakedist);
-	engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-
-//	engine_list.Valuate(AIEngine.GetMaxSpeed);
-//	engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
+	engine_list.RemoveList(removelist);
 
 	if (engine_list.Count() == 0) {
 		return null;
 	} else {
+		engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 		return engine_list.Begin();
 	}
 }
@@ -358,6 +377,17 @@ function WrightAI::GetNumTerminals(aircraft_type, airport_type) {
 	}
 }
 
+function WrightAI::VehicleList_Station(stationId) {
+	local vehicleList = AIVehicleList_Station(stationId);
+	local returnlist = AIList();
+	for (local v = vehicleList.Begin(); !vehicleList.IsEnd(); v = vehicleList.Next()) {
+		if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
+			returnlist.AddItem(v, 0);
+		}
+	}
+	return returnlist;
+}
+
 /**
  * Build an aircraft with orders from tile_1 to tile_2.
  * The best available aircraft of that time will be bought.
@@ -371,9 +401,7 @@ function WrightAI::BuildAircraft(tile_1, tile_2, silent_mode = false, build_mult
 	local station1 = AIStation.GetStationID(tile_1);
 	local station2 = AIStation.GetStationID(tile_2);
 
-	local vehicleList = AIVehicleList_Station(station1);
-	vehicleList.Valuate(AIVehicle.GetVehicleType);
-	vehicleList.KeepValue(AIVehicle.VT_AIR);
+	local vehicleList = WrightAI.VehicleList_Station(station1);
 
 	/* Clone vehicle, share orders */
 	local clone_vehicle_id = AIVehicle.VEHICLE_INVALID;
@@ -482,12 +510,13 @@ function WrightAI::BuildAircraft(tile_1, tile_2, silent_mode = false, build_mult
 
 	local dist = WrightAI.DistanceRealFake(tile_1, tile_2);
 
-	local route_list = AIVehicleList_Station(station1);
-	route_list.Valuate(AIVehicle.GetVehicleType);
-	route_list.KeepValue(AIVehicle.VT_AIR);
-	route_list.Valuate(AIVehicle.GetState);
-	route_list.RemoveValue(AIVehicle.VS_CRASHED);
+	local route_list = WrightAI.VehicleList_Station(station1);
 	local count = route_list.Count();
+	for (local vehicle = route_list.Begin(); !route_list.IsEnd(); route_list.Next()) {
+		if (AIVehicle.GetState(vehicle) == AIVehicle.VS_CRASHED) {
+			count--;
+		}
+	}
 	local count_interval = WrightAI.GetEngineRealFakeDist(engine, this.days_interval);
 	local aircraft_type = AIEngine.GetPlaneType(AIVehicle.GetEngineType(new_vehicle));
 	local max_count = (dist / count_interval) + GetNumTerminals(aircraft_type, airport1_type) + GetNumTerminals(aircraft_type, airport2_type);
@@ -506,9 +535,14 @@ function WrightAI::BuildAircraft(tile_1, tile_2, silent_mode = false, build_mult
 
 function WrightAI::GroupVehicles(stationId = null)
 {
-	local groupList = AIGroupList();
-	groupList.Valuate(AIGroup.GetVehicleType);
-	groupList.KeepValue(AIVehicle.VT_AIR);
+	local tempgroupList = AIGroupList();
+	local groupList = AIList();
+	for (local group = tempgroupList.Begin(); !tempgroupList.IsEnd(); group = tempgroupList.Next()) {
+		if (AIGroup.GetVehicleType(group) == AIVehicle.VT_AIR) {
+			groupList.AddItem(group, 0);
+		}
+	}
+
 	if (AIGroup.IsValidGroup(vehicle_to_depot[0])) {
 		groupList.RemoveItem(vehicle_to_depot[0]);
 	}
@@ -530,9 +564,7 @@ function WrightAI::GroupVehicles(stationId = null)
 	}
 
 	for (local st = stationList.Begin(); !stationList.IsEnd(); st = stationList.Next()) {
-		local vehicleList = AIVehicleList_Station(st);
-		vehicleList.Valuate(AIVehicle.GetVehicleType);
-		vehicleList.KeepValue(AIVehicle.VT_AIR);
+		local vehicleList = WrightAI.VehicleList_Station(st);
 
 		if (!vehicleList.Count()) {
 			if (stationId != null) return AIGroup.GROUP_INVALID;
@@ -556,6 +588,19 @@ function WrightAI::GroupVehicles(stationId = null)
 					if (create_group == true) {
 						route_group = AIGroup.CreateGroup(AIVehicle.VT_AIR);
 						if (AIGroup.IsValidGroup(route_group)) {
+							local order1_location = this.GetAirportTile(AIStation.GetStationID(AIOrder.GetOrderDestination(v, 0)));
+							local order2_location = this.GetAirportTile(AIStation.GetStationID(AIOrder.GetOrderDestination(v, 1)));
+							local a1 = AIAirport.GetAirportType(order1_location);
+							local a2 = AIAirport.GetAirportType(order2_location);
+							local a = "L";
+							if (a1 == AIAirport.AT_COMMUTER || a1 == AIAirport.AT_SMALL || a2 == AIAirport.AT_COMMUTER || a2 == AIAirport.AT_SMALL) {
+								a = "S";
+							}
+							if (a1 == AIAirport.AT_HELISTATION || a1 == AIAirport.AT_HELIDEPOT || a1 == AIAirport.AT_HELIPORT || a2 == AIAirport.AT_HELISTATION || a2 == AIAirport.AT_HELIDEPOT || a2 == AIAirport.AT_HELIPORT) {
+								a = "H";
+							}
+							local dist = WrightAI.DistanceRealFake(this.GetAirportTile(AIStation.GetStationID(AIOrder.GetOrderDestination(v, 0))), this.GetAirportTile(AIStation.GetStationID(AIOrder.GetOrderDestination(v, 1))));
+							AIGroup.SetName(route_group, a + WrightAI.DistanceRealFake(order1_location, order2_location) + ": " + order1_location + " - " + order2_location);
 							AILog.Info("Created " + AIGroup.GetName(route_group) + " for air route from " + AIStation.GetName(AIStation.GetStationID(AIOrder.GetOrderDestination(v, 0))) + " to " + AIStation.GetName(AIStation.GetStationID(AIOrder.GetOrderDestination(v, 1))));
 							create_group = false;
 						}
@@ -578,29 +623,43 @@ function WrightAI::GroupVehicles(stationId = null)
 function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_aircraft, small_aircraft, helicopter)
 {
 	local town_list = AITownList();
+
 	/* Remove all the towns we already used */
 	town_list.RemoveList(this.towns_used);
 
 	/* Remove towns we have tried recently */
 	town_list.RemoveList(this.triedTowns);
 
-	if (AIController.GetSetting("cities_only")) {
-		town_list.Valuate(AITown.IsCity);
-		town_list.KeepValue(1);
-	}
-
-	town_list.Valuate(AITown.GetLastMonthProduction, this.cargoId);
-	town_list.KeepAboveValue(cargoClass == AICargo.CC_PASSENGERS ? 70 : 35);
-
+	local cities_only = AIController.GetSetting("cities_only");
 	local pick_mode = AIController.GetSetting("pick_mode");
-	if (pick_mode == 1) {
-		town_list.Valuate(AIBase.RandItem);
-	} else {
-		town_list.Sort(AIList.SORT_BY_VALUE, false);
+	local cargolimit = cargoClass == AICargo.CC_PASSENGERS ? 70 : 35;
+	local removelist = AIList();
+	for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
+		if (cities_only && !AITown.IsCity(town)) {
+			removelist.AddItem(town, 0);
+			continue;
+		}
+		if (!best_air_routes_built && pick_mode != 1 && !Utils.IsTownGrowing(town, this.cargoId)) {
+			removelist.AddItem(town, 0);
+			continue;
+		}
+		local cargoproduction = (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, this.cargoId) : AITown.GetLastMonthProduction(town, this.cargoId));
+		if (cargoproduction <= cargolimit) {
+			removelist.AddItem(town, 0);
+			continue;
+		} else {
+			town_list.SetValue(town, (pick_mode == 1 ? AIBase.Rand() : cargoproduction));
+		}
 	}
+	town_list.RemoveList(removelist);
+	town_list.Sort(AIList.SORT_BY_VALUE, false);
 
-	if (town_list.Count() <= 1 && triedTowns.Count() > 0) {
+	if (town_list.Count() <= 1 && triedTowns.Count() > 0 && airport1_tile == 0) {
 		this.triedTowns.Clear();
+		if (pick_mode != 1 && !best_air_routes_built) {
+			best_air_routes_built = true;
+			AILog.Warning("Best air routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
+		}
 		return FindSuitableAirportSpot(airportTypes, airport1_tile, large_aircraft, small_aircraft, helicopter);
 	}
 
@@ -629,14 +688,13 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 	local heli_min_dist;
 	local heli_closestTowns = AIList();
 
-	if (airport1_tile == 0) {
-//		/* Keep the best 10, if we can't find a station in there, just leave it anyway */
-//		town_list.KeepTop(10);
-	} else {
+	if (airport1_tile != 0) {
 		local airport1_town = AITile.GetClosestTown(airport1_tile);
 		local airport1_town_tile = AITown.GetLocation(airport1_town);
 		if (pick_mode >= 2) {
-			town_list.Valuate(WrightAI.GetTownDistanceRealFakeToTile, airport1_town_tile);
+			for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
+				town_list.SetValue(town, WrightAI.GetTownDistanceRealFakeToTile(town, airport1_town_tile));
+			}
 			town_list.Sort(AIList.SORT_BY_VALUE, (pick_mode == 2 ? AIList.SORT_ASCENDING : AIList.SORT_DESCENDING));
 		}
 
@@ -675,10 +733,11 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			large_min_dist = large_min_order_dist > large_max_dist * 3 / 4 ? large_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : large_max_dist * 3 / 4 : large_min_order_dist;
 
 			for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
+				if (this.triedTowns2.HasItem(town)) continue;
 				local dist = AITile.GetDistanceSquareToTile(AITown.GetLocation(town), airport1_tile);
 				local fake = WrightAI.DistanceRealFake(AITown.GetLocation(town), airport1_tile);
 				if (dist <= large_max_dist && dist >= large_min_dist && fake <= large_fakedist) {
-					large_closestTowns.AddItem(town, AITown.GetLastMonthProduction(town, this.cargoId));
+					large_closestTowns.AddItem(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, this.cargoId) : AITown.GetLastMonthProduction(town, this.cargoId)));
 				}
 			}
 			local large_closest_count = large_closestTowns.Count();
@@ -721,10 +780,11 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			small_min_dist = small_min_order_dist > small_max_dist * 3 / 4 ? small_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : small_max_dist * 3 / 4 : small_min_order_dist;
 
 			for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
+				if (this.triedTowns2.HasItem(town)) continue;
 				local dist = AITile.GetDistanceSquareToTile(AITown.GetLocation(town), airport1_tile);
 				local fake = WrightAI.DistanceRealFake(AITown.GetLocation(town), airport1_tile);
 				if (dist <= small_max_dist && dist >= small_min_dist && fake <= small_fakedist) {
-					small_closestTowns.AddItem(town, AITown.GetLastMonthProduction(town, this.cargoId));
+					small_closestTowns.AddItem(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, this.cargoId) : AITown.GetLastMonthProduction(town, this.cargoId)));
 				}
 			}
 			local small_closest_count = small_closestTowns.Count();
@@ -767,10 +827,11 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			heli_min_dist = heli_min_order_dist > heli_max_dist * 3 / 4 ? heli_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : heli_max_dist * 3 / 4 : heli_min_order_dist;
 
 			for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
+				if (this.triedTowns2.HasItem(town)) continue;
 				local dist = AITile.GetDistanceSquareToTile(AITown.GetLocation(town), airport1_tile);
 				local fake = WrightAI.DistanceRealFake(AITown.GetLocation(town), airport1_tile);
 				if (dist <= heli_max_dist && dist >= heli_min_dist && fake <= heli_fakedist) {
-					heli_closestTowns.AddItem(town, AITown.GetLastMonthProduction(town, this.cargoId));
+					heli_closestTowns.AddItem(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, this.cargoId) : AITown.GetLastMonthProduction(town, this.cargoId)));
 				}
 			}
 			local heli_closest_count = heli_closestTowns.Count();
@@ -782,6 +843,8 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			return [-1, AIAirport.AT_INVALID, large_aircraft, small_aircraft, helicopter, -1];
 		}
 	}
+	
+	local cur_date = AIDate.GetCurrentDate();
 
 	/* Now find a suitable town */
 	for (local town = town_list.Begin(); !town_list.IsEnd(); town = town_list.Next()) {
@@ -915,7 +978,7 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 				}
 				
 				local cargo_production = AITile.GetCargoProduction(tile, this.cargoId, airport_x, airport_y, airport_rad);
-				if (cargo_production < 18) {
+				if (pick_mode != 1 && !best_air_routes_built && cargo_production < 18) {
 					tempList.RemoveItem(tile);
 					continue;
 				} else {
@@ -970,7 +1033,11 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 
 				/* Mark the town as tried, so we don't use it again */
 				assert(!towns_used.HasItem(nearest_town) && !triedTowns.HasItem(nearest_town) && nearest_town == town);
-				this.triedTowns.AddItem(nearest_town, good_tile);
+				if (airport1_tile == 0) {
+					this.triedTowns.AddItem(nearest_town, good_tile);
+				} else {
+					this.triedTowns2.AddItem(nearest_town, good_tile);
+				}
 
 				if (airport1_tile == 0) {
 					if (a == AIAirport.AT_INTERCON || a == AIAirport.AT_INTERNATIONAL || a == AIAirport.AT_METROPOLITAN || a == AIAirport.AT_LARGE) {
@@ -990,7 +1057,20 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 
 		/* All airport types were tried on this town and no suitable location was found */
 		assert(!triedTowns.HasItem(town));
-		this.triedTowns.AddItem(town, town_tile);
+		if (airport1_tile == 0) {
+			assert(!triedTowns.HasItem(town));
+			this.triedTowns.AddItem(town, town_tile);
+		} else {
+			assert(!triedTowns2.HasItem(town));
+			this.triedTowns2.AddItem(town, town_tile);
+		}
+		if (AIDate.GetCurrentDate() - cur_date > 2) {
+			if (airport1_tile == 0) {
+				return [-1, AIAirport.AT_INVALID, large_aircraft, small_aircraft, helicopter, -1];
+			} else {
+				return [null, AIAirport.AT_INVALID, large_aircraft, small_aircraft, helicopter, -1];
+			}
+		}
 	}
 
 	/* We haven't found a suitable location for any airport type in any town */
@@ -1000,9 +1080,13 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 function WrightAI::GetAircraftCount()
 {
 	local list = AIVehicleList();
-	list.Valuate(AIVehicle.GetVehicleType);
-	list.KeepValue(AIVehicle.VT_AIR);
-	return list.Count();
+	local count = 0;
+	for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
+		if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_AIR) {
+			count++;
+		}
+	}
+	return count;
 }
 
 function WrightAI::ManageAirRoutes()
@@ -1011,18 +1095,18 @@ function WrightAI::ManageAirRoutes()
 
 	this.GroupVehicles();
 
-	local vehiclelist = AIVehicleList();
-	vehiclelist.Valuate(AIVehicle.GetVehicleType);
-	vehiclelist.KeepValue(AIVehicle.VT_AIR);
-
 	local list = AIList();
-	list.AddList(vehiclelist);
-	list.Valuate(AIVehicle.GetProfitLastYear);
+	local vehiclelist = AIVehicleList();
+	for (local vehicle = vehiclelist.Begin(); !vehiclelist.IsEnd(); vehicle = vehiclelist.Next()) {
+		if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_AIR) {
+			list.AddItem(vehicle, AIVehicle.GetProfitLastYear(vehicle));
+		}
+	}
 
 	for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-		local profit = list.GetValue(vehicle);
 		/* Profit last year bad? Let's sell the vehicle */
-		if (profit < 0 && AIVehicle.GetAge(vehicle) >= 365 * 2) {
+		local profit = list.GetValue(vehicle);
+		if (profit < 0 && AIVehicle.GetAge(vehicle) >= 730) {
 			/* Send the vehicle to depot if we didn't do so yet */
 			if (AIVehicle.GetGroupID(vehicle) != vehicle_to_depot[0] && AIVehicle.GetGroupID(vehicle) != vehicle_to_depot[1] && AIVehicle.GetState(vehicle) != AIVehicle.VS_CRASHED) {
 				local airport1_hangars = AIAirport.GetNumHangars(AIOrder.GetOrderDestination(vehicle, 0)) != 0;
@@ -1068,9 +1152,7 @@ function WrightAI::ManageAirRoutes()
 				local order2_location = this.GetAirportTile(AIStation.GetStationID(AIOrder.GetOrderDestination(vehicle, 1)));
 				local veh_name = AIVehicle.GetName(vehicle);
 
-				local list2 = AIVehicleList_Station(AIStation.GetStationID(order1_location));
-				list2.Valuate(AIVehicle.GetVehicleType);
-				list2.KeepValue(AIVehicle.VT_AIR);
+				local list2 = WrightAI.VehicleList_Station(AIStation.GetStationID(order1_location));
 
 				/* Don't renew aircraft if there are no engines available */
 				local best_engine = this.GetBestRouteEngine(order1_location, order2_location);
@@ -1104,9 +1186,7 @@ function WrightAI::ManageAirRoutes()
 			/* Sell it once it really is in the depot */
 			if (AIVehicle.GetGroupID(vehicle) == vehicle_to_depot[0]) {
 				AILog.Info("Selling " + AIVehicle.GetName(vehicle) + " as it finally is in a hangar. (From " + AIStation.GetName(AIStation.GetStationID(AIOrder.GetOrderDestination(vehicle, 0))) + " to " + AIStation.GetName(AIStation.GetStationID(AIOrder.GetOrderDestination(vehicle, 1))) + ")");
-				local list2 = AIVehicleList_Station(AIStation.GetStationID(AIOrder.GetOrderDestination(vehicle, 0)));
-				list2.Valuate(AIVehicle.GetVehicleType);
-				list2.KeepValue(AIVehicle.VT_AIR);
+				local list2 = WrightAI.VehicleList_Station(AIStation.GetStationID(AIOrder.GetOrderDestination(vehicle, 0)));
 				/* Last vehicle on this route? */
 				if (list2.Count() == 1) {
 					if (AIVehicle.GetProfitLastYear(vehicle) < 10000 && AIVehicle.GetProfitThisYear(vehicle) < 10000) {
@@ -1124,9 +1204,7 @@ function WrightAI::ManageAirRoutes()
 				local order2_location = this.GetAirportTile(AIStation.GetStationID(AIOrder.GetOrderDestination(vehicle, 1)));
 				local veh_name = AIVehicle.GetName(vehicle);
 
-				local list2 = AIVehicleList_Station(AIStation.GetStationID(order1_location));
-				list2.Valuate(AIVehicle.GetVehicleType);
-				list2.KeepValue(AIVehicle.VT_AIR);
+				local list2 = WrightAI.VehicleList_Station(AIStation.GetStationID(order1_location));
 
 				/* Don't renew aircraft if there are no engines available */
 				local best_engine = this.GetBestRouteEngine(order1_location, order2_location);
@@ -1163,17 +1241,13 @@ function WrightAI::ManageAirRoutes()
 
 	list = AIStationList(AIStation.STATION_AIRPORT);
 //	local air_routes = list.Count() / 2 + list.Count() % 2;
-	list.Valuate(AIStation.GetCargoWaiting, this.cargoId);
-	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-	for (local i = list.Begin(); !list.IsEnd(); i = list.Next()) {
-//		AILog.Info("Airport " + AIBaseStation.GetName(i));
-		local list2 = AIVehicleList_Station(i);
-		list2.Valuate(AIVehicle.GetVehicleType);
-		list2.KeepValue(AIVehicle.VT_AIR);
+	for (local station = list.Begin(); !list.IsEnd(); station = list.Next()) {
+//		AILog.Info("Airport " + AIBaseStation.GetName(station));
+		local list2 = WrightAI.VehicleList_Station(station);
 		/* No vehicles going to this station, abort and sell */
 		local count = list2.Count();
 		if (count == 0) {
-			this.SellAirport(i);
+			this.SellAirport(station);
 			continue;
 		}
 
@@ -1211,22 +1285,28 @@ function WrightAI::ManageAirRoutes()
 		/* Do not build a new vehicle anymore once helidepots become available for routes where one of the airports isn't dedicated for helicopters */
 		if (AIAirport.IsValidAirportType(AIAirport.AT_HELISTATION) || AIAirport.IsValidAirportType(AIAirport.AT_HELIDEPOT)) {
 			if (airport1_type == AIAirport.AT_HELIPORT && airport2_type != AIAirport.AT_HELISTATION && airport2_type != AIAirport.AT_HELIDEPOT ||
-				airport2_type == AIAirport.AT_HELIPORT && airport1_type != AIAirport.AT_HELISTATION && airport1_type != AIAirport.AT_HELIDEPOT) {
+					airport2_type == AIAirport.AT_HELIPORT && airport1_type != AIAirport.AT_HELISTATION && airport1_type != AIAirport.AT_HELIDEPOT) {
 				continue;
 			}
 		}
-		list2.Valuate(AIVehicle.GetAge);
-		list2.KeepBelowValue(count_interval);
+
+		local interval_threshold = true;
+		for (v = list2.Begin(); !list2.IsEnd(); v = list2.Next()) {
+			if (AIVehicle.GetAge(v) < count_interval) {
+				interval_threshold = false;
+				break;
+			}
+		}
 		/* Do not build a new vehicle if we bought a new one in the last 'count_interval' days */
-		if (list2.Count() != 0) continue;
+		if (!interval_threshold) continue;
 
 		/* Don't add aircraft if the cargo waiting would not fill it */
 		local engine_capacity = AIEngine.GetCapacity(best_engine);
-		local other_station = AIStation.GetStationID(order1_location) == i ? AIStation.GetStationID(order2_location) : AIStation.GetStationID(order1_location);
-		local cargo_waiting_via_other_station = AICargo.GetDistributionType(this.cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(i, other_station, this.cargoId);
-		local cargo_waiting_via_any_station = AIStation.GetCargoWaitingVia(i, AIStation.STATION_INVALID, this.cargoId);
+		local other_station = AIStation.GetStationID(order1_location) == station ? AIStation.GetStationID(order2_location) : AIStation.GetStationID(order1_location);
+		local cargo_waiting_via_other_station = AICargo.GetDistributionType(this.cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station, other_station, this.cargoId);
+		local cargo_waiting_via_any_station = AIStation.GetCargoWaitingVia(station, AIStation.STATION_INVALID, this.cargoId);
 		local cargo_waiting = cargo_waiting_via_other_station + cargo_waiting_via_any_station;
-//		AILog.Info(AIBaseStation.GetName(i) + ": cargo waiting = " + AIStation.GetCargoWaiting(i, this.cargoId) + " ; cargo waiting via " + AIBaseStation.GetName(other_station) + " = " + cargo_waiting_via_other_station + " ; cargo waiting via any station = " + cargo_waiting_via_any_station + " (total = " + cargo_waiting + ")");
+//		AILog.Info(AIBaseStation.GetName(station) + ": cargo waiting = " + AIStation.GetCargoWaiting(station, this.cargoId) + " ; cargo waiting via " + AIBaseStation.GetName(other_station) + " = " + cargo_waiting_via_other_station + " ; cargo waiting via any station = " + cargo_waiting_via_any_station + " (total = " + cargo_waiting + ")");
 		if (cargo_waiting < engine_capacity) continue;
 		local number_to_add = 1 + cargo_waiting / engine_capacity;
 
@@ -1267,16 +1347,26 @@ function WrightAI::SellAirport(stationId) {
 }
 
 function WrightAI::BuildAirRoute() {
-	local current_date = AIDate.GetCurrentDate();
+	local start_date = AIDate.GetCurrentDate();
 	local route = this.BuildAirportRoute();
-	local days = AIDate.GetCurrentDate() - current_date;
+	buildTimer += AIDate.GetCurrentDate() - start_date;
+	if (route[0] == null) return;
 	if (route[0] > 0) {
-		AILog.Warning("Built air route between " + AIBaseStation.GetName(route[1]) + " and " + AIBaseStation.GetName(route[2]) + " in " + days + " day" + (days != 1 ? "s" : "") + ".");
+		AILog.Warning("Built air route between " + AIBaseStation.GetName(route[1]) + " and " + AIBaseStation.GetName(route[2]) + " in " + buildTimer + " day" + (buildTimer != 1 ? "s" : "") + ".");
 	} else {
 		if (route[0] < 0) {
-			AILog.Error(days + " day" + (days != 1 ? "s" : "") + " wasted!");
+			AILog.Error(buildTimer + " day" + (buildTimer != 1 ? "s" : "") + " wasted!");
 		}
 	}
+	this.from_location = -1;
+	this.from_type = AIAirport.AT_INVALID;
+	this.from_stationId = -1;
+	this.small_aircraft_route = -1;
+	this.large_aircraft_route = -1;
+	this.helicopter_route = -1;
+	this.airportTypes.Clear();
+	this.triedTowns2.Clear();
+	buildTimer = 0;
 }
 
 function WrightAI::DistanceRealFake(t0, t1)
@@ -1318,15 +1408,6 @@ function WrightAI::GetEngineDaysInTransit(engine_id, fakedist)
 }
 
 function WrightAI::GetBestEngineIncome(engine_list, cargo, days_int, aircraft = true) {
-	if (AIGameSettings.GetValue("vehicle_breakdowns")) {
-		local reliability_list = AIList();
-		reliability_list.AddList(engine_list);
-		reliability_list.Valuate(AIEngine.GetReliability);
-		reliability_list.KeepBelowValue(75);
-		if (reliability_list.Count() < engine_list.Count()) {
-			engine_list.RemoveList(reliability_list);
-		}
-	}
 	local best_income = null;
 	local best_distance = 0;
 	local best_engine = null;
@@ -1347,16 +1428,30 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 	local distance_broken_speed = aircraft ? WrightAI.GetEngineBrokenRealFakeDist(engine_id, 1000) : distance_max_speed;
 	local running_cost = AIEngine.GetRunningCost(engine_id);
 	local capacity = AIEngine.GetCapacity(engine_id);
+	local reliability = AIEngine.GetReliability(engine_id);
 
 	local days_in_transit = 0;
 	local best_income = -100000000;
 	local best_distance = 0;
+	local multiplier = reliability;
 	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
+	switch (breakdowns) {
+		case 0:
+			multiplier = 100;
+			break;
+		case 1:
+			multiplier = reliability + (100 - reliability) / 2;
+			break;
+		case 2:
+		default:
+			multiplier = reliability;
+			break;
+	}
 	for (local days = days_int * 3; days <= (breakdowns ? 130 / breakdowns : 185); days++) {
-		local income_max_speed = capacity * AICargo.GetCargoIncome(cargo, distance_max_speed * days / 1000, days) - running_cost * days / 365;
+		local income_max_speed = (capacity * AICargo.GetCargoIncome(cargo, distance_max_speed * days / 1000, days) - running_cost * days / 365) * multiplier;
 //		AILog.Info("engine = " + AIEngine.GetName(engine_id) + " ; days_in_transit = " + days + " ; distance = " + (distance_max_speed * days / 1000) + " ; income = " + income_max_speed + " ; " + (aircraft ? "fakedist" : "tiledist") + " = " + (aircraft ? GetEngineRealFakeDist(engine_id, days) : Utils.GetEngineTileDist(engine_id, days)));
 		if (breakdowns) {
-			local income_broken_speed = capacity * AICargo.GetCargoIncome(cargo, distance_broken_speed * days / 1000, days) - running_cost * days / 365;
+			local income_broken_speed = (capacity * AICargo.GetCargoIncome(cargo, distance_broken_speed * days / 1000, days) - running_cost * days / 365) * 100;
 			if (income_max_speed > 0 && income_broken_speed > 0 && income_max_speed > best_income) {
 				best_income = income_max_speed;
 				best_distance = distance_max_speed * days / 1000;
@@ -1379,12 +1474,27 @@ function WrightAI::GetEngineRouteIncome(engine_id, cargo, fakedist) {
 	local running_cost = AIEngine.GetRunningCost(engine_id);
 	local capacity = AIEngine.GetCapacity(engine_id);
 	local days_in_transit = WrightAI.GetEngineDaysInTransit(engine_id, fakedist);
-	local income = capacity * AICargo.GetCargoIncome(cargo, fakedist, days_in_transit) - running_cost * days_in_transit / 365;
+	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
+	local reliability = AIEngine.GetReliability(engine_id);
+	local multiplier = reliability;
+	switch (breakdowns) {
+		case 0:
+			multiplier = 100;
+			break;
+		case 1:
+			multiplier = reliability + (100 - reliability) / 2;
+			break;
+		case 2:
+		default:
+			multiplier = reliability;
+			break;
+	}
+	local income = (capacity * AICargo.GetCargoIncome(cargo, fakedist, days_in_transit) - running_cost * days_in_transit / 365) * multiplier;
 	return income;
 }
 
 function WrightAI::checkAdjacentStation(airportTile, airport_type) {
-	if (!AIController.GetSetting("station_spread")) {
+	if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
 		return AIStation.STATION_NEW;
 	}
 
@@ -1392,9 +1502,15 @@ function WrightAI::checkAdjacentStation(airportTile, airport_type) {
 	local spreadrectangle = expandAdjacentStationRect(airportTile, airport_type);
 	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
 
-	tileList.Valuate(Utils.isTileMyStationWithoutAirport);
-	tileList.KeepValue(1);
-	tileList.Valuate(AIStation.GetStationID);
+	local templist = AITileList();
+	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+		if (Utils.isTileMyStationWithoutAirport(tile)) {
+			tileList.SetValue(tile, AIStation.GetStationID(tile));
+		} else {
+			templist.AddTile(tile);
+		}
+	}
+	tileList.RemoveList(templist);
 
 	local stationList = AIList();
 	for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
@@ -1566,6 +1682,7 @@ function WrightAI::save() {
 
 	array.append(usedTownsTable);
 	array.append(cargoClass);
+	array.append(best_air_routes_built);
 
 	return array;
 }
@@ -1580,6 +1697,8 @@ function WrightAI::load(data) {
 	vehicle_to_depot = data[1];
 	local table = data[2];
 	cargoClass = data[3];
+	best_air_routes_built = data[4];
+//	AILog.Info("best_air_routes_built = " + best_air_routes_built);
 
 	local i = 0;
 	while(table.rawin(i)) {
