@@ -57,6 +57,9 @@ Town Cargo:
 
     - Mail:
     The AI creates Mail only routes via road and/or air.
+	
+	- Passengers and Mail:
+    The AI creates both Passenger and Mail routes via road and/or air.
 
 
 Cities only:
@@ -106,12 +109,12 @@ Can station spread:
     started as Random AI, the decision will be randomized on startup.
 
 
-Minimum distance between towns for road routes:
-    This distance is Manhattan. Lower values may help pathfinding faster,
-    but at the cost of lesser profits. Higher values may slow pathfinding
-    and may not necessarily yield the best profits, assuming the default
-    engines are being used. A random value of up to -15/+15 is added on
-    startup, and the limit can never go below 20 or above 130.
+Approximate number of days in transit for road routes:
+    Lower values may help pathfinding faster, but at the cost of lesser
+    profits. Higher values may slow pathfinding and may not necessarily
+    yield the best profits, assuming the default engines are being used. AI
+    random value of up to -5/+5 is added on startup, and the limit can
+    never go below 10 or above 150.
 
 
 Road pathfinder profile:
@@ -168,6 +171,21 @@ Road route capacity mode:
     its vehicles unable to move. It will be constantly doing this all the
     time, which may slow down management. Contrary to the other modes, it
     can add or remove multiple vehicles at once per management cycle.
+
+
+Road route load orders mode:
+    Determines how road vehicles set up their orders. If the AI started as
+    Random AI, the choice will be randomized on startup.
+
+    - Full load before departing:
+	The vehicles will use 'Full load any cargo' on their go-to orders.
+
+    - Load something before departing:
+    A conditional order is placed between their go-to orders that Jump to
+    their respective go-to order when load percentage is equal to zero.
+
+    - May load nothing before departing:
+    The default 'Load if available' is used on their go-to orders.
 
 
 AI-GS communication support:

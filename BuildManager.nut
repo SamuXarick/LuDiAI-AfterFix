@@ -1441,7 +1441,7 @@ class BuildManager {
 		while(bridgeTable.rawin(i)) {
 			local tile = bridgeTable.rawget(i);
 			m_bridgeTiles.AddItem(tile[0], tile[1]);
-			AILog.Info("m_bridgeTiles == " + tile[0] + ", " + tile[1]);
+//			AILog.Info("m_bridgeTiles == " + tile[0] + ", " + tile[1]);
 			++i;
 		}
 

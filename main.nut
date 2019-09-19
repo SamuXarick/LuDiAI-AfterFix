@@ -654,8 +654,6 @@ class LuDiAIAfterFix extends AIController {
 }
 
 function LuDiAIAfterFix::Start() {
-	local cargoId = Utils.getCargoId(cargoClass);
-	local cargostr = AICargo.GetCargoLabel(cargoId);
 	if (AICompany.GetAutoRenewStatus(Utils.MyCID())) AICompany.SetAutoRenewStatus(false);
 
 	if (loading) {

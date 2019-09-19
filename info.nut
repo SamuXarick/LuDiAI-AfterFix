@@ -6,7 +6,7 @@ class LuDiAIAfterFix extends AIInfo {
 	return "LuDiAI AfterFix";
   }
   function GetDescription() {
-	return "Transports passengers or mail with trucks, buses, airplanes and helicopters";
+	return "Transports passengers and mail with trucks, buses, airplanes and helicopters";
   }
   function GetVersion() {
 	return 12;
@@ -15,7 +15,7 @@ class LuDiAIAfterFix extends AIInfo {
 	return 12;
   }
   function GetDate() {
-	return "01-08-2019";
+	return "19-09-2019";
   }
   function CreateInstance() {
 	return "LuDiAIAfterFix";
