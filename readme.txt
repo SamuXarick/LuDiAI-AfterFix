@@ -57,8 +57,8 @@ Town Cargo:
 
     - Mail:
     The AI creates Mail only routes via road and/or air.
-	
-	- Passengers and Mail:
+
+    - Passengers and Mail:
     The AI creates both Passenger and Mail routes via road and/or air.
 
 
@@ -178,7 +178,7 @@ Road route load orders mode:
     Random AI, the choice will be randomized on startup.
 
     - Full load before departing:
-	The vehicles will use 'Full load any cargo' on their go-to orders.
+    The vehicles will use 'Full load any cargo' on their go-to orders.
 
     - Load something before departing:
     A conditional order is placed between their go-to orders that Jump to
