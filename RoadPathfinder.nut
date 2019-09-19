@@ -24,7 +24,7 @@ class Road
 	_cost_drive_through = null;	   ///< The extra cost if a road tile is part of a drive through road station.
 	_max_bridge_length = null;	   ///< The maximum length of a bridge that will be built. Length includes bridge heads.
 	_max_tunnel_length = null;	   ///< The maximum length of a tunnel that will be built. Length includes entrance and exit.
-	_search_range = null;          ///< Range to search aroud source and destination, in either coordinate. 0 indicates unlimited.
+	_search_range = null;          ///< Range to search around source and destination, in either coordinate. 0 indicates unlimited.
 	_pathfinder = null;			   ///< A reference to the used AyStar object.
 
 	cost = null;				   ///< Used to change the costs.
@@ -84,7 +84,7 @@ class Road
 	 * Try to find the path as indicated with InitializePath with the lowest cost.
 	 * @param iterations After how many iterations it should abort for a moment.
 	 *	This value should either be -1 for infinite, or > 0. Any other value
-	 *	aborts immediatly and will never find a path.
+	 *	aborts immediately and will never find a path.
 	 * @return A route if one was found, or false if the amount of iterations was
 	 *	reached, or null if no path was found.
 	 *	You can call this function over and over as long as it returns false,
@@ -194,7 +194,7 @@ function Road::_CostHelperEfficient(self, path, new_tile, coast_cost_only = null
 		}
 
 		if (dist == 1) {
-			/* Check for a turn. We do this by substracting the TileID of the current node from
+			/* Check for a turn. We do this by subtracting the TileID of the current node from
 			 * the TileID of the previous node and comparing that to the difference between the
 			 * previous node and the node before that. */
 			if (prev_tile - par_tile != new_tile - prev_tile) {

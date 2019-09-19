@@ -72,7 +72,7 @@ class RouteManager {
 		return maxAllRoutesProfit;
 	}
 
-	//wont build any new stations if 1
+	//won't build any new stations if 1
 	function hasMaxStationCount(cityFrom, cityTo, cargoClass) {
 //		return 0;
 

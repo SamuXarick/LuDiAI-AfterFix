@@ -109,7 +109,7 @@ function FibonacciHeap::Pop() {
 
 	/* The root_cache contains all the nodes which will form the
 	 *	new rootList. We reset the priority to the maximum number
-	 *	for a 32 signed integer to find a new minumum. */
+	 *	for a 32 signed integer to find a new minimum. */
 	tmp_root_list.resize(root_cache.len());
 	local i = 0;
 	local tmp_min_priority = 0x7FFFFFFF;

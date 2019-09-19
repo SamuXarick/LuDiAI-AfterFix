@@ -159,7 +159,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 
 	local square = AITileList();
 	if (!AIController.GetSetting("is_friendly")) {
-		//dont care about enemy stations when is_friendly is off
+		//don't care about enemy stations when is_friendly is off
 		square.AddRectangle(Utils.getValidOffsetTile(tile, (-1) * squareSize, (-1) * squareSize),
 			Utils.getValidOffsetTile(tile, squareSize, squareSize));
 

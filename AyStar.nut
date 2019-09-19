@@ -53,7 +53,7 @@ class AyStar
 	/**
 	 * Try to find the path as indicated with InitializePath with the lowest cost.
 	 * @param iterations After how many iterations it should abort for a moment.
-	 *	This value should be > 0. Any other value aborts immediatly and will never
+	 *	This value should be > 0. Any other value aborts immediately and will never
 	 *	find a path.
 	 * @return A route if one was found, or false if the amount of iterations was
 	 *	reached, or null if no path was found.
