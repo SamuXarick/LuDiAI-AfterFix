@@ -53,7 +53,7 @@ Town Cargo:
     the choice will be randomized on startup.
 
     - Passengers:
-    The AI creates Passenger only routes via road and/or air. 
+    The AI creates Passenger only routes via road and/or air.
 
     - Mail:
     The AI creates Mail only routes via road and/or air.

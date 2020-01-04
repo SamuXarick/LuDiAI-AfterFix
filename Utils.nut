@@ -225,7 +225,7 @@ function Utils::isTileMyStationWithoutRoadStationOfAnyType(tile) {
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP)) {
 		return 1;
 	}
-	
+
 	return 0;
 }
 

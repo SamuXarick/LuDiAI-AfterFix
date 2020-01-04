@@ -13,7 +13,6 @@ require("WrightAI.nut");
 
 class LuDiAIAfterFix extends AIController {
 	MAX_TOWN_VEHICLES = AIGameSettings.GetValue("max_roadveh");
-//	MIN_DISTANCE = AIController.GetSetting("road_min_dist");
 	DAYS_IN_TRANSIT = AIController.GetSetting("road_days_in_transit");
 	MAX_DISTANCE_INCREASE = 25;
 
@@ -154,7 +153,7 @@ class LuDiAIAfterFix extends AIController {
 //					AILog.Info("New city found: " + AITown.GetName(cityFrom));
 
 					townManager.findNearCities(cityFrom, min_dist, max_dist, ((bestRoutesBuilt & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
-					
+
 					if (!townManager.HasArrayCargoClassPairs(cC)) {
 						AILog.Info("No near city available");
 						cityFrom = null;
@@ -265,7 +264,7 @@ class LuDiAIAfterFix extends AIController {
 		if (lastManagedArray < 0) lastManagedArray = routeManager.m_townRouteArray.len() - 1;
 		if (lastManagedManagement < 0) lastManagedManagement = 8;
 	}
-	
+
 	function InterruptManagement(cur_date) {
 		if (AIDate.GetCurrentDate() - cur_date > 1) {
 			if (lastManagedArray == -1) lastManagedManagement--;
@@ -273,17 +272,17 @@ class LuDiAIAfterFix extends AIController {
 		}
 		return false;
 	}
-	
+
 	function updateVehicles() {
 		local max_roadveh = AIGameSettings.GetValue("max_roadveh");
 		if (max_roadveh != MAX_TOWN_VEHICLES) {
 			MAX_TOWN_VEHICLES = max_roadveh;
 			AILog.Info("MAX_TOWN_VEHICLES = " + MAX_TOWN_VEHICLES);
 		}
-		
+
 		local cur_date = AIDate.GetCurrentDate();
 		ResetManagementVariables();
-		
+
 //		for (local i = lastManagedArray; i >= 0; --i) {
 //			if (lastManagedManagement != 9) break;
 //			lastManagedArray--;
@@ -633,12 +632,12 @@ class LuDiAIAfterFix extends AIController {
 
 		table.rawset("sent_to_depot_air_group", sentToDepotAirGroup);
 		table.rawset("sent_to_depot_road_group", sentToDepotRoadGroup);
-		
+
 		table.rawset("last_managed_array", lastManagedArray);
 		table.rawset("last_managed_management", lastManagedManagement);
-		
+
 		table.rawset("reserved_money", reservedMoney);
-		
+
 		table.rawset("cargo_class", cargoClass);
 
 //		AILog.Warning("Saved!");
@@ -720,19 +719,19 @@ function LuDiAIAfterFix::Start() {
 			if (loadData[1].rawin("sent_to_depot_road_group")) {
 				sentToDepotRoadGroup = loadData[1].rawget("sent_to_depot_road_group");
 			}
-			
+
 			if (loadData[1].rawin("last_managed_array")) {
 				lastManagedArray = loadData[1].rawget("last_managed_array");
 			}
-			
+
 			if (loadData[1].rawin("last_managed_management")) {
 				lastManagedManagement = loadData[1].rawget("last_managed_management");
 			}
-			
+
 			if (loadData[1].rawin("reserved_money")) {
 				reservedMoney = loadData[1].rawget("reserved_money");
 			}
-			
+
 			if (loadData[1].rawin("cargo_class")) {
 				cargoClass = loadData[1].rawget("cargo_class");
 			}
@@ -743,7 +742,7 @@ function LuDiAIAfterFix::Start() {
 				local stationTo = buildManager.m_stationTo;
 				local depotTile = buildManager.m_depotTile;
 				local stationType = buildManager.m_cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
-				
+
 				if (stationFrom == -1 || stationTo == -1) {
 					local stationList = AIStationList(stationType);
 					local allStationsTiles = AITileList();
@@ -769,7 +768,7 @@ function LuDiAIAfterFix::Start() {
 							}
 						}
 					}
-					
+
 					if (allTilesFound.Count() != allStationsTiles.Count()) {
 //						AILog.Info(allTilesFound.Count() + " != " + allStationsTiles.Count());
 						local allTilesMissing = AITileList();
@@ -886,7 +885,7 @@ function LuDiAIAfterFix::Start() {
 		wrightAI.ManageAirRoutes();
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageAirRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
-		
+
 		if (AIController.GetSetting("air_support")) {
 			if (!AIController.GetSetting ("road_support") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD) ||
 					(routeManager.getRoadVehicleCount() > 125 || MAX_TOWN_VEHICLES <= 125 && routeManager.getRoadVehicleCount() > WrightAI.GetAircraftCount() * 4) ||
@@ -905,7 +904,7 @@ function LuDiAIAfterFix::Start() {
 		PerformTownActions();
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("PerformTownActions " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
-		
+
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . FoundTown");
 		FoundTown();
