@@ -162,7 +162,7 @@ Road route capacity mode:
     Same as above, but instead of 25 road vehicles, the maximum number is
     based on the distance between stations, maximum speed of the engine
     and the number of loading bays available at the stations. Stations may
-    also spread to accomodate more loading bays, and thus more vehicles.
+    also spread to accommodate more loading bays, and thus more vehicles.
     It also adds one at a time per management cycle.
 
     - Adjust number of road vehicles dynamically:

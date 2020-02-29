@@ -139,7 +139,7 @@ v6 (22-12-2018)
 - Account for more road vehicles when estimating costs for building a road
   route
 - Save messages are hidden
-- The maximum number of pathfinder attemps is now based on distance and
+- The maximum number of pathfinder attempts is now based on distance and
   profile used. Also reduces duration of each attempt
 - The formula used for computing days in transit for a road vehicle was
   wrong and has been fixed

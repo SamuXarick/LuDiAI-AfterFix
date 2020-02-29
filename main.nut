@@ -468,7 +468,7 @@ class LuDiAIAfterFix extends AIController {
 					if (AITown.IsActionAvailable(town, action)) {
 						local perform_action = true;
 						if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//							AILog.Info("Cost of perfoming action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+//							AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
 							if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 								perform_action = false;
 							}
@@ -489,7 +489,7 @@ class LuDiAIAfterFix extends AIController {
 							if (AITown.IsActionAvailable(town, action)) {
 								local perform_action = true;
 								if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//									AILog.Info("Cost of perfoming action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+//									AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
 									if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 										perform_action = false;
 									}
@@ -503,7 +503,7 @@ class LuDiAIAfterFix extends AIController {
 							if (AITown.IsActionAvailable(town, action)) {
 								local perform_action = true;
 								if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//									AILog.Info("Cost of perfoming action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+//									AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
 									if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 										perform_action = false;
 									}
@@ -517,7 +517,7 @@ class LuDiAIAfterFix extends AIController {
 							if (AITown.IsActionAvailable(town, action)) {
 								local perform_action = true;
 								if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//									AILog.Info("Cost of perfoming action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+//									AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
 									if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 										perform_action = false;
 									}
@@ -534,7 +534,7 @@ class LuDiAIAfterFix extends AIController {
 						if (AITown.IsActionAvailable(town, action) && AITown.GetFundBuildingsDuration(town) == 0) {
 							local perform_action = true;
 							if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//								AILog.Info("Cost of perfoming action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+//								AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
 								if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 									perform_action = false;
 								}

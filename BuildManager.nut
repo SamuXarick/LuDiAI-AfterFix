@@ -351,7 +351,7 @@ class BuildManager {
 					do {
 						if (!TestBuildRoadStation().TryBuild(tile, closestAdjTile, vehicleType, adjacentAirport)) {
 							//if((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
-								//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
+								//AILog.Warning("Couldn't build station! " + AIError.GetLastErrorString());
 							//}
 							++counter;
 						}
@@ -523,7 +523,7 @@ class BuildManager {
 					local adjTile = adjRoadTiles.Begin();
 					local nextAdjTile = adjRoadTiles.Next();
 
-					//dont build drivethrough station next to regular station
+					//don't build drivethrough station next to regular station
 					adjTileList.RemoveItem(adjTile);
 					adjTileList.RemoveItem(nextAdjTile);
 					local blocking = false;
@@ -564,7 +564,7 @@ class BuildManager {
 							if (!TestBuildDriveThroughRoadStation().TryBuild(tile, adjTile, vehicleType, adjacentAirport)) {
 								if ((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
 									if (AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
-										//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
+										//AILog.Warning("Couldn't build station! " + AIError.GetLastErrorString());
 									}
 								}
 								++counter;
@@ -647,7 +647,7 @@ class BuildManager {
 							if (!TestBuildRoadStation().TryBuild(tile, adjTile, vehicleType, adjacentAirport)) {
 								if ((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
 									if (AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
-										//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
+										//AILog.Warning("Couldn't build station! " + AIError.GetLastErrorString());
 									}
 								}
 								++counter;
@@ -740,7 +740,7 @@ class BuildManager {
 						if (!TestBuildDriveThroughRoadStation().TryBuild(tile, adjTile, vehicleType, adjacentAirport)) {
 							if ((AIError.GetLastErrorString() != "ERR_ALREADY_BUILT") && (AIError.GetLastErrorString() != "ERR_PRECONDITION_FAILED")) {
 								if (AIError.GetLastErrorString() != "ERR_LOCAL_AUTHORITY_REFUSES") {
-									//AILog.Warning("Couldnt build station! " + AIError.GetLastErrorString());
+									//AILog.Warning("Couldn't build station! " + AIError.GetLastErrorString());
 								}
 							}
 							++counter;

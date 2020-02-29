@@ -250,7 +250,7 @@ function BuildAirportRoutePart2()
 	this.towns_used.AddItem(airport1_town, this.from_location);
 	this.towns_used.AddItem(airport2_town, airport2_location);
 
-//	AILog.Warning("Done building aicraft route.");
+//	AILog.Warning("Done building aircraft route.");
 	return [ret, station_Id1, station_Id2];
 }
 

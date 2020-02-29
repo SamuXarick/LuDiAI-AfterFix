@@ -120,7 +120,7 @@ class LuDiAIAfterFix extends AIInfo {
 
 	AddSetting({
 	  name = "road_days_in_transit",
-	  description = "Aproximate number of days in transit for road routes",
+	  description = "Approximate number of days in transit for road routes",
 	  min_value = 10,
 	  max_value = 150,
 	  easy_value = 30,
