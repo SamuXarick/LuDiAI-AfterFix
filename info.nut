@@ -6,16 +6,16 @@ class LuDiAIAfterFix extends AIInfo {
 	return "LuDiAI AfterFix";
   }
   function GetDescription() {
-	return "Transports passengers or mail with trucks, buses, airplanes and helicopters";
+	return "Transports passengers and mail with trucks, buses, airplanes and helicopters";
   }
   function GetVersion() {
-	return 12;
+	return 13;
   }
   function MinVersionToLoad() {
 	return 12;
   }
   function GetDate() {
-	return "01-08-2019";
+	return "04-01-2020";
   }
   function CreateInstance() {
 	return "LuDiAIAfterFix";
@@ -118,20 +118,6 @@ class LuDiAIAfterFix extends AIInfo {
 	  flags = CONFIG_BOOLEAN | CONFIG_RANDOM | CONFIG_INGAME
 	});
 
-//	AddSetting({
-//	  name = "road_min_dist",
-//	  description = "Minimum distance between towns for road routes",
-//	  min_value = 20,
-//	  max_value = 130,
-//	  easy_value = 40,
-//	  medium_value = 60,
-//	  hard_value = 85,
-//	  custom_value = 40,
-//	  random_deviation = 15,
-//	  step_size = 15,
-//	  flags = CONFIG_NONE
-//	});
-	
 	AddSetting({
 	  name = "road_days_in_transit",
 	  description = "Approximate number of days in transit for road routes",
@@ -213,5 +199,3 @@ class LuDiAIAfterFix extends AIInfo {
 }
 
 RegisterAI(LuDiAIAfterFix());
-
-

@@ -2,32 +2,32 @@ require("AyStar.nut");
 
 /**
  * A Road Pathfinder.
- *	This road pathfinder tries to find a buildable / existing route for
- *	road vehicles. You can changes the costs below using for example
- *	roadpf.cost.turn = 30. Note that it's not allowed to change the cost
- *	between consecutive calls to FindPath. You can change the cost before
- *	the first call to FindPath and after FindPath has returned an actual
- *	route. To use only existing roads, set cost.no_existing_road to
- *	cost.max_cost.
+ * This road pathfinder tries to find a buildable / existing route for
+ * road vehicles. You can changes the costs below using for example
+ * roadpf.cost.turn = 30. Note that it's not allowed to change the cost
+ * between consecutive calls to FindPath. You can change the cost before
+ * the first call to FindPath and after FindPath has returned an actual
+ * route. To use only existing roads, set cost.no_existing_road to
+ * cost.max_cost.
  */
 class Road
 {
 	_aystar_class = AyStar;
-	_max_cost = null;			   ///< The maximum cost for a route.
-	_cost_tile = null;			   ///< The cost for a single road tile, bridge tile or tunnel tile.
+	_max_cost = null;              ///< The maximum cost for a route.
+	_cost_tile = null;             ///< The cost for a single road tile, bridge tile or tunnel tile.
 	_cost_no_existing_road = null; ///< The cost that is added to _cost_tile if no road connection exists between two tiles. Cost is doubled when the tile to enter has no road, no bridge and no tunnel.
-	_cost_turn = null;			   ///< The cost that is added to _cost_tile if the direction changes.
-	_cost_slope = null;			   ///< The extra cost if a road tile or bridge head is sloped.
+	_cost_turn = null;             ///< The cost that is added to _cost_tile if the direction changes.
+	_cost_slope = null;            ///< The extra cost if a road tile or bridge head is sloped.
 	_cost_bridge_per_tile = null;  ///< The extra cost per tile for a bridge.
 	_cost_tunnel_per_tile = null;  ///< The extra cost per tile for a tunnel.
-	_cost_coast = null;			   ///< The extra cost if a new road tile or new bridge head is on a coast tile with water.
-	_cost_drive_through = null;	   ///< The extra cost if a road tile is part of a drive through road station.
-	_max_bridge_length = null;	   ///< The maximum length of a bridge that will be built. Length includes bridge heads.
-	_max_tunnel_length = null;	   ///< The maximum length of a tunnel that will be built. Length includes entrance and exit.
+	_cost_coast = null;            ///< The extra cost if a new road tile or new bridge head is on a coast tile with water.
+	_cost_drive_through = null;    ///< The extra cost if a road tile is part of a drive through road station.
+	_max_bridge_length = null;     ///< The maximum length of a bridge that will be built. Length includes bridge heads.
+	_max_tunnel_length = null;     ///< The maximum length of a tunnel that will be built. Length includes entrance and exit.
 	_search_range = null;          ///< Range to search around source and destination, in either coordinate. 0 indicates unlimited.
-	_pathfinder = null;			   ///< A reference to the used AyStar object.
+	_pathfinder = null;            ///< A reference to the used AyStar object.
 
-	cost = null;				   ///< Used to change the costs.
+	cost = null;                   ///< Used to change the costs.
 	_running = null;
 	_min_x = null;
 	_max_x = null;
@@ -103,18 +103,18 @@ class Road.Cost
 		if (this._main._running) throw("You are not allowed to change parameters of a running pathfinder.");
 
 		switch (idx) {
-			case "max_cost":		      this._main._max_cost = val; break;
-			case "tile":			      this._main._cost_tile = val; break;
-			case "no_existing_road":      this._main._cost_no_existing_road = val; break;
-			case "turn":			      this._main._cost_turn = val; break;
-			case "slope":			      this._main._cost_slope = val; break;
-			case "bridge_per_tile":	      this._main._cost_bridge_per_tile = val; break;
-			case "tunnel_per_tile":	      this._main._cost_tunnel_per_tile = val; break;
-			case "coast":			      this._main._cost_coast = val; break;
-			case "drive_through":	      this._main._cost_drive_through = val; break;
-			case "max_bridge_length":     this._main._max_bridge_length = val; break;
-			case "max_tunnel_length":     this._main._max_tunnel_length = val; break;
-			case "search_range":          this._main._search_range = val; break;
+			case "max_cost":          this._main._max_cost = val; break;
+			case "tile":              this._main._cost_tile = val; break;
+			case "no_existing_road":  this._main._cost_no_existing_road = val; break;
+			case "turn":              this._main._cost_turn = val; break;
+			case "slope":             this._main._cost_slope = val; break;
+			case "bridge_per_tile":   this._main._cost_bridge_per_tile = val; break;
+			case "tunnel_per_tile":   this._main._cost_tunnel_per_tile = val; break;
+			case "coast":             this._main._cost_coast = val; break;
+			case "drive_through":     this._main._cost_drive_through = val; break;
+			case "max_bridge_length": this._main._max_bridge_length = val; break;
+			case "max_tunnel_length": this._main._max_tunnel_length = val; break;
+			case "search_range":      this._main._search_range = val; break;
 			default: throw("the index '" + idx + "' does not exist");
 		}
 
@@ -124,18 +124,18 @@ class Road.Cost
 	function _get(idx)
 	{
 		switch (idx) {
-			case "max_cost":		      return this._main._max_cost;
-			case "tile":			      return this._main._cost_tile;
-			case "no_existing_road":      return this._main._cost_no_existing_road;
-			case "turn":			      return this._main._cost_turn;
-			case "slope":			      return this._main._cost_slope;
-			case "bridge_per_tile":	      return this._main._cost_bridge_per_tile;
-			case "tunnel_per_tile":	      return this._main._cost_tunnel_per_tile;
-			case "coast":			      return this._main._cost_coast;
-			case "drive_through":	      return this._main._cost_drive_through;
-			case "max_bridge_length":     return this._main._max_bridge_length;
-			case "max_tunnel_length":     return this._main._max_tunnel_length;
-			case "search_range":          return this._main._search_range;
+			case "max_cost":          return this._main._max_cost;
+			case "tile":              return this._main._cost_tile;
+			case "no_existing_road":  return this._main._cost_no_existing_road;
+			case "turn":              return this._main._cost_turn;
+			case "slope":             return this._main._cost_slope;
+			case "bridge_per_tile":   return this._main._cost_bridge_per_tile;
+			case "tunnel_per_tile":   return this._main._cost_tunnel_per_tile;
+			case "coast":             return this._main._cost_coast;
+			case "drive_through":     return this._main._cost_drive_through;
+			case "max_bridge_length": return this._main._max_bridge_length;
+			case "max_tunnel_length": return this._main._max_tunnel_length;
+			case "search_range":      return this._main._search_range;
 			default: throw("the index '" + idx + "' does not exist");
 		}
 	}

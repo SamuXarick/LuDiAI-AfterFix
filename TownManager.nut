@@ -20,12 +20,12 @@ class TownPair {
 
 		return 0;
 	}
-	
+
 	function hasCargoClass(cargoClass) {
 		if (m_cargoClass == cargoClass) {
 			return 1;
 		}
-		
+
 		return 0;
 	}
 
@@ -57,7 +57,7 @@ class TownManager {
 
 	constructor() {
 
-		m_townList = BuildTownList();
+		m_townList = AIList();
 
 		m_nearCityPairArray = [];
 		m_usedCitiesPass = AIList();
@@ -70,7 +70,7 @@ class TownManager {
 	function BuildTownList();
 	function HasArrayCargoClassPairs(cargoClass);
 	function ClearCargoClassArray(cargoClass);
-	
+
 	function ClearCargoClassArray(cargoClass) {
 		for (local i = m_nearCityPairArray.len() - 1; i >= 0; --i) {
 			if (m_nearCityPairArray[i].hasCargoClass(cargoClass)) {
@@ -78,7 +78,7 @@ class TownManager {
 			}
 		}
 	}
-	
+
 	function HasArrayCargoClassPairs(cargoClass) {
 		for (local i = 0; i < m_nearCityPairArray.len(); ++i) {
 			if (m_nearCityPairArray[i].hasCargoClass(cargoClass)) {
@@ -284,7 +284,7 @@ class TownManager {
 				}
 				localPairList.KeepList(templist);
 			}
-			
+
 			if (!localPairList.Count()) {
 				return;
 			}
@@ -343,7 +343,7 @@ class TownManager {
 		for (local town = m_usedCitiesPass.Begin(), i = 0; !m_usedCitiesPass.IsEnd(); town = m_usedCitiesPass.Next(), ++i) {
 			usedTownsPassTable.rawset(i, town);
 		}
-		
+
 		local usedTownsMailTable = {};
 		for (local town = m_usedCitiesMail.Begin(), i = 0; !m_usedCitiesMail.IsEnd(); town = m_usedCitiesMail.Next(), ++i) {
 			usedTownsMailTable.rawset(i, town);
@@ -360,7 +360,7 @@ class TownManager {
 		if (m_usedCitiesPass == null) {
 			m_usedCitiesPass = AIList();
 		}
-		
+
 		if (m_usedCitiesMail == null) {
 			m_usedCitiesMail = AIList();
 		}
@@ -386,7 +386,7 @@ class TownManager {
 			++i;
 		}
 		AILog.Info("Loaded " + m_usedCitiesPass.Count() + " used cities Pass.");
-		
+
 		local usedTownsMailTable = data[2];
 
 		i = 0;

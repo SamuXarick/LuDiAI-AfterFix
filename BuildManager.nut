@@ -979,7 +979,7 @@ class BuildManager {
 
 			local cur_date = AIDate.GetCurrentDate();
 			local path;
-			
+
 //			local count = 0;
 			do {
 				++m_pathfinderTries;
@@ -1410,7 +1410,7 @@ class BuildManager {
 		if (m_articulated == null) {
 			m_articulated = -1;
 		}
-		
+
 		route.append(m_cityFrom);
 		route.append(m_cityTo);
 		route.append(m_stationFrom);
@@ -1441,7 +1441,7 @@ class BuildManager {
 		while(bridgeTable.rawin(i)) {
 			local tile = bridgeTable.rawget(i);
 			m_bridgeTiles.AddItem(tile[0], tile[1]);
-			AILog.Info("m_bridgeTiles == " + tile[0] + ", " + tile[1]);
+//			AILog.Info("m_bridgeTiles == " + tile[0] + ", " + tile[1]);
 			++i;
 		}
 

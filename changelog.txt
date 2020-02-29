@@ -1,6 +1,86 @@
 LuDiAI AfterFix
 ===============
 
+v13 (04-01-2020)
+- Fixed a bug that caused the AI to take too long to start
+- When chosing a place for an airport, also take mail acceptance into
+  consideration when "Town cargo" is set to "Passengers and Mail"
+
+v12 (19-09-2019)
+- Reworked all remaining valuators in hope to prevent stalls caused by the
+  AI
+- Don't terminate a route under plan when in the meanwhile the maximum
+  number of road vehicles is reached. Resume it later whenever the limit
+  permits it
+- Prefer building stations on locations with more houses around while best
+  routes are not yet used
+- Pathfinder number of tries have been changed to iterations, and is now
+  interrupted after more than a day iterating, to be resumed later on
+- Custom and fastest pathfinder profiles tweaked to restrict the search
+  area into a rectangle, which should improve pathfind total time
+- Reworked how breakdowns are taken into consideration. It no longer
+  filters out engines from the choice pool. It is now part of the income
+  formula
+- Added "Road route load orders mode" setting with 3 options to chose
+  from: "Full load before departing", "Load something before departing"
+  and "May load nothing before departing"
+- Changed the way vehicles are added to newly constructed road routes. A
+  vehicle is started every few days after the previous one, which should
+  end improving cargo rating at the stations
+- Only send negative profit road vehicles to depots 30 days after the last
+  time a vehicle was added on a route, and after all vehicles have started
+  on a new route. Also remove then one at a time
+- When renewing road vehicles, remember which order the vehicle was
+  running, and skip to it after renewal
+- Fixed a bug that happened during jam detection, where the information
+  about last time a vehicle was removed was missing
+- Road vehicles added to an existing route, via "Adjust number of road
+  vehicles dynamically" option, now start to go to whichever station has
+  the most cargo waiting, by subtracting the engine capacity each time one
+  is added in this manner
+- Set group names to road routes and air routes
+- Added the ability to select "Passengers and Mail" for "Town cargo"
+  setting
+- When evaluating towns for possible road and air routes, use a customized
+  cargo production rating based on transported percentage for "Most cargo
+  produced first" option
+- Fixed a bug in "None, pick at random" which was preventing the last two
+  available towns to be picked by the randomizer
+- Fixed a bug with freeform edges that caused getting the offset of a tile
+  to be off by 1
+- Fixed a bug when checking for stations nearby, an incorrect radius was
+  being applied to the search
+- Fixed a bug in getting the first available Passenger or Mail cargo. It
+  was, instead, getting the last available ones.
+- Fixed a bug on checking wether "distant_join_stations" were on,
+  preventing construction of airports and road stations on adjacent
+  road stations and airports as separate stations
+- Reworked air route plan mode, to be more flexible by allowing it to
+  interrupt the search after more than a day iterating suitable locations
+  for airports
+- Fixed a bug that prevented displaying a message about new air routes
+  being successfully built if all planned aircraft weren't built
+- Fixed a bug that caused clearing the lists of tried towns in an
+  incorrect manner, causing the town search to not finish correctly,
+  during 2nd airport construction phase
+- Permit building airports with less catchment radius once the best routes
+  have been used
+- "Minimum distance between towns for road routes" has been removed.
+  "Aproximate number of days in transit for road routes" has been added,
+  which replaces the old setting. Has a minimum value of 10 and a maximum
+  of 150. Note that much higher values increase the pathfinding search to
+  unfeasible amounts of time
+- Reworked road route management to be more often interrupted, to allow
+  the AI perform more of the other tasks
+- Allow construction of more road vehicle stations on already serviced
+  towns once best routes have been used, or if "None, pick at random" is
+  chosen
+- Builds all statues first, then advertising campaigns after, and try not
+  to advertise as much as before
+- Added a workaround for when loading from a savegame, it removes road
+  stations or depots that happen to not be registered during save due to
+  being in a queue that hasn't finished in time before the save occurred
+
 v11 (08-04-2019)
 - Failure to detect a 2 tile sized tunnel or bridge was preventing road
   construction
@@ -59,7 +139,7 @@ v6 (22-12-2018)
 - Account for more road vehicles when estimating costs for building a road
   route
 - Save messages are hidden
-- The maximum number of pathfinder attempts is now based on distance and 
+- The maximum number of pathfinder attempts is now based on distance and
   profile used. Also reduces duration of each attempt
 - The formula used for computing days in transit for a road vehicle was
   wrong and has been fixed

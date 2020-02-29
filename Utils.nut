@@ -225,7 +225,7 @@ function Utils::isTileMyStationWithoutRoadStationOfAnyType(tile) {
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP)) {
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -314,7 +314,7 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 		return stationId;
 	}
 
-	if (!AIController.GetSetting("station_spread")) {
+	if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
 		return AIStation.STATION_NEW;
 	}
 
@@ -382,7 +382,7 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	local adjacentStation = AIStation.STATION_NEW;
 	if (list.Count()) {
 		adjacentStation = list.Begin();
-		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
+//		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
 	}
 
 	return adjacentStation;

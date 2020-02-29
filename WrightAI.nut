@@ -14,14 +14,14 @@ class WrightAI extends AIController {
 	big_engine_list = null;
 	small_engine_list = null;
 	helicopter_list = null;
-	
+
 	from_location = null;
 	from_type = null;
 	from_stationId = null;
 	small_aircraft_route = null;
 	large_aircraft_route = null;
 	helicopter_route = null;
-	
+
 	airportTypes = null;
 
 	constructor(CargoClass, sentToDepotAirGroup) {
@@ -36,14 +36,14 @@ class WrightAI extends AIController {
 		cargoId = Utils.getCargoId(CargoClass);
 		cargoClass = CargoClass
 		vehicle_to_depot = sentToDepotAirGroup;
-		
+
 		from_location = -1;
 		from_type = AIAirport.AT_INVALID;
 		from_stationId = -1;
 		small_aircraft_route = -1;
 		large_aircraft_route = -1;
 		helicopter_route = -1;
-		
+
 		airportTypes = AIList();
 	}
 };
@@ -70,7 +70,7 @@ function WrightAI::UpdateAircraftLists() {
 			}
 		}
 	}
-	
+
 	if (big_engine_list.Count() > 1) big_engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 	if (small_engine_list.Count() > 1) small_engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 	if (helicopter_list.Count() > 1) helicopter_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
@@ -84,7 +84,7 @@ function WrightAI::BuildAirportRoute()
 {
 	/* Check if we can build more aircraft. */
 	if (GetAircraftCount() >= AIGameSettings.GetValue("max_aircraft") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_AIR)) return [0, null, null];
-	
+
 	if (this.from_location != -1) return BuildAirportRoutePart2();
 
 	/* Create a list of available airports */
@@ -205,7 +205,7 @@ function WrightAI::BuildAirportRoute()
 	this.large_aircraft_route = tile_1[2];
 	this.small_aircraft_route = tile_1[3];
 	this.helicopter_route = tile_1[4];
-	
+
 	return [null, null, null];
 }
 
@@ -300,7 +300,7 @@ function WrightAI::GetBestAirportEngine(type, return_list = false, squared_dist 
 function WrightAI::GetBestRouteEngine(tile_1, tile_2) {
 	local small_aircraft = AIAirport.GetAirportType(tile_1) == AIAirport.AT_SMALL || AIAirport.GetAirportType(tile_2) == AIAirport.AT_SMALL ||
 		AIAirport.GetAirportType(tile_1) == AIAirport.AT_COMMUTER || AIAirport.GetAirportType(tile_2) == AIAirport.AT_COMMUTER;
-		
+
 	local helicopter = AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELIPORT || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELIPORT ||
 		AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELIDEPOT || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELIDEPOT ||
 		AIAirport.GetAirportType(tile_1) == AIAirport.AT_HELISTATION || AIAirport.GetAirportType(tile_2) == AIAirport.AT_HELISTATION;
@@ -843,7 +843,7 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 			return [-1, AIAirport.AT_INVALID, large_aircraft, small_aircraft, helicopter, -1];
 		}
 	}
-	
+
 	local cur_date = AIDate.GetCurrentDate();
 
 	/* Now find a suitable town */
@@ -976,7 +976,13 @@ function WrightAI::FindSuitableAirportSpot(airportTypes, airport1_tile, large_ai
 					tempList.RemoveItem(tile);
 					continue;
 				}
-				
+				if (AIController.GetSetting("select_town_cargo") == 2) {
+					if (AITile.GetCargoAcceptance(tile, Utils.getCargoId(AICargo.CC_MAIL), airport_x, airport_y, airport_rad) < 10) {
+						tempList.RemoveItem(tile);
+						continue;
+					}
+				}
+
 				local cargo_production = AITile.GetCargoProduction(tile, this.cargoId, airport_x, airport_y, airport_rad);
 				if (pick_mode != 1 && !best_air_routes_built && cargo_production < 18) {
 					tempList.RemoveItem(tile);
