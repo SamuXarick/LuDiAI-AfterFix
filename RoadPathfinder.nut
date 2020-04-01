@@ -331,11 +331,11 @@ function Road::_Neighbours(self, path, cur_node,
 				if (self._IsInsideRangeEfficient(self, next_tile)) tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);
 			} else if ((_AITile.IsBuildable(next_tile) || _AIRoad.IsRoadTile(next_tile) && !_AIRail.IsLevelCrossingTile(next_tile) ||
 					(_AIRoad.IsRoadStationTile(next_tile) || _AIRoad.IsRoadDepotTile(next_tile)) && _AITile.GetOwner(next_tile) == _AICompany.ResolveCompanyID(_AICompany.COMPANY_SELF)) &&
-					(!par || _AIRoad.CanBuildConnectedRoadPartsHere(cur_node, last_node, next_tile)) &&
+					(!par || _AIRoad.CanBuildConnectedRoadPartsHere(cur_node, last_node, next_tile) > 0) &&
 					_AIRoad.BuildRoad(cur_node, next_tile)) {
 				if (self._IsInsideRangeEfficient(self, next_tile)) tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);
 			} else if (self._CheckTunnelBridgeEfficient(cur_node, next_tile) &&
-					(!par || _AIRoad.CanBuildConnectedRoadPartsHere(cur_node, last_node, next_tile)) && _AIRoad.BuildRoad(cur_node, next_tile)) {
+					(!par || _AIRoad.CanBuildConnectedRoadPartsHere(cur_node, last_node, next_tile) > 0) && _AIRoad.BuildRoad(cur_node, next_tile)) {
 				if (self._IsInsideRangeEfficient(self, next_tile)) tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);
 			}
 		}

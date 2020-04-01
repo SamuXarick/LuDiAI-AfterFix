@@ -1,5 +1,42 @@
 LuDiAI AfterFix
 ===============
+v14 (09-03-2020)
+- OpenTTD and API requirements set to 1.10.0
+- Fixed english typos in the code, readme and changelog
+- Road bridge names are no longer reported as rail bridges
+- Planning air routes now takes into consideration whether infrastructure
+  maintenance costs are enabled or not. It's far from perfect, but the AI
+  plans air routes with at least 7 aircraft and try to fully serve it,
+  before attempting a new route. It also only considers airports with the
+  cheapest maintenance costs that can still support each of the aircraft
+  types available. Due to the conservative approach of these changes, the
+  AI may not perform as well as before in the very long run, but it should
+  be able to have a better start
+- Upgrading engines to a better model may be done over time instead of all
+  at once, depending on available money
+- AI is now able to get the correct capacity of a refited vehicle in most
+  situations which should result in better engine choices
+- Fixed a bug that caused detection of a suitable tile for a road depot to
+  be incorrect
+- Fixed a bug in the road pathfinder which in theory should result in a
+  better path choice
+- Fixed a bug that caused helicopter routes to be created without a hangar
+  resulting in no helicopters being built and the route being demolished
+  right away
+- Reduced the amount of messages about failed air routes caused by low
+  funds
+- Aircraft routes may now be fully closed if they're not profitable enough
+- Tweaked the income formula for aircraft, most noticeable the estimated
+  optimal number of days when "Vehicle breakdowns" are set to "Normal". It
+  is also able to determine how many aircraft are needed to turn a profit
+- Fixed a rare division by zero error that could occur when counting the
+  number of vehicles needed for a route
+- Town actions, such as building statues, advertising campaigns and
+  founding towns, now may only happen when the loan is zero which should
+  result in better survivability of the AI
+- When looking for a suitable airport location, also take into
+  consideration the distance to the center of the town in case of multiple
+  spots with the same number of houses nearby
 
 v13 (04-01-2020)
 - Fixed a bug that caused the AI to take too long to start

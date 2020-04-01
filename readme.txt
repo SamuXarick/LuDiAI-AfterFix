@@ -24,6 +24,7 @@ Main differences or improvements
 - Is aware of plane speed setting
 - Is aware of aircraft max range
 - Is aware of map size for route distances
+- Is aware of infrastructure maintenance costs
 - Matches aircraft type with airport type
 - Plans optimal distances between airports
 - May build more than one aircraft per route at once

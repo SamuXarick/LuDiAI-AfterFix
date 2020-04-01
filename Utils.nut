@@ -1,4 +1,64 @@
-Utils <- class {}
+Utils <- class
+{
+	pass_capacities_list = AIList();
+	mail_capacities_list = AIList();
+	secondary_capacities_list = AIList(); // secondary capacity for a pass/mail aircraft
+
+	function GetBuildWithRefitCapacity(depot, engine, cargo) {
+		if (!AIEngine.IsBuildable(engine)) return 0;
+		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
+			if (!Utils.pass_capacities_list.HasItem(engine)) {
+				Utils.pass_capacities_list.AddItem(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
+			}
+			return Utils.pass_capacities_list.GetValue(engine);
+		} else if (AICargo.HasCargoClass(cargo, AICargo.CC_MAIL)) {
+			if (!Utils.mail_capacities_list.HasItem(engine)) {
+				Utils.mail_capacities_list.AddItem(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
+			}
+			return Utils.mail_capacities_list.GetValue(engine);
+		}
+		assert(false);
+	}
+
+	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
+		if (!AIEngine.IsBuildable(engine)) return 0;
+		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
+
+		if (!Utils.secondary_capacities_list.HasItem(engine)) {
+			local pass_capacity = Utils.GetBuildWithRefitCapacity(hangar, engine, Utils.getCargoId(AICargo.CC_PASSENGERS));
+			local mail_capacity = Utils.GetBuildWithRefitCapacity(hangar, engine, Utils.getCargoId(AICargo.CC_MAIL));
+			Utils.secondary_capacities_list.AddItem(engine, mail_capacity - pass_capacity);
+//			AILog.Info("Capacity for " + AIEngine.GetName(engine) + ": " + pass_capacity + " " + AICargo.GetCargoLabel(Utils.getCargoId(AICargo.CC_PASSENGERS)) + ", " + (mail_capacity - pass_capacity) + " " + AICargo.GetCargoLabel(Utils.getCargoId(AICargo.CC_MAIL)));
+		}
+		return Utils.secondary_capacities_list.GetValue(engine);
+	}
+
+	function GetCapacity(engine, cargo) {
+		if (!AIEngine.IsBuildable(engine)) return 0;
+		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
+			if (!Utils.pass_capacities_list.HasItem(engine)) {
+				return AIEngine.GetCapacity(engine);
+			}
+			return Utils.pass_capacities_list.GetValue(engine);
+		} else if (AICargo.HasCargoClass(cargo, AICargo.CC_MAIL)) {
+			if (!Utils.mail_capacities_list.HasItem(engine)) {
+				return AIEngine.GetCapacity(engine);
+			}
+			return Utils.mail_capacities_list.GetValue(engine);
+		}
+		assert(false);
+	}
+
+	function GetSecondaryCapacity(engine) {
+		if (!AIEngine.IsBuildable(engine)) return 0;
+		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
+
+		if (!Utils.secondary_capacities_list.HasItem(engine)) {
+			return 0;
+		}
+		return Utils.secondary_capacities_list.GetValue(engine);
+	}
+}
 
 function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 	local velocity = AIGameSettings.GetValue("units_velocity");
@@ -169,8 +229,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 				return true;
 			}
 		}
-	}
-	else {
+	} else {
 		square.AddRectangle(Utils.getValidOffsetTile(tile, (-1) * squareSize, (-1) * squareSize),
 			Utils.getValidOffsetTile(tile, squareSize, squareSize));
 
@@ -257,7 +316,7 @@ function Utils::IsTownGrowing(town, cargo) {
 	local cargoRequired = AIList();
 	for (local cargo_type = cargoList.Begin(); !cargoList.IsEnd(); cargo_type = cargoList.Next()) {
 		local town_effect = AICargo.GetTownEffect(cargo_type);
-		local class_name = "";
+//		local class_name = "";
 //		for (local cc = 0; cc <= 15; cc++) {
 //			local cargo_class = 1 << cc;
 //			if (AICargo.HasCargoClass(cargo_type, cargo_class)) {
@@ -280,14 +339,14 @@ function Utils::IsTownGrowing(town, cargo) {
 //		}
 //		AILog.Info("Cargo " + cargo_type + ": " + AICargo.GetCargoLabel(cargo_type) + (class_name == "" ? "" : "; CargoClass = " + class_name));
 		if (town_effect != AICargo.TE_NONE) {
-			local effect_name;
-			switch(town_effect) {
-				case AICargo.TE_PASSENGERS: effect_name = "TE_PASSENGERS"; break;
-				case AICargo.TE_MAIL: effect_name = "TE_MAIL"; break;
-				case AICargo.TE_GOODS: effect_name = "TE_GOODS"; break;
-				case AICargo.TE_WATER: effect_name = "TE_WATER"; break;
-				case AICargo.TE_FOOD: effect_name = "TE_FOOD"; break;
-			}
+//			local effect_name;
+//			switch(town_effect) {
+//				case AICargo.TE_PASSENGERS: effect_name = "TE_PASSENGERS"; break;
+//				case AICargo.TE_MAIL: effect_name = "TE_MAIL"; break;
+//				case AICargo.TE_GOODS: effect_name = "TE_GOODS"; break;
+//				case AICargo.TE_WATER: effect_name = "TE_WATER"; break;
+//				case AICargo.TE_FOOD: effect_name = "TE_FOOD"; break;
+//			}
 //			AILog.Info(" - Effect of " + AICargo.GetCargoLabel(cargo_type) + " in " + AITown.GetName(town) + " is " + effect_name);
 			local cargo_goal = AITown.GetCargoGoal(town, town_effect);
 			if (cargo_goal != 0) {
@@ -673,87 +732,6 @@ class TestBuildAirport extends MoneyTest {
 	}
 }
 
-class TestBuildAircraft extends MoneyTest {
-	h = null;
-	e = null;
-	v = null;
-
-	function DoAction() {
-		v = AIVehicle.BuildVehicle(h, e);
-		if (!AIVehicle.IsValidVehicle(v)) {
-			return false;
-		}
-		return true;
-	}
-
-	function GetPrice() {
-		return AIEngine.GetPrice(e);
-	}
-
-	function TryBuild(best_hangar, engine) {
-		h = best_hangar;
-		e = engine;
-		if (DoMoneyTest()) {
-			return v;
-		}
-		return AIVehicle.VEHICLE_INVALID;
-	}
-}
-
-class TestCloneAircraft extends MoneyTest {
-	d = null;
-	v = null;
-	s = null;
-	c = null;
-
-	function DoAction() {
-		c = AIVehicle.CloneVehicle(d, v, s);
-		if (!AIVehicle.IsValidVehicle(c)) {
-			return false;
-		}
-		return true;
-	}
-
-	function GetPrice() {
-		return AIEngine.GetPrice(AIVehicle.GetEngineType(v)) + 12500;
-	}
-
-	function TryClone(depot, vehicle, shared) {
-		d = depot;
-		v = vehicle;
-		s = shared;
-		if (DoMoneyTest()) {
-			return c;
-		}
-		return AIVehicle.VEHICLE_INVALID;
-	}
-}
-
-class TestRefitAircraft extends MoneyTest {
-	v = null;
-	c = null;
-
-	function DoAction() {
-		if (AIExecMode() && AIVehicle.RefitVehicle(v, c)) {
-			return true;
-		}
-		AIVehicle.SellVehicle(v);
-		return false;
-	}
-
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIVehicle.RefitVehicle(v, c);
-		return cost.GetCosts();
-	}
-
-	function TryRefit(vehicle, cargoId) {
-		v = vehicle;
-		c = cargoId;
-		return DoMoneyTest();
-	}
-}
-
 class TestRemoveAirport extends MoneyTest {
 	l = null;
 
@@ -779,13 +757,14 @@ class TestRemoveAirport extends MoneyTest {
 	}
 }
 
-class TestBuildRoadVehicle extends MoneyTest {
+class TestBuildVehicleWithRefit extends MoneyTest {
 	d = null;
 	e = null;
+	c = null;
 	v = null;
 
 	function DoAction() {
-		v = AIVehicle.BuildVehicle(d, e);
+		v = AIVehicle.BuildVehicleWithRefit(d, e, c);
 		if (!AIVehicle.IsValidVehicle(v)) {
 			return false;
 		}
@@ -793,12 +772,15 @@ class TestBuildRoadVehicle extends MoneyTest {
 	}
 
 	function GetPrice() {
-		return AIEngine.GetPrice(e);
+		local cost = AIAccounting();
+		AITestMode() && AIVehicle.BuildVehicleWithRefit(d, e, c);
+		return cost.GetCosts();
 	}
 
-	function TryBuild(depot, engine) {
+	function TryBuild(depot, engine, cargo) {
 		d = depot;
 		e = engine;
+		c = cargo;
 		if (DoMoneyTest()) {
 			return v;
 		}
@@ -806,7 +788,7 @@ class TestBuildRoadVehicle extends MoneyTest {
 	}
 }
 
-class TestCloneRoadVehicle extends MoneyTest {
+class TestCloneVehicle extends MoneyTest {
 	d = null;
 	v = null;
 	s = null;
@@ -821,7 +803,7 @@ class TestCloneRoadVehicle extends MoneyTest {
 	}
 
 	function GetPrice() {
-		return AIEngine.GetPrice(AIVehicle.GetEngineType(v));
+		return AIEngine.GetPrice(AIVehicle.GetEngineType(v)) + (AIAirport.IsHangarTile(d) ? 12500 : 0);
 	}
 
 	function TryClone(depot, vehicle, shared) {
@@ -832,31 +814,6 @@ class TestCloneRoadVehicle extends MoneyTest {
 			return c;
 		}
 		return AIVehicle.VEHICLE_INVALID;
-	}
-}
-
-class TestRefitRoadVehicle extends MoneyTest {
-	v = null;
-	c = null;
-
-	function DoAction() {
-		if (AIExecMode() && AIVehicle.RefitVehicle(v, c)) {
-			return true;
-		}
-		AIVehicle.SellVehicle(v);
-		return false;
-	}
-
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIVehicle.RefitVehicle(v, c);
-		return cost.GetCosts();
-	}
-
-	function TryRefit(vehicle, cargoId) {
-		v = vehicle;
-		c = cargoId;
-		return DoMoneyTest();
 	}
 }
 

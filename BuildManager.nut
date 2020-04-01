@@ -1233,7 +1233,7 @@ class BuildManager {
 		assert(roadTile != null);
 
 		for (local adjacentTile = adjacentTiles.Begin(); !adjacentTiles.IsEnd(); adjacentTile = adjacentTiles.Next()) {
-			if (AIRoad.AreRoadTilesConnected(tile, adjacentTile) || AITile.IsBuildable(adjacentTile) && (AITile.GetSlope(adjacentTile) == AITile.SLOPE_FLAT || !AITile.IsCoastTile(adjacentTile) || !AITile.HasTransportType(adjacentTile, AITile.TRANSPORT_WATER) || Utils.HasMoney(AICompany.GetMaxLoanAmount() * 2)) && AIRoad.CanBuildConnectedRoadPartsHere(tile, roadTile, adjacentTile)) {
+			if (AIRoad.AreRoadTilesConnected(tile, adjacentTile) || AITile.IsBuildable(adjacentTile) && (AITile.GetSlope(adjacentTile) == AITile.SLOPE_FLAT || !AITile.IsCoastTile(adjacentTile) || !AITile.HasTransportType(adjacentTile, AITile.TRANSPORT_WATER) || Utils.HasMoney(AICompany.GetMaxLoanAmount() * 2)) && AIRoad.CanBuildConnectedRoadPartsHere(tile, roadTile, adjacentTile) == 1) {
 				depotTile = adjacentTile;
 				break;
 			}
@@ -1455,4 +1455,3 @@ class BuildManager {
 		return;
 	}
 }
-

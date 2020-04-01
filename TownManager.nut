@@ -50,14 +50,17 @@ class TownPair {
 
 class TownManager {
 	m_townList = null;
+	m_townCount = null;
+	m_citiesOnly = null;
 
 	m_nearCityPairArray = null;
 	m_usedCitiesPass = null;
 	m_usedCitiesMail = null;
 
 	constructor() {
-
 		m_townList = AIList();
+		m_townCount = 0;
+		m_citiesOnly = -1;
 
 		m_nearCityPairArray = [];
 		m_usedCitiesPass = AIList();
@@ -93,6 +96,13 @@ class TownManager {
 	}
 
 	function BuildTownList() {
+		local townCount = AITown.GetTownCount();
+		local citiesOnly = AIController.GetSetting("cities_only");
+		if (townCount == m_townCount && citiesOnly == m_citiesOnly) return;
+
+		m_townCount = townCount;
+		m_citiesOnly = citiesOnly;
+
 		m_townList = AITownList();
 		if (AIController.GetSetting("cities_only")) {
 			m_townList = AITownList();
@@ -127,8 +137,7 @@ class TownManager {
 			} else {
 				m_usedCitiesMail.AddItem(unusedTown, 0);
 			}
-		}
-		else {
+		} else {
 			local cargo = Utils.getCargoId(cargoClass);
 			for (local town = localList.Begin(); !localList.IsEnd(); town = localList.Next()) {
 				localList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));

@@ -147,7 +147,7 @@ class Route extends RouteManager {
 			local max_speed = AIEngine.GetMaxSpeed(engine);
 			local days_in_transit = (distance * 192 * 16) / (2 * 3 * 74 * max_speed / 4);
 			local running_cost = AIEngine.GetRunningCost(engine);
-			local capacity = AIEngine.GetCapacity(engine);
+			local capacity = Utils.GetBuildWithRefitCapacity(m_depotTile, engine, cargo);
 			local income = ((capacity * AICargo.GetCargoIncome(cargo, distance, days_in_transit) - running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 //			AILog.Info("Engine: " + AIEngine.GetName(engine) + "; Capacity: " + capacity + "; Max Speed: " + max_speed + "; Days in transit: " + days_in_transit + "; Running Cost: " + running_cost + "; Distance: " + distance + "; Income: " + income);
 			if (best_income == null || income > best_income) {
@@ -184,7 +184,7 @@ class Route extends RouteManager {
 				if (bridge_list.Count() > 0) {
 					local new_bridge = bridge_list.Begin();
 					if (TestBuildBridge().TryBuild(AIVehicle.VT_ROAD, new_bridge, north_tile, south_tile)) {
-						AILog.Info("Bridge at tiles " + north_tile + " and " + south_tile + " upgraded from " + AIBridge.GetName(old_bridge) + " (" + Utils.ConvertKmhishSpeedToDisplaySpeed(AIBridge.GetMaxSpeed(old_bridge)) + ") to " + AIBridge.GetName(new_bridge) + " (" + Utils.ConvertKmhishSpeedToDisplaySpeed(AIBridge.GetMaxSpeed(new_bridge)) + ")");
+						AILog.Info("Bridge at tiles " + north_tile + " and " + south_tile + " upgraded from " + AIBridge.GetName(old_bridge, AIVehicle.VT_ROAD) + " (" + Utils.ConvertKmhishSpeedToDisplaySpeed(AIBridge.GetMaxSpeed(old_bridge)) + ") to " + AIBridge.GetName(new_bridge, AIVehicle.VT_ROAD) + " (" + Utils.ConvertKmhishSpeedToDisplaySpeed(AIBridge.GetMaxSpeed(new_bridge)) + ")");
 					}
 				}
 			}
@@ -213,16 +213,9 @@ class Route extends RouteManager {
 
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
-			new_vehicle = TestBuildRoadVehicle().TryBuild(this.m_depotTile, this.m_engine);
-			if (AIVehicle.IsValidVehicle(new_vehicle)) {
-				if (!TestRefitRoadVehicle().TryRefit(new_vehicle, Utils.getCargoId(m_cargoClass))) {
-					AILog.Error("Could not refit " + AIVehicle.GetName(new_vehicle));
-					Utils.RepayLoan();
-					return null;
-				}
-			}
+			new_vehicle = TestBuildVehicleWithRefit().TryBuild(this.m_depotTile, this.m_engine, Utils.getCargoId(m_cargoClass));
 		} else {
-			new_vehicle = TestCloneRoadVehicle().TryClone(this.m_depotTile, clone_vehicle_id, (AIVehicle.IsValidVehicle(share_orders_vid) && share_orders_vid == clone_vehicle_id) ? true : false);
+			new_vehicle = TestCloneVehicle().TryClone(this.m_depotTile, clone_vehicle_id, (AIVehicle.IsValidVehicle(share_orders_vid) && share_orders_vid == clone_vehicle_id) ? true : false);
 		}
 
 		if (AIVehicle.IsValidVehicle(new_vehicle)) {
@@ -323,7 +316,7 @@ class Route extends RouteManager {
 		local articulatedEngine = AIEngine.IsArticulated(this.m_engine);
 		local count_interval = ((AIEngine.GetMaxSpeed(this.m_engine) * 2 * 3 * 74 * MIN_VEHICLE_START_COUNT / 4) / 192) / 16;
 //		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + AIEngine.GetMaxSpeed(this.m_engine));
-		local vehicleCount = /*2 * */stationDistance / count_interval;
+		local vehicleCount = /*2 * */(count_interval > 0 ? (stationDistance / count_interval) : 0);
 //		AILog.Info("vehicleCount = " + vehicleCount);
 
 		local fromCount = 0;
@@ -500,10 +493,10 @@ class Route extends RouteManager {
 	function sellVehiclesInDepot() {
 		local vehicleList = vehicleList();
 		local sentToDepotList = this.sentToDepotList(0);
-		sentToDepotList.KeepList(vehicleList);
+//		sentToDepotList.KeepList(vehicleList);
 
 		for (local vehicle = sentToDepotList.Begin(); !sentToDepotList.IsEnd(); vehicle = sentToDepotList.Next()) {
-			if (AIVehicle.IsStoppedInDepot(vehicle)) {
+			if (vehicleList.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
 				local vehicle_name = AIVehicle.GetName(vehicle);
 				AIVehicle.SellVehicle(vehicle);
 				Utils.RepayLoan();
@@ -512,12 +505,12 @@ class Route extends RouteManager {
 			}
 		}
 
-		vehicleList = this.vehicleList();
+//		vehicleList = this.vehicleList();
 		sentToDepotList = this.sentToDepotList(1);
-		sentToDepotList.KeepList(vehicleList);
+//		sentToDepotList.KeepList(vehicleList);
 
 		for (local vehicle = sentToDepotList.Begin(); !sentToDepotList.IsEnd(); vehicle = sentToDepotList.Next()) {
-			if (AIVehicle.IsStoppedInDepot(vehicle)) {
+			if (vehicleList.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
 				local skip_to_order = AIOrder.ResolveOrderPosition(vehicle, AIOrder.ORDER_CURRENT);
 				AIVehicle.SellVehicle(vehicle)
 				Utils.RepayLoan();
@@ -634,10 +627,13 @@ class Route extends RouteManager {
 
 	function renewVehicles() {
 		local vehicleList = this.vehicleList();
+		local engine_price = AIEngine.GetPrice(this.m_engine);
+		local count = 1 + AIVehicleList_Group(m_sentToDepotRoadGroup[1]).Count();
 
 		for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
-			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine) {
+			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
 				if (sendVehicleToDepot(vehicle)) {
+					count++;
 					if (!AIGroup.MoveVehicle(m_sentToDepotRoadGroup[1], vehicle)) {
 						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + m_sentToDepotRoadGroup[1]);
 					}
@@ -725,7 +721,7 @@ class Route extends RouteManager {
 		}
 
 		if (!AIGroup.IsValidGroup(m_group)) {
-			m_group = AIGroup.CreateGroup(AIVehicle.VT_ROAD);
+			m_group = AIGroup.CreateGroup(AIVehicle.VT_ROAD, AIGroup.GROUP_INVALID);
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.SetName(m_group, (m_cargoClass == AICargo.CC_PASSENGERS ? "P" : "M") + AIMap.DistanceManhattan(m_stationFrom, m_stationTo) + ": " + m_stationFrom + " - " + m_stationTo);
 				AILog.Info("Created " + AIGroup.GetName(m_group) + " for road route from " + AIBaseStation.GetName(AIStation.GetStationID(m_stationFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(m_stationTo)));

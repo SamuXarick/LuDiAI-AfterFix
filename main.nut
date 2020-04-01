@@ -88,7 +88,7 @@ class LuDiAIAfterFix extends AIController {
 				local bestengineinfo = WrightAI.GetBestEngineIncome(engineList, cargo, Route.START_VEHICLE_COUNT, false);
 				local max_distance = (DAYS_IN_TRANSIT * 2 * 3 * 74 * AIEngine.GetMaxSpeed(bestengineinfo[0]) / 4) / (192 * 16);
 				local min_distance = max(20, max_distance * 2 / 3);
-//				AILog.Info("bestengineinfo: best_engine = " + AIEngine.GetName(bestengineinfo[0]) + "; best_distance = " + bestengineinfo[1] + "; max_distance = " + max_distance);
+//				AILog.Info("bestengineinfo: best_engine = " + AIEngine.GetName(bestengineinfo[0]) + "; best_distance = " + bestengineinfo[1] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);
 
 				local map_size = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
 				local min_dist = min_distance > map_size / 3 ? map_size / 3 : min_distance;
@@ -473,7 +473,7 @@ class LuDiAIAfterFix extends AIController {
 								perform_action = false;
 							}
 						}
-						if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
+						if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
 							statuecount++;
 							AILog.Warning("Built a statue in " + AITown.GetName(town) + " (" + statuecount + "/" + towncount + ")");
 						}
@@ -494,7 +494,7 @@ class LuDiAIAfterFix extends AIController {
 										perform_action = false;
 									}
 								}
-								if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
+								if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
 									AILog.Warning("Initiated a small advertising campaign in " + AITown.GetName(town) + ".");
 								}
 							}
@@ -508,7 +508,7 @@ class LuDiAIAfterFix extends AIController {
 										perform_action = false;
 									}
 								}
-								if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
+								if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
 									AILog.Warning("Initiated a medium advertising campaign in " + AITown.GetName(town) + ".");
 								}
 							}
@@ -522,7 +522,7 @@ class LuDiAIAfterFix extends AIController {
 										perform_action = false;
 									}
 								}
-								if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
+								if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
 									AILog.Warning("Initiated a large advertising campaign in " + AITown.GetName(town) + ".");
 								}
 							}
@@ -539,7 +539,7 @@ class LuDiAIAfterFix extends AIController {
 									perform_action = false;
 								}
 							}
-							if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
+							if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
 								AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town) + ".");
 							}
 						}
@@ -593,7 +593,7 @@ class LuDiAIAfterFix extends AIController {
 						perform_action = false;
 					}
 				}
-				if (perform_action && TestFoundTown().TryFound(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null)) {
+				if (perform_action && AICompany.GetLoanAmount() == 0 && TestFoundTown().TryFound(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null)) {
 					AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 					if (allRoutesBuilt != 0) {
 						allRoutesBuilt = 0;
@@ -659,7 +659,7 @@ function LuDiAIAfterFix::Start() {
 		if (loadData == null) {
 			for (local i = 0; i < sentToDepotAirGroup.len(); ++i) {
 				if (!AIGroup.IsValidGroup(sentToDepotAirGroup[i])) {
-					sentToDepotAirGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_AIR);
+					sentToDepotAirGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID);
 					if (i == 0) AIGroup.SetName(sentToDepotAirGroup[i], "0: Aircraft to sell");
 					if (i == 1) AIGroup.SetName(sentToDepotAirGroup[i], "1: Aircraft to renew");
 					wrightAI.vehicle_to_depot[i] = sentToDepotAirGroup[i];
@@ -668,7 +668,7 @@ function LuDiAIAfterFix::Start() {
 
 			for (local i = 0; i < sentToDepotRoadGroup.len(); ++i) {
 				if (!AIGroup.IsValidGroup(sentToDepotRoadGroup[i])) {
-					sentToDepotRoadGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_ROAD);
+					sentToDepotRoadGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_ROAD, AIGroup.GROUP_INVALID);
 					if (i == 0) AIGroup.SetName(sentToDepotRoadGroup[i], "0: Road vehicles to sell");
 					if (i == 1) AIGroup.SetName(sentToDepotRoadGroup[i], "1: Road vehicles to renew");
 					routeManager.m_sentToDepotRoadGroup[i] = sentToDepotRoadGroup[i];
@@ -850,14 +850,7 @@ function LuDiAIAfterFix::Start() {
 //		AILog.Info("RepayLoan " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 		if (this.scp != null) {
-//			do {
-				this.scp.Check();
-//				if (cvgs.IsCompanyValueGSGame() || ncg.IsNoCarGoalGame()) {
-//					scp_counter = 0;
-//					break;
-//				}
-//				if (scp_counter < 150) scp_counter++;
-//			} while(scp_counter < 150);
+			this.scp.Check();
 		}
 
 //		local start_tick = AIController.GetTick();
