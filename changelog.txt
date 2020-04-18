@@ -1,5 +1,13 @@
 LuDiAI AfterFix
 ===============
+v16 (18-04-2020)
+- Actually remove NoCarGoal requirements, only part of it was removed
+
+v15 (15-04-2020)
+- Use Native Heap instead of Fibonacci Heap for road pathfinder
+- Tweak road pathfinder code for improved performance
+- Remove NoCarGoal requirements, as it wasn't really using it
+
 v14 (09-03-2020)
 - OpenTTD and API requirements set to 1.10.0
 - Fixed english typos in the code, readme and changelog

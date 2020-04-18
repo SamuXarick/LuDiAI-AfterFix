@@ -1,12 +1,10 @@
-require ("FibonacciHeap.nut");
-
 /**
  * An AyStar implementation.
  *	It solves graphs by finding the fastest route from one point to the other.
  */
 class AyStar
 {
-	_queue_class = FibonacciHeap;
+	_queue_class = import("queue.native_heap", "", 1);
 	_pf_instance = null;
 	_cost_callback = null;
 	_estimate_callback = null;
@@ -69,7 +67,7 @@ function AyStar::InitializePath(source, goal)
 	this._closed = AIList();
 
 	local new_path = this.Path(null, source[0], source[1], this._cost_callback, this._pf_instance);
-	this._open.Insert(new_path, new_path.GetCost() + this._estimate_callback(this._pf_instance, source[0], goal));
+	this._open.Insert(new_path, new_path._cost + this._estimate_callback(this._pf_instance, source[0], goal));
 
 	this._goal = goal;
 }
@@ -79,43 +77,44 @@ function AyStar::FindPath(iterations)
 	while (this._open.Count() && iterations-- > 0) {
 		/* Get the path with the best score so far */
 		local path = this._open.Pop();
-		local cur_tile = path.GetTile();
+		local cur_tile = path._tile;
+		local dir = path._direction;
 		/* Make sure we didn't already passed it */
 		if (this._closed.HasItem(cur_tile)) {
 			/* If the direction is already on the list, skip this entry */
-			if ((this._closed.GetValue(cur_tile) & path.GetDirection()) != 0) continue;
+			if (this._closed.GetValue(cur_tile) & dir) continue;
 
-			/* Scan the path for a possible collision */
-			local scan_path = path.GetParent();
-
-			local mismatch = false;
-			while (scan_path != null) {
-				if (scan_path.GetTile() == cur_tile) {
-					mismatch = true;
-					break;
-				}
-				scan_path = scan_path.GetParent();
-			}
-			if (mismatch) continue;
+//			/* Scan the path for a possible collision */
+//			local scan_path = path.GetParent();
+//
+//			local mismatch = false;
+//			while (scan_path != null) {
+//				if (scan_path._tile == cur_tile) {
+//					mismatch = true;
+//					break;
+//				}
+//				scan_path = scan_path.GetParent();
+//			}
+//			if (mismatch) continue;
 
 			/* Add the new direction */
-			this._closed.SetValue(cur_tile, this._closed.GetValue(cur_tile) | path.GetDirection());
+			this._closed.SetValue(cur_tile, this._closed.GetValue(cur_tile) | dir);
 		} else {
 			/* New entry, make sure we don't check it again */
-			this._closed.AddItem(cur_tile, path.GetDirection());
+			this._closed.AddItem(cur_tile, dir);
 		}
 		/* Check if we found the end */
-		if (cur_tile == /*goal*/this._goal) {
+		if (cur_tile == this._goal) {
 			this._CleanPath();
 			return path;
 		}
 		/* Scan all neighbours */
 		local neighbours = this._neighbours_callback(this._pf_instance, path, cur_tile);
 		foreach (node in neighbours) {
-			if ((this._closed.GetValue(node[0]) & node[1]) != 0) continue;
+			if (this._closed.GetValue(node[0]) & node[1]) continue;
 			/* Calculate the new paths and add them to the open list */
 			local new_path = this.Path(path, node[0], node[1], this._cost_callback, this._pf_instance);
-			this._open.Insert(new_path, new_path.GetCost() + this._estimate_callback(this._pf_instance, node[0], this._goal));
+			this._open.Insert(new_path, new_path._cost + this._estimate_callback(this._pf_instance, node[0], this._goal));
 		}
 	}
 

@@ -180,7 +180,7 @@ function Road::_GetBridgeNumSlopesEfficient(end_a, end_b,
 function Road::_CostHelperEfficient(self, path, new_tile, coast_cost_only = null,
 		_AIBridge = AIBridge, _AITunnel = AITunnel, _AIRoad = AIRoad, _AITile = AITile, _AICompany = AICompany)
 {
-	local prev_tile = path.GetTile();
+	local prev_tile = path._tile;
 	local cost = 0;
 
 	if (coast_cost_only != true) {
@@ -188,9 +188,9 @@ function Road::_CostHelperEfficient(self, path, new_tile, coast_cost_only = null
 
 		local dist = 0;
 		local par_tile = 0;
-		if (path.GetParent() != null) {
-			dist = AIMap.DistanceManhattan(path.GetParent().GetTile(), prev_tile);
-			par_tile = path.GetParent().GetTile();
+		if (path._prev != null) {
+			dist = AIMap.DistanceManhattan(path._prev._tile, prev_tile);
+			par_tile = path._prev._tile;
 		}
 
 		if (dist == 1) {
@@ -239,22 +239,22 @@ function Road::_Cost(self, path, new_tile,
 //	signList.Valuate(AISign.GetLocation);
 //	signList.KeepValue(new_tile);
 //	if (!signList.Count()) AIExecMode() && AISign.BuildSign(new_tile, "x");
-	local prev_tile = path.GetTile();
+	local prev_tile = path._tile;
 	local dist = AIMap.DistanceManhattan(new_tile, prev_tile);
 
 	/* If the new tile is a bridge / tunnel tile, check whether we came from the other
 	 * end of the bridge / tunnel or if we just entered the bridge / tunnel. */
 	if (_AIBridge.IsBridgeTile(new_tile)) {
 		if (_AIBridge.GetOtherBridgeEnd(new_tile) != prev_tile) {
-			return path.GetCost() + self._CostHelperEfficient(self, path, new_tile);
+			return path._cost + self._CostHelperEfficient(self, path, new_tile);
 		}
-		return path.GetCost() + (dist + 1) * self._cost_bridge_per_tile + dist * self._cost_tile + self._GetBridgeNumSlopesEfficient(new_tile, prev_tile) * self._cost_slope;
+		return path._cost + (dist + 1) * self._cost_bridge_per_tile + dist * self._cost_tile + self._GetBridgeNumSlopesEfficient(new_tile, prev_tile) * self._cost_slope;
 	}
 	if (_AITunnel.IsTunnelTile(new_tile)) {
 		if (_AITunnel.GetOtherTunnelEnd(new_tile) != prev_tile) {
-			return path.GetCost() + self._CostHelperEfficient(self, path, new_tile);
+			return path._cost + self._CostHelperEfficient(self, path, new_tile);
 		}
-		return path.GetCost() + (dist + 1) * self._cost_tunnel_per_tile + dist * self._cost_tile;
+		return path._cost + (dist + 1) * self._cost_tunnel_per_tile + dist * self._cost_tile;
 	}
 
 	/* If the two tiles are more than 1 tile apart, the pathfinder wants a bridge or tunnel
@@ -262,13 +262,13 @@ function Road::_Cost(self, path, new_tile,
 	if (dist > 1) {
 		/* Check if we should build a bridge or a tunnel. */
 		if (_AITunnel.GetOtherTunnelEnd(new_tile) == prev_tile) {
-			return path.GetCost() + (dist + 1) * self._cost_tunnel_per_tile + dist * (self._cost_tile + self._cost_no_existing_road * 2);
+			return path._cost + (dist + 1) * self._cost_tunnel_per_tile + dist * (self._cost_tile + self._cost_no_existing_road * 2);
 		} else {
-			return path.GetCost() + (dist + 1) * self._cost_bridge_per_tile + dist * (self._cost_tile + self._cost_no_existing_road * 2) + self._GetBridgeNumSlopesEfficient(new_tile, prev_tile) * self._cost_slope + self._CostHelperEfficient(self, path, new_tile, true);
+			return path._cost + (dist + 1) * self._cost_bridge_per_tile + dist * (self._cost_tile + self._cost_no_existing_road * 2) + self._GetBridgeNumSlopesEfficient(new_tile, prev_tile) * self._cost_slope + self._CostHelperEfficient(self, path, new_tile, true);
 		}
 	}
 
-	return path.GetCost() + self._CostHelperEfficient(self, path, new_tile, false);
+	return path._cost + self._CostHelperEfficient(self, path, new_tile, false);
 }
 
 function Road::_Estimate(self, cur_tile, goal_tile)
@@ -289,10 +289,10 @@ function Road::_Neighbours(self, path, cur_node,
 		_AIBridge = AIBridge, _AITunnel = AITunnel, _AITile = AITile, _AIMap = AIMap, _AIRoad = AIRoad, _AIRail = AIRail, _AICompany = AICompany, _AIVehicle = AIVehicle)
 {
 	/* self._max_cost is the maximum path cost, if we go over it, the path isn't valid. */
-	if (path.GetCost() >= self._max_cost) return [];
+	if (path._cost >= self._max_cost) return [];
 
-	local par = path.GetParent() != null;
-	local last_node = par ? path.GetParent().GetTile() : 0;
+	local par = path._prev != null;
+	local last_node = par ? path._prev._tile : 0;
 
 	local tiles = [];
 

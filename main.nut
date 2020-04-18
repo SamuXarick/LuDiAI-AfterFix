@@ -1,6 +1,5 @@
 import("Library.SCPLib", "SCPLib", 45);
 import("Library.SCPClient_CompanyValueGS", "SCPClient_CompanyValueGS", 1);
-import("Library.SCPClient_NoCarGoal", "SCPClient_NoCarGoal", 1);
 
 require("RouteManager.nut");
 require("Route.nut");
@@ -837,7 +836,6 @@ function LuDiAIAfterFix::Start() {
 //			this.scp.SCPLogging_Error(true);
 		}
 		this.cvgs = SCPClient_CompanyValueGS(this.scp);
-		this.ncg = SCPClient_NoCarGoal(this.scp);
 	}
 //	local scp_counter = 0;
 
