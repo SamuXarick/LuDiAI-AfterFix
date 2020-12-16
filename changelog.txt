@@ -1,5 +1,8 @@
 LuDiAI AfterFix
 ===============
+v17 (16-12-2020)
+- Use Sorted List instead of Native Heap for road pathfinder
+
 v16 (18-04-2020)
 - Actually remove NoCarGoal requirements, only part of it was removed
 
