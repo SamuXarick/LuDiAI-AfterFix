@@ -2,12 +2,12 @@ class LuDiAIAfterFix extends AIInfo {
 	function GetAuthor()        { return "lukin_, Samu"; }
 	function GetName()          { return "LuDiAI AfterFix"; }
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes and helicopters"; }
-	function GetVersion()       { return 17; }
+	function GetVersion()       { return 18; }
 	function MinVersionToLoad() { return 12; }
-	function GetDate()          { return "16-12-2020"; }
+	function GetDate()          { return "11-06-2021"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
-	function GetAPIVersion()    { return "1.10"; }
+	function GetAPIVersion()    { return "1.11"; }
 	function GetURL()           { return "https://www.tt-forums.net/viewtopic.php?f=65&t=83806"; }
 
 	function GetSettings() {

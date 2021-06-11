@@ -466,13 +466,17 @@ class LuDiAIAfterFix extends AIController {
 					local action = AITown.TOWN_ACTION_BUILD_STATUE;
 					if (AITown.IsActionAvailable(town, action)) {
 						local perform_action = true;
-						if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//							AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
-							if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
+						local cost = TestPerformTownAction().TestCost(town, action);
+						if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+							perform_action = false;
+						}
+						if (perform_action && cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
+//							AILog.Info("Cost of performing action: " + cost + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+							if (cost > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 								perform_action = false;
 							}
 						}
-						if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
+						if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
 							statuecount++;
 							AILog.Warning("Built a statue in " + AITown.GetName(town) + " (" + statuecount + "/" + towncount + ")");
 						}
@@ -487,13 +491,17 @@ class LuDiAIAfterFix extends AIController {
 							local action = AITown.TOWN_ACTION_ADVERTISE_SMALL;
 							if (AITown.IsActionAvailable(town, action)) {
 								local perform_action = true;
-								if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//									AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
-									if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
+								local cost = TestPerformTownAction().TestCost(town, action);
+								if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+									perform_action = false;
+								}
+								if (perform_action && cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
+//									AILog.Info("Cost of performing action: " + cost + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+									if (cost > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 										perform_action = false;
 									}
 								}
-								if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
+								if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
 									AILog.Warning("Initiated a small advertising campaign in " + AITown.GetName(town) + ".");
 								}
 							}
@@ -501,13 +509,17 @@ class LuDiAIAfterFix extends AIController {
 							local action = AITown.TOWN_ACTION_ADVERTISE_MEDIUM;
 							if (AITown.IsActionAvailable(town, action)) {
 								local perform_action = true;
-								if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//									AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
-									if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
+								local cost = TestPerformTownAction().TestCost(town, action);
+								if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+									perform_action = false;
+								}
+								if (perform_action && cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
+//									AILog.Info("Cost of performing action: " + cost + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+									if (cost > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 										perform_action = false;
 									}
 								}
-								if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
+								if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
 									AILog.Warning("Initiated a medium advertising campaign in " + AITown.GetName(town) + ".");
 								}
 							}
@@ -515,13 +527,17 @@ class LuDiAIAfterFix extends AIController {
 							local action = AITown.TOWN_ACTION_ADVERTISE_LARGE;
 							if (AITown.IsActionAvailable(town, action)) {
 								local perform_action = true;
-								if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//									AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
-									if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
+								local cost = TestPerformTownAction().TestCost(town, action);
+								if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+									perform_action = false;
+								}
+								if (perform_action && cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
+//									AILog.Info("Cost of performing action: " + cost + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+									if (cost > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 										perform_action = false;
 									}
 								}
-								if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
+								if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
 									AILog.Warning("Initiated a large advertising campaign in " + AITown.GetName(town) + ".");
 								}
 							}
@@ -532,13 +548,17 @@ class LuDiAIAfterFix extends AIController {
 						local action = AITown.TOWN_ACTION_FUND_BUILDINGS;
 						if (AITown.IsActionAvailable(town, action) && AITown.GetFundBuildingsDuration(town) == 0) {
 							local perform_action = true;
-							if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
-//								AILog.Info("Cost of performing action: " + TestPerformTownAction().TestCost(town, action) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
-								if (TestPerformTownAction().TestCost(town, action) > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
+							local cost = TestPerformTownAction().TestCost(town, action);
+							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+								perform_action = false;
+							}
+							if (perform_action && cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(myCID) == 1 && cvgs.RankingList().Count() > 1) {
+//								AILog.Info("Cost of performing action: " + cost + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(myCID, false));
+								if (cost > cvgs.GetCompanyIDDiffToNext(myCID, false)) {
 									perform_action = false;
 								}
 							}
-							if (perform_action && AICompany.GetLoanAmount() == 0 && TestPerformTownAction().TryPerform(town, action)) {
+							if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
 								AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town) + ".");
 							}
 						}
@@ -586,13 +606,17 @@ class LuDiAIAfterFix extends AIController {
 			local town_tile = AIBase.RandRange(AIMap.GetMapSize());
 			if (AIMap.IsValidTile(town_tile) && AITile.IsBuildable(town_tile) && AITile.GetSlope(town_tile) == AITile.SLOPE_FLAT) {
 				local perform_action = true;
-				if (cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(Utils.MyCID()) == 1 && cvgs.RankingList().Count() > 1) {
-//					AILog.Info("Cost of founding town: " + TestFoundTown().TestCost(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null) + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(Utils.MyCID(), false));
-					if (TestFoundTown().TestCost(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null) > cvgs.GetCompanyIDDiffToNext(Utils.MyCID(), false)) {
+				local cost = TestFoundTown().TestCost(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null);
+				if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(Utils.MyCID()) <= cost) {
+					perform_action = false;
+				}
+				if (perform_action && cvgs.IsCompanyValueGSGame() && cvgs.GetCompanyIDRank(Utils.MyCID()) == 1 && cvgs.RankingList().Count() > 1) {
+//					AILog.Info("Cost of founding town: " + cost + " ; Value difference to company behind: " + cvgs.GetCompanyIDDiffToNext(Utils.MyCID(), false));
+					if (cost > cvgs.GetCompanyIDDiffToNext(Utils.MyCID(), false)) {
 						perform_action = false;
 					}
 				}
-				if (perform_action && AICompany.GetLoanAmount() == 0 && TestFoundTown().TryFound(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null)) {
+				if (perform_action && TestFoundTown().TryFound(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null)) {
 					AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 					if (allRoutesBuilt != 0) {
 						allRoutesBuilt = 0;

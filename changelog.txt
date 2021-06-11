@@ -1,5 +1,12 @@
 LuDiAI AfterFix
 ===============
+v18 (11-06-2021)
+- OpenTTD and API requirements set to 1.11.0
+- Use AIPriorityQueue instead of Sorted List for road pathfinder
+- Avoid the AI from loaning (too much) money when performing town actions
+- Fixed a rare crash that could occur when an airport is attached to a
+  road station that expanded in the meanwhile
+
 v17 (16-12-2020)
 - Use Sorted List instead of Native Heap for road pathfinder
 
