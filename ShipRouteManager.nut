@@ -1,33 +1,33 @@
-require("BuildManager.nut");
+require("ShipBuildManager.nut");
 
-class RouteManager {
+class ShipRouteManager {
 	m_townRouteArray = null;
-	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	m_sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
-	constructor(sentToDepotRoadGroup, best_routes_built) {
+	constructor(sentToDepotWaterGroup, best_routes_built) {
 		m_townRouteArray = [];
-		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
+		m_sentToDepotWaterGroup = sentToDepotWaterGroup;
 		m_best_routes_built = best_routes_built;
 	}
 
-	function buildRoute(buildManager, cityFrom, cityTo, cargoClass, articulated, best_routes_built) {
-		local route = buildManager.buildRoute(cityFrom, cityTo, cargoClass, articulated, m_sentToDepotRoadGroup, best_routes_built);
+	function buildRoute(shipBuildManager, cityFrom, cityTo, cargoClass, cheaperRoute, best_routes_built) {
+		local route = shipBuildManager.buildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, m_sentToDepotWaterGroup, best_routes_built);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
-			buildManager.setRouteFinish();
-			return [1, route.m_stationFrom, route.m_stationTo];
+			shipBuildManager.setRouteFinish();
+			return [1, route.m_dockFrom, route.m_dockTo];
 		}
 
 		return [route, null, null];
 	}
 
 
-	function getRoadVehicleCount() {
+	function getShipCount() {
 		local list = AIVehicleList();
 		local vehiclecount = 0;
 		for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_ROAD) {
+			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_WATER) {
 				vehiclecount++;
 			}
 		}
@@ -101,7 +101,7 @@ class RouteManager {
 			array.append(m_townRouteArray[i].saveRoute());
 		}
 
-		return [array, m_sentToDepotRoadGroup, m_best_routes_built];
+		return [array, m_sentToDepotWaterGroup, m_best_routes_built];
 	}
 
 	function loadRouteManager(data) {
@@ -111,15 +111,15 @@ class RouteManager {
 
 		local routearray = data[0];
 
-		local bridges = 0;
+		local buoys = 0;
 		for (local i = 0; i < routearray.len(); i++) {
-			local route = Route.loadRoute(routearray[i]);
+			local route = ShipRoute.loadRoute(routearray[i]);
 			m_townRouteArray.append(route[0]);
-			bridges += route[1];
+			buoys += route[1];
 		}
-		AILog.Info("Loaded " + m_townRouteArray.len() + " routes with " + bridges + " bridges.");
+		AILog.Info("Loaded " + m_townRouteArray.len() + " water routes with " + buoys + " buoys.");
 
-		m_sentToDepotRoadGroup = data[1];
+		m_sentToDepotWaterGroup = data[1];
 		m_best_routes_built = data[2];
 	}
 

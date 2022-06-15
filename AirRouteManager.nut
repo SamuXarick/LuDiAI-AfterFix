@@ -1,33 +1,33 @@
-require("BuildManager.nut");
+require("AirBuildManager.nut");
 
-class RouteManager {
+class AirRouteManager {
 	m_townRouteArray = null;
-	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	m_sentToDepotAirGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
-	constructor(sentToDepotRoadGroup, best_routes_built) {
+	constructor(sentToDepotAirGroup, best_routes_built) {
 		m_townRouteArray = [];
-		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
+		m_sentToDepotAirGroup = sentToDepotAirGroup;
 		m_best_routes_built = best_routes_built;
 	}
 
-	function buildRoute(buildManager, cityFrom, cityTo, cargoClass, articulated, best_routes_built) {
-		local route = buildManager.buildRoute(cityFrom, cityTo, cargoClass, articulated, m_sentToDepotRoadGroup, best_routes_built);
+	function buildRoute(airRouteManager, airBuildManager, airTownManager, cityFrom, cityTo, cargoClass, best_routes_built, all_routes_built) {
+		local route = airBuildManager.buildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, m_sentToDepotAirGroup, best_routes_built, all_routes_built);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
-			buildManager.setRouteFinish();
-			return [1, route.m_stationFrom, route.m_stationTo];
+			airBuildManager.setRouteFinish();
+			return [1, route.m_airportFrom, route.m_airportTo];
 		}
 
 		return [route, null, null];
 	}
 
 
-	function getRoadVehicleCount() {
+	function getAircraftCount() {
 		local list = AIVehicleList();
 		local vehiclecount = 0;
 		for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_ROAD) {
+			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_AIR) {
 				vehiclecount++;
 			}
 		}
@@ -101,7 +101,7 @@ class RouteManager {
 			array.append(m_townRouteArray[i].saveRoute());
 		}
 
-		return [array, m_sentToDepotRoadGroup, m_best_routes_built];
+		return [array, m_sentToDepotAirGroup, m_best_routes_built];
 	}
 
 	function loadRouteManager(data) {
@@ -111,15 +111,13 @@ class RouteManager {
 
 		local routearray = data[0];
 
-		local bridges = 0;
 		for (local i = 0; i < routearray.len(); i++) {
-			local route = Route.loadRoute(routearray[i]);
-			m_townRouteArray.append(route[0]);
-			bridges += route[1];
+			local route = AirRoute.loadRoute(routearray[i]);
+			m_townRouteArray.append(route);
 		}
-		AILog.Info("Loaded " + m_townRouteArray.len() + " routes with " + bridges + " bridges.");
+		AILog.Info("Loaded " + m_townRouteArray.len() + " air routes.");
 
-		m_sentToDepotRoadGroup = data[1];
+		m_sentToDepotAirGroup = data[1];
 		m_best_routes_built = data[2];
 	}
 

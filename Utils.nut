@@ -5,7 +5,7 @@ Utils <- class
 	secondary_capacities_list = AIList(); // secondary capacity for a pass/mail aircraft
 
 	function GetBuildWithRefitCapacity(depot, engine, cargo) {
-		if (!AIEngine.IsBuildable(engine)) return 0;
+//		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
 			if (!Utils.pass_capacities_list.HasItem(engine)) {
 				Utils.pass_capacities_list.AddItem(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
@@ -21,7 +21,7 @@ Utils <- class
 	}
 
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
-		if (!AIEngine.IsBuildable(engine)) return 0;
+//		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
 
 		if (!Utils.secondary_capacities_list.HasItem(engine)) {
@@ -34,7 +34,7 @@ Utils <- class
 	}
 
 	function GetCapacity(engine, cargo) {
-		if (!AIEngine.IsBuildable(engine)) return 0;
+//		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
 			if (!Utils.pass_capacities_list.HasItem(engine)) {
 				return AIEngine.GetCapacity(engine);
@@ -50,13 +50,27 @@ Utils <- class
 	}
 
 	function GetSecondaryCapacity(engine) {
-		if (!AIEngine.IsBuildable(engine)) return 0;
+//		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
 
 		if (!Utils.secondary_capacities_list.HasItem(engine)) {
 			return 0;
 		}
 		return Utils.secondary_capacities_list.GetValue(engine);
+	}
+}
+
+function Utils::TableListToAIList(table) {
+	local list = AIList();
+	foreach(x, y in table) {
+		list.AddItem(x, y);
+	}
+	return list;
+}
+
+function Utils::RemoveAIListFromTableList(ailist, table) {
+	for (local x = ailist.Begin(); !ailist.IsEnd(); x = ailist.Next()) {
+		table.rawdelete(x);
 	}
 }
 
@@ -201,11 +215,35 @@ function Utils::getAdjacentTiles(tile) {
 };
 
 function Utils::IsStationBuildableTile(tile) {
-	if ((AITile.GetSlope(tile) == AITile.SLOPE_FLAT/* || !AITile.IsCoastTile(tile) || !AITile.HasTransportType(tile, AITile.TRANSPORT_WATER) || Utils.HasMoney(AICompany.GetMaxLoanAmount() * 2)*/) &&
+	if ((AITile.GetSlope(tile) == AITile.SLOPE_FLAT/* || !AITile.IsCoastTile(tile) || !AITile.HasTransportType(tile, AITile.TRANSPORT_WATER) || AICompany.GetLoanAmount() == 0*/) &&
 			(AITile.IsBuildable(tile) || AIRoad.IsRoadTile(tile) && !AIRoad.IsDriveThroughRoadStationTile(tile) && !AIRail.IsLevelCrossingTile(tile))) {
 		return true;
 	}
 	return false;
+}
+
+function Utils::IsDockBuildableTile(tile, cheaper_route) {
+	local slope = AITile.GetSlope(tile);
+	if (slope == AITile.SLOPE_FLAT) return [false, null];
+
+	local offset = 0;
+	local tile2 = AIMap.TILE_INVALID;
+	if (AITile.IsBuildable(tile) && (
+			slope == AITile.SLOPE_NE && (offset = AIMap.GetTileIndex(1, 0)) ||
+			slope == AITile.SLOPE_SE && (offset = AIMap.GetTileIndex(0, -1)) ||
+			slope == AITile.SLOPE_SW && (offset = AIMap.GetTileIndex(-1, 0)) ||
+			slope == AITile.SLOPE_NW && (offset = AIMap.GetTileIndex(0, 1)))) {
+		tile2 = tile + offset;
+		if (!AIMap.IsValidTile(tile2)) return [false, null];
+		if (AITile.GetSlope(tile2) != AITile.SLOPE_FLAT) return [false, null];
+		if (!(!cheaper_route && AITile.IsBuildable(tile2) || AITile.IsWaterTile(tile2) && !AIMarine.IsWaterDepotTile(tile2) && !AIMarine.IsLockTile(tile2))) return [false, null];
+		local tile3 = tile2 + offset;
+		if (!AIMap.IsValidTile(tile3)) return [false, null];
+		if (AITile.GetSlope(tile3) != AITile.SLOPE_FLAT) return [false, null];
+		if (!(!cheaper_route && AITile.IsBuildable(tile3) || AITile.IsWaterTile(tile3) && !AIMarine.IsWaterDepotTile(tile3) && !AIMarine.IsLockTile(tile3))) return [false, null];
+	}
+
+	return [true, tile2];
 }
 
 function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
@@ -249,45 +287,100 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 	}
 
 	return false;
-};
+}
+
+function Utils::AreOtherDocksNearby(tile_north, tile_south) {
+	//check if there are other docks squareSize squares nearby
+	local squareSize = AIStation.GetCoverageRadius(AIStation.STATION_DOCK) * 2;
+
+	local square = AITileList();
+	if (!AIController.GetSetting("is_friendly")) {
+		squareSize = 2;
+		//don't care about enemy stations when is_friendly is off
+		square.AddRectangle(Utils.getValidOffsetTile(tile_north, (-1) * squareSize, (-1) * squareSize),
+			Utils.getValidOffsetTile(tile_south, squareSize, squareSize));
+
+		//if another dock of mine is nearby return true
+		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
+			if (Utils.isTileMyDock(tile)) { //negate second expression to merge your stations
+				return true;
+			}
+		}
+	} else {
+		square.AddRectangle(Utils.getValidOffsetTile(tile_north, (-1) * squareSize, (-1) * squareSize),
+			Utils.getValidOffsetTile(tile_south, squareSize, squareSize));
+
+		//if any other station is nearby, except my own airports, return true
+		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
+			if (AITile.IsStationTile(tile)) {
+				if (AITile.GetOwner(tile) != Utils.MyCID()) {
+					return true;
+				} else {
+					local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
+					if (stationTiles.HasItem(tile)) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
 
 function Utils::isTileMyRoadStation(tile, cargoClass) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
+}
+
+function Utils::isTileMyDock(tile) {
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
+		return true;
+	}
+
+	return false;
 }
 
 function Utils::isTileMyStationWithoutAirport(tile) { // Checks RoadStation
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_AIRPORT)) {
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 function Utils::isTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks Airport
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 function Utils::isTileMyStationWithoutRoadStationOfAnyType(tile) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_BUS_STOP) &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP)) {
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
+function Utils::isTileMyStationWithoutDock(tile) {
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
+		return true;
+	}
+
+	return false;
+}
 /// getCargoId - Returns either mail cargo id, or passenger cargo id.
 ///
 /// @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
@@ -367,7 +460,7 @@ function Utils::IsTownGrowing(town, cargo) {
 	return result;
 }
 
-function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
+function Utils::checkAdjacentNonRoadStation(stationTile, stationId)
 {
 	if (stationId != AIStation.STATION_NEW) {
 		return stationId;
@@ -393,10 +486,10 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	}
 	tileList.RemoveList(templist);
 
-	local airportList = AIList();
+	local stationList = AIList();
 
 	for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
-		airportList.AddItem(tileList.GetValue(tile), AITile.GetDistanceManhattanToTile(tile, stationTile));
+		stationList.AddItem(tileList.GetValue(tile), AITile.GetDistanceManhattanToTile(tile, stationTile));
 	}
 
 	local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);
@@ -405,35 +498,35 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	local spreadrectangle_bot_y = AIMap.GetTileY(spreadrectangle[1]);
 
 	local list = AIList();
-	list.AddList(airportList);
-	for (local airportId = airportList.Begin(); !airportList.IsEnd(); airportId = airportList.Next()) {
-		local airportTiles = AITileList_StationType(airportId, AIStation.STATION_ANY);
-		local airport_top_x = AIMap.GetTileX(AIBaseStation.GetLocation(airportId));
-		local airport_top_y = AIMap.GetTileY(AIBaseStation.GetLocation(airportId));
-		local airport_bot_x = airport_top_x;
-		local airport_bot_y = airport_top_y;
-		for (local tile = airportTiles.Begin(); !airportTiles.IsEnd(); tile = airportTiles.Next()) {
+	list.AddList(stationList);
+	for (local stationId = stationList.Begin(); !stationList.IsEnd(); stationId = stationList.Next()) {
+		local stationTiles = AITileList_StationType(stationId, AIStation.STATION_ANY);
+		local station_top_x = AIMap.GetTileX(AIBaseStation.GetLocation(stationId));
+		local station_top_y = AIMap.GetTileY(AIBaseStation.GetLocation(stationId));
+		local station_bot_x = station_top_x;
+		local station_bot_y = station_top_y;
+		for (local tile = stationTiles.Begin(); !stationTiles.IsEnd(); tile = stationTiles.Next()) {
 			local tile_x = AIMap.GetTileX(tile);
 			local tile_y = AIMap.GetTileY(tile);
-			if (tile_x < airport_top_x) {
-				airport_top_x = tile_x;
+			if (tile_x < station_top_x) {
+				station_top_x = tile_x;
 			}
-			if (tile_x > airport_bot_x) {
-				airport_bot_x = tile_x;
+			if (tile_x > station_bot_x) {
+				station_bot_x = tile_x;
 			}
-			if (tile_y < airport_top_y) {
-				airport_top_y = tile_y;
+			if (tile_y < station_top_y) {
+				station_top_y = tile_y;
 			}
-			if (tile_y > airport_bot_y) {
-				airport_bot_y = tile_y;
+			if (tile_y > station_bot_y) {
+				station_bot_y = tile_y;
 			}
 		}
 
-		if (spreadrectangle_top_x > airport_top_x ||
-			spreadrectangle_top_y > airport_top_y ||
-			spreadrectangle_bot_x < airport_bot_x ||
-			spreadrectangle_bot_y < airport_bot_y) {
-			list.RemoveItem(airportId);
+		if (spreadrectangle_top_x > station_top_x ||
+			spreadrectangle_top_y > station_top_y ||
+			spreadrectangle_bot_x < station_bot_x ||
+			spreadrectangle_bot_y < station_bot_y) {
+			list.RemoveItem(stationId);
 		}
 	}
 	list.Sort(AIList.SORT_BY_VALUE, true);
@@ -447,14 +540,461 @@ function Utils::checkAdjacentAirport(stationTile, cargoClass, stationId)
 	return adjacentStation;
 }
 
+function Utils::checkAdjacentNonDock(stationTile)
+{
+	if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
+		return AIStation.STATION_NEW;
+	}
+
+	local tileList = AITileList();
+	local spreadrectangle = Utils.expandAdjacentDockRect(stationTile);
+	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
+
+	local templist = AITileList();
+	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
+		if (Utils.isTileMyStationWithoutDock(tile)) {
+			tileList.SetValue(tile, AIStation.GetStationID(tile));
+		} else {
+			templist.AddTile(tile);
+		}
+	}
+	tileList.RemoveList(templist);
+
+	local stationList = AIList();
+
+	for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
+		stationList.AddItem(tileList.GetValue(tile), AITile.GetDistanceManhattanToTile(tile, stationTile));
+	}
+
+	local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);
+	local spreadrectangle_top_y = AIMap.GetTileY(spreadrectangle[0]);
+	local spreadrectangle_bot_x = AIMap.GetTileX(spreadrectangle[1]);
+	local spreadrectangle_bot_y = AIMap.GetTileY(spreadrectangle[1]);
+
+	local list = AIList();
+	list.AddList(stationList);
+	for (local stationId = stationList.Begin(); !stationList.IsEnd(); stationId = stationList.Next()) {
+		local stationTiles = AITileList_StationType(stationId, AIStation.STATION_ANY);
+		local station_top_x = AIMap.GetTileX(AIBaseStation.GetLocation(stationId));
+		local station_top_y = AIMap.GetTileY(AIBaseStation.GetLocation(stationId));
+		local station_bot_x = station_top_x;
+		local station_bot_y = station_top_y;
+		for (local tile = stationTiles.Begin(); !stationTiles.IsEnd(); tile = stationTiles.Next()) {
+			local tile_x = AIMap.GetTileX(tile);
+			local tile_y = AIMap.GetTileY(tile);
+			if (tile_x < station_top_x) {
+				station_top_x = tile_x;
+			}
+			if (tile_x > station_bot_x) {
+				station_bot_x = tile_x;
+			}
+			if (tile_y < station_top_y) {
+				station_top_y = tile_y;
+			}
+			if (tile_y > station_bot_y) {
+				station_bot_y = tile_y;
+			}
+		}
+
+		if (spreadrectangle_top_x > station_top_x ||
+			spreadrectangle_top_y > station_top_y ||
+			spreadrectangle_bot_x < station_bot_x ||
+			spreadrectangle_bot_y < station_bot_y) {
+			list.RemoveItem(stationId);
+		}
+	}
+	list.Sort(AIList.SORT_BY_VALUE, true);
+
+	local adjacentStation = AIStation.STATION_NEW;
+	if (list.Count()) {
+		adjacentStation = list.Begin();
+//		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
+	}
+
+	return adjacentStation;
+}
+
+function Utils::expandAdjacentDockRect(dockTile) {
+	local slope = AITile.GetSlope(dockTile);
+	if (slope != AITile.SLOPE_SW && slope != AITile.SLOPE_NW && slope != AITile.SLOPE_SE && slope != AITile.SLOPE_NE) return [dockTile, dockTile]; // shouldn't happen
+
+	local offset = 0;
+	local tile2 = AIMap.TILE_INVALID;
+	if (slope == AITile.SLOPE_NE) offset = AIMap.GetTileIndex(1, 0);
+	if (slope == AITile.SLOPE_SE) offset = AIMap.GetTileIndex(0, -1);
+	if (slope == AITile.SLOPE_SW) offset = AIMap.GetTileIndex(-1, 0);
+	if (slope == AITile.SLOPE_NW) offset = AIMap.GetTileIndex(0, 1);
+	tile2 = dockTile + offset;
+
+	local temp_tile1 = dockTile;
+	local temp_tile2 = tile2;
+	if (temp_tile1 > temp_tile2) {
+		local swap = temp_tile1;
+		temp_tile1 = temp_tile2;
+		temp_tile2 = swap;
+	}
+
+	local x_length = 1;
+	local y_length = 1;
+	if (temp_tile2 - temp_tile1 == 1) {
+		x_length = 2;
+	} else {
+		y_length = 2;
+	}
+
+	local spread_rad = AIGameSettings.GetValue("station_spread");
+	local dock_x = x_length;
+	local dock_y = y_length;
+
+	local remaining_x = spread_rad - dock_x;
+	local remaining_y = spread_rad - dock_y;
+
+	local tile_top_x = AIMap.GetTileX(temp_tile1);
+	local tile_top_y = AIMap.GetTileY(temp_tile1);
+	local tile_bot_x = tile_top_x + dock_x - 1;
+	local tile_bot_y = tile_top_y + dock_y - 1;
+
+	for (local x = remaining_x; x > 0; x--) {
+		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_top_x - 1, tile_top_y))) {
+			tile_top_x = tile_top_x - 1;
+		}
+		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_bot_x + 1, tile_bot_y))) {
+			tile_bot_x = tile_bot_x + 1;
+		}
+	}
+
+	for (local y = remaining_y; y > 0; y--) {
+		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_top_x, tile_top_y - 1))) {
+			tile_top_y = tile_top_y - 1;
+		}
+		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_bot_x, tile_bot_y + 1))) {
+			tile_bot_y = tile_bot_y + 1;
+		}
+	}
+
+//	AILog.Info("spreadrectangle top = " + tile_top_x + "," + tile_top_y + " ; spreadrectangle bottom = " + tile_bot_x + "," + tile_bot_y);
+	return [AIMap.GetTileIndex(tile_top_x, tile_top_y), AIMap.GetTileIndex(tile_bot_x, tile_bot_y)];
+}
+
 /**
- * Distance a road vehicle engine runs when moving at its maximum speed for the given time
+ * Distance a vehicle engine runs when moving at its maximum speed for the given time
  */
 function Utils::GetEngineTileDist(engine_id, days_in_transit)
 {
+	local veh_type = AIEngine.GetVehicleType(engine_id);
 	/* Assuming going in axis, it is the same as distancemanhattan */
-	local tiledist = ((AIEngine.GetMaxSpeed(engine_id) * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16);
-	return tiledist;
+	if (veh_type == AIVehicle.VT_ROAD) {
+		return ((AIEngine.GetMaxSpeed(engine_id) * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16);
+	} else if (veh_type == AIVehicle.VT_WATER) {
+		return (AIEngine.GetMaxSpeed(engine_id) * 2 * 74 * days_in_transit) / (256 * 16);
+	} else {
+		assert(false);
+	}
+}
+
+function Utils::RemovingCanalBlocksConnection(tile)
+{
+	local t_sw = tile + AIMap.GetTileIndex(1, 0);
+	local t_ne = tile + AIMap.GetTileIndex(-1, 0);
+	local t_se = tile + AIMap.GetTileIndex(0, 1);
+	local t_nw = tile + AIMap.GetTileIndex(0, -1);
+
+	if (AIMarine.IsLockTile(t_se) && AITile.GetSlope(t_se) == AITile.SLOPE_FLAT && Utils.CheckLockDirection(t_se, Utils.GetLockMiddleTile(t_se)) ||
+			AIMarine.IsLockTile(t_nw) && AITile.GetSlope(t_nw) == AITile.SLOPE_FLAT && Utils.CheckLockDirection(t_nw, Utils.GetLockMiddleTile(t_nw)) ||
+			AIMarine.IsLockTile(t_ne) && AITile.GetSlope(t_ne) == AITile.SLOPE_FLAT && Utils.CheckLockDirection(t_ne, Utils.GetLockMiddleTile(t_ne)) ||
+			AIMarine.IsLockTile(t_sw) && AITile.GetSlope(t_sw) == AITile.SLOPE_FLAT && Utils.CheckLockDirection(t_sw, Utils.GetLockMiddleTile(t_sw))) {
+		return true;
+	}
+
+	if (AIMarine.IsDockTile(t_se) && Utils.GetDockDockingTile(t_se) == tile ||
+			AIMarine.IsDockTile(t_nw) && Utils.GetDockDockingTile(t_nw) == tile ||
+			AIMarine.IsDockTile(t_ne) && Utils.GetDockDockingTile(t_ne) == tile ||
+			AIMarine.IsDockTile(t_sw) && Utils.GetDockDockingTile(t_sw) == tile) {
+		return true;
+	}
+
+	local t_e = tile + AIMap.GetTileIndex(-1, 1);
+
+	if (AIMarine.AreWaterTilesConnected(tile, t_se) && AIMarine.AreWaterTilesConnected(tile, t_ne)) {
+		if (!(AIMarine.AreWaterTilesConnected(t_e, t_se) && AIMarine.AreWaterTilesConnected(t_e, t_ne))) {
+			return true;
+		}
+	}
+
+	local t_n = tile + AIMap.GetTileIndex(-1, -1);
+
+	if (AIMarine.AreWaterTilesConnected(tile, t_nw) && AIMarine.AreWaterTilesConnected(tile, t_ne)) {
+		if (!(AIMarine.AreWaterTilesConnected(t_n, t_nw) && AIMarine.AreWaterTilesConnected(t_n, t_ne))) {
+			return true;
+		}
+	}
+
+	local t_s = tile + AIMap.GetTileIndex(1, 1);
+
+	if (AIMarine.AreWaterTilesConnected(tile, t_se) && AIMarine.AreWaterTilesConnected(tile, t_sw)) {
+		if (!(AIMarine.AreWaterTilesConnected(t_s, t_se) && AIMarine.AreWaterTilesConnected(t_s, t_sw))) {
+			return true;
+		}
+	}
+
+	local t_w = tile + AIMap.GetTileIndex(1, -1);
+
+	if (AIMarine.AreWaterTilesConnected(tile, t_nw) && AIMarine.AreWaterTilesConnected(tile, t_sw)) {
+		if (!(AIMarine.AreWaterTilesConnected(t_w, t_nw) && AIMarine.AreWaterTilesConnected(t_w, t_sw))) {
+			return true;
+		}
+	}
+
+	if (AIMarine.AreWaterTilesConnected(tile, t_se) && AIMarine.AreWaterTilesConnected(tile, t_nw)) {
+		if (AIMarine.AreWaterTilesConnected(t_s, t_se) && AIMarine.AreWaterTilesConnected(t_s, t_sw)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_w, t_nw) && AIMarine.AreWaterTilesConnected(t_w, t_sw))) {
+				return true;
+			}
+		} else if (AIMarine.AreWaterTilesConnected(t_e, t_se) && AIMarine.AreWaterTilesConnected(t_e, t_ne)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_n, t_nw) && AIMarine.AreWaterTilesConnected(t_n, t_ne))) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	if (AIMarine.AreWaterTilesConnected(tile, t_ne) && AIMarine.AreWaterTilesConnected(tile, t_sw)) {
+		if (AIMarine.AreWaterTilesConnected(t_e, t_se) && AIMarine.AreWaterTilesConnected(t_e, t_ne)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_s, t_se) && AIMarine.AreWaterTilesConnected(t_s, t_sw))) {
+				return true;
+			}
+		} else if (AIMarine.AreWaterTilesConnected(t_n, t_nw) && AIMarine.AreWaterTilesConnected(t_n, t_ne)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_w, t_nw) && AIMarine.AreWaterTilesConnected(t_w, t_sw))) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Get the tile where ships can use to dock at the given dock.
+ * @param dock_tile A tile that is part of the dock.
+ * @return The tile where ships dock at the given dock.
+ */
+function Utils::GetDockDockingTile(dock_tile)
+{
+	assert(AIMarine.IsDockTile(dock_tile));
+
+	local dock_slope;
+	if (AITile.GetSlope(dock_tile) == AITile.SLOPE_FLAT) {
+		foreach (offset in [AIMap.GetMapSizeX(), -AIMap.GetMapSizeX(), 1, -1]) {
+			local offset_tile = dock_tile + offset;
+			if (AIMarine.IsDockTile(offset_tile)) {
+				local slope = AITile.GetSlope(offset_tile);
+				if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE) {
+					dock_slope = offset_tile;
+					break;
+				}
+			}
+		}
+	} else {
+		dock_slope = dock_tile;
+	}
+
+	local slope = AITile.GetSlope(dock_slope);
+	if (slope == AITile.SLOPE_NE) {
+		return dock_slope + 2;
+	} else if (slope == AITile.SLOPE_SE) {
+		return dock_slope - 2 * AIMap.GetMapSizeX();
+	} else if (slope == AITile.SLOPE_SW) {
+		return dock_slope - 2;
+	} else if (slope == AITile.SLOPE_NW) {
+		return dock_slope + 2 * AIMap.GetMapSizeX();
+	}
+}
+
+/**
+ * Check whether the tile we're coming from is compatible with the axis of a
+ *  lock planned in this location.
+ * @param prev_tile The tile we're coming from.
+ * @param middle_tile The tile of the middle part of a planned lock.
+ * @return true if the previous tile is compatible with the axis of the planned lock.
+ */
+function Utils::CheckLockDirection(prev_tile, middle_tile)
+{
+	local slope = AITile.GetSlope(middle_tile);
+	assert(slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE);
+
+	if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NE) {
+		return prev_tile == middle_tile + 1 || prev_tile == middle_tile - 1;
+	} else if (slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NW) {
+		return prev_tile == middle_tile + AIMap.GetMapSizeX() || prev_tile == middle_tile - AIMap.GetMapSizeX();
+	}
+
+	return false;
+}
+
+/**
+ * Get the tile of the middle part of a lock.
+ * @param tile The tile of a part of a lock.
+ * @return The tile of the middle part of the same lock.
+ */
+function Utils::GetLockMiddleTile(tile)
+{
+	assert(AIMarine.IsLockTile(tile));
+
+	local slope = AITile.GetSlope(tile);
+	if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE) return tile;
+
+	assert(slope == AITile.SLOPE_FLAT);
+
+	local other_end = Utils.GetOtherLockEnd(tile);
+	return tile - (tile - other_end) / 2;
+}
+
+/**
+ * Get the tile of the other end of a lock.
+ * @param tile The tile of the entrance of a lock.
+ * @return The tile of the other end of the same lock.
+ */
+function Utils::GetOtherLockEnd(tile)
+{
+	assert(AIMarine.IsLockTile(tile) && AITile.GetSlope(tile) == AITile.SLOPE_FLAT);
+
+	foreach (offset in [AIMap.GetMapSizeX(), -AIMap.GetMapSizeX(), 1, -1]) {
+		local middle_tile = tile + offset;
+		local slope = AITile.GetSlope(middle_tile);
+		if (AIMarine.IsLockTile(middle_tile) && (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE)) {
+			return middle_tile + offset;
+		}
+	}
+}
+
+/**
+ * Special check determining the possibility of a two tile sized
+ *  aqueduct sharing the same edge to be built here.
+ *  Checks wether the slopes are suitable and in the correct
+ *  direction for such aqueduct.
+ * @param tile_a The starting tile of a two tile sized aqueduct.
+ * @param tile_b The ending tile of a two tile sized aqueduct.
+ * @return true if the slopes are suitable for a two tile sized aqueduct.
+ */
+function Utils::CheckAqueductSlopes(tile_a, tile_b)
+{
+	if (AIMap.DistanceManhattan(tile_a, tile_b) != 1) return false;
+	local slope_a = AITile.GetSlope(tile_a);
+	local slope_b = AITile.GetSlope(tile_b);
+	if ((slope_a != AITile.SLOPE_SW && slope_a != AITile.SLOPE_NW && slope_a != AITile.SLOPE_SE && slope_a != AITile.SLOPE_NE) ||
+			(slope_b != AITile.SLOPE_SW && slope_b != AITile.SLOPE_NW && slope_b != AITile.SLOPE_SE && slope_b != AITile.SLOPE_NE)) {
+		return false;
+	}
+
+	if (AITile.GetComplementSlope(slope_a) != slope_b) return false;
+
+	local offset;
+	if (slope_a == AITile.SLOPE_NE) {
+		offset = 1;
+	} else if (slope_a == AITile.SLOPE_SE) {
+		offset = -AIMap.GetMapSizeX();
+	} else if (slope_a == AITile.SLOPE_SW) {
+		offset = -1;
+	} else if (slope_a == AITile.SLOPE_NW) {
+		offset = AIMap.GetMapSizeX();
+	}
+
+	return tile_a + offset == tile_b;
+}
+
+function Utils::estimateTownRectangle(town)
+{
+	local townLocation = AITown.GetLocation(town);
+	local rectangleIncreaseKoeficient = 1;
+
+	local topCornerTile = townLocation;
+	local bottomCornerTile = townLocation;
+
+	local isMaxExpanded = false;
+	while(!isMaxExpanded) {
+		local maxExpandedCounter = 0;
+		for (local i = 0; i < 4; ++i) {
+			switch(i) {
+				case 0:
+					local offsetTile = Utils.getOffsetTile(topCornerTile, (-1) * rectangleIncreaseKoeficient, 0);
+
+					if (offsetTile == AIMap.TILE_INVALID) {
+						++maxExpandedCounter;
+						continue;
+					}
+
+					if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						topCornerTile = offsetTile;
+					}
+					else {
+						++maxExpandedCounter;
+						continue;
+					}
+					break;
+
+				case 1:
+					local offsetTile = Utils.getOffsetTile(bottomCornerTile, 0, rectangleIncreaseKoeficient);
+
+					if (offsetTile == AIMap.TILE_INVALID) {
+						++maxExpandedCounter;
+						continue;
+					}
+
+					if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						bottomCornerTile = offsetTile;
+					}
+					else {
+						++maxExpandedCounter;
+						continue;
+					}
+					break;
+
+				case 2:
+					local offsetTile = Utils.getOffsetTile(bottomCornerTile, rectangleIncreaseKoeficient, 0);
+
+					if (offsetTile == AIMap.TILE_INVALID) {
+						++maxExpandedCounter;
+						continue;
+					}
+
+					if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						bottomCornerTile = offsetTile;
+					}
+					else {
+						++maxExpandedCounter;
+						continue;
+					}
+					break;
+
+				case 3:
+					local offsetTile = Utils.getOffsetTile(topCornerTile, 0, (-1) * rectangleIncreaseKoeficient);
+
+					if (offsetTile == AIMap.TILE_INVALID) {
+						++maxExpandedCounter;
+					}
+
+					if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						topCornerTile = offsetTile;
+					}
+					else {
+						++maxExpandedCounter;
+					}
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		if (maxExpandedCounter == 4) {
+			isMaxExpanded = true;
+		}
+	}
+
+	return [topCornerTile, bottomCornerTile];
 }
 
 /**
@@ -693,9 +1233,9 @@ class TestBuildRoadDepot extends MoneyTest {
 	}
 
 	function GetPrice() {
-	   local cost = AIAccounting();
-	   AITestMode() && AIRoad.BuildRoadDepot(l, e);
-	   return cost.GetCosts();
+		local cost = AIAccounting();
+		AITestMode() && AIRoad.BuildRoadDepot(l, e);
+		return cost.GetCosts();
 	}
 
 	function TryBuild(location, exit) {
@@ -757,6 +1297,181 @@ class TestRemoveAirport extends MoneyTest {
 	}
 }
 
+class TestRemoveCanal extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.RemoveCanal(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.RemoveCanal(l);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildCanal extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.BuildCanal(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.BuildCanal(l);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildDock extends MoneyTest {
+	l = null;
+	i = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.BuildDock(l, i);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.BuildDock(l, i);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(location, stationId) {
+		l = location;
+		i = stationId;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildLock extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.BuildLock(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.BuildLock(l);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildBuoy extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.BuildBuoy(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.BuildBuoy(l);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveBuoy extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.RemoveBuoy(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.RemoveBuoy(l);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveDock extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.RemoveDock(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.RemoveDock(l);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildWaterDepot extends MoneyTest {
+	t = null;
+	b = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.BuildWaterDepot(t, b);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.BuildWaterDepot(t, b);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(top, bottom) {
+		t = top;
+		b = bottom;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveWaterDepot extends MoneyTest {
+	l = null;
+
+	function DoAction() {
+		return AIExecMode() && AIMarine.RemoveWaterDepot(l);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIMarine.RemoveWaterDepot(l);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(location) {
+		l = location;
+		return DoMoneyTest();
+	}
+}
+
 class TestBuildVehicleWithRefit extends MoneyTest {
 	d = null;
 	e = null;
@@ -803,7 +1518,9 @@ class TestCloneVehicle extends MoneyTest {
 	}
 
 	function GetPrice() {
-		return AIEngine.GetPrice(AIVehicle.GetEngineType(v)) + (AIAirport.IsHangarTile(d) ? 12500 : 0);
+		local cost = AIAccounting();
+		AITestMode() && AIVehicle.CloneVehicle(d, v, s);
+		return cost.GetCosts();
 	}
 
 	function TryClone(depot, vehicle, shared) {

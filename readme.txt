@@ -1,7 +1,7 @@
 LuDiAI AfterFix
 ===============
 
-LuDiAI AfterFix is an AI that builds road routes and air routes,
+LuDiAI AfterFix is an AI that builds road, air and ship routes
 transporting either mail or passengers.
 
 It's an AI that is built upon the original work of lukin_'s LuDiAI.
@@ -12,6 +12,7 @@ something more of its own later on.
 Main differences or improvements
 --------------------------------
 
+- Builds ships
 - Adds more configuration settings
 - Randomizes most configuration settings when started as Random AI
 - Can build more than 500 road vehicles
@@ -63,12 +64,6 @@ Town Cargo:
     The AI creates both Passenger and Mail routes via road and/or air.
 
 
-Cities only:
-    When enabled, the AI will only service City status towns. When
-    disabled, it will service both cities and towns. If the AI started as
-    Random AI, the choice will be randomized on startup.
-
-
 Town choice priority:
     Defines how the AI will pair two towns. If the AI Started as Random
     AI, one of the following options will be picked at random on startup.
@@ -95,19 +90,23 @@ Is friendly:
     startup.
 
 
-Air support:
-    Enables or disables the usage of air routes.
+Can station spread:
+    When enabled, the AI expands its road stations by distantly joining
+    new station pieces, to enlarge station coverage. It may also join road
+    stations with airports and vice-versa whenever possible. If the AI
+    started as Random AI, the decision will be randomized on startup.
 
 
 Road support:
     Enables or disables the usage of road routes.
 
 
-Can station spread:
-    When enabled, the AI expands its road stations by distantly joining
-    new station pieces, to enlarge station coverage. It may also join road
-    stations with airports and vice-versa whenever possible. If the AI
-    started as Random AI, the decision will be randomized on startup.
+Water support:
+    Enables or disables the usage of water routes.
+
+
+Air support:
+    Enables or disables the usage of air routes.
 
 
 Approximate number of days in transit for road routes:
@@ -187,6 +186,94 @@ Road route load orders mode:
 
     - May load nothing before departing:
     The default 'Load if available' is used on their go-to orders.
+
+
+Approximate number of days in transit for water routes:
+    Lower values may help pathfinding faster, but at the cost of lesser
+    profits. Higher values may slow pathfinding and may not necessarily
+    yield the best profits, assuming the default engines are being used. AI
+    random value of up to -5/+5 is added on startup, and the limit can
+    never go below 10 or above 150.
+
+
+Water route capacity mode:
+    Determines how the AI will handle the capacity of a route by managing
+    the number of vehicles when there's enough cargo waiting at the
+    stations. If the AI started as Random AI, the choice will be
+    randomized on startup.
+
+    - Maximum of 10 ships:
+    Depending on the cargo waiting, the AI may decide to add ships to the
+    route, as long as it doesn't go over 25. It adds one at a time per
+    management cycle.
+
+    - Estimate maximum number of ships:
+    Same as above, but instead of 10 ships, the maximum number is based on
+    the distance between stations and maximum speed of the engine. It also
+    adds one at a time per management cycle.
+
+    - Adjust number of ships dynamically:
+    In this mode, the AI will keep adding ships to the route whenever
+    there's cargo waiting. Contrary to the other modes, it can add or
+    remove multiple ships at once per management cycle.
+
+
+Water route load orders mode:
+    Determines how ships set up their orders. If the AI started as Random
+    AI, the choice will be randomized on startup.
+
+    - Load something before departing:
+    A conditional order is placed between their go-to orders that Jump to
+    their respective go-to order when load percentage is equal to zero.
+
+    - May load nothing before departing:
+    The default 'Load if available' is used on their go-to orders.
+
+
+Air route load orders mode:
+    Determines how aircraft set up their orders. If the AI started as
+    Random AI, the choice will be randomized on startup.
+
+    - Full load before departing:
+    The vehicles will use 'Full load any cargo' on their go-to orders.
+
+    - May load nothing before departing:
+    The default 'Load if available' is used on their go-to orders.
+
+
+Build company statues in towns:
+    When enabled, the AI will build statues in honour of its company,
+    providing a permanent boost to station rating in those towns. If the
+    AI started as Random AI, the decision will be randomized on startup.
+
+
+Run advertising campaigns in towns:
+    When enabled, the AI will run advertising campaigns in towns,
+    providing a temporary boost to stations with low rating and cargo
+    waiting in a small, medium or large radius around the town center.
+    When used with "Build company statues in towns", it will prioritize
+    the building of statues over advertising campaigns. If the AI started
+    as Random AI, the decision will be randomized on startup.
+
+
+Fund construction of new buildings in towns:
+    When enabled, the AI will fund the construction of new buildings in
+    the smaller towns it services, providing a temporary boost to town
+    growth. When used with "Build company statues in towns", it will
+    prioritize the building of statues over funding construction.If the AI
+    started as Random AI, the decision will be randomized on startup.
+
+
+Found towns:
+    When enabled, the AI will sponsor the construction of new towns in the
+    map. If the AI started as Random AI, the decision will be randomized
+    on startup.
+
+
+Build headquarters:
+    When enabled, the AI will build a company headquarters randomly in the
+    map, as cost efficient as possible. If the AI started as Random AI,
+    the decision will be randomized on startup.
 
 
 AI-GS communication support:
