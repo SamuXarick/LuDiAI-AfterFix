@@ -55,13 +55,14 @@ Town Cargo:
     the choice will be randomized on startup.
 
     - Passengers:
-    The AI creates Passenger only routes via road and/or air.
+    The AI creates Passenger only routes via road, air and/or water.
 
     - Mail:
-    The AI creates Mail only routes via road and/or air.
+    The AI creates Mail only routes via road, air and/or water.
 
     - Passengers and Mail:
-    The AI creates both Passenger and Mail routes via road and/or air.
+    The AI creates both Passenger and Mail routes via road, air and/or
+    canal.
 
 
 Town choice priority:
@@ -93,8 +94,8 @@ Is friendly:
 Can station spread:
     When enabled, the AI expands its road stations by distantly joining
     new station pieces, to enlarge station coverage. It may also join road
-    stations with airports and vice-versa whenever possible. If the AI
-    started as Random AI, the decision will be randomized on startup.
+    stations with airports, docks and vice-versa whenever possible. If the
+    AI started as Random AI, the decision will be randomized on startup.
 
 
 Road support:
@@ -112,7 +113,7 @@ Air support:
 Approximate number of days in transit for road routes:
     Lower values may help pathfinding faster, but at the cost of lesser
     profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used. AI
+    yield the best profits, assuming the default engines are being used. A
     random value of up to -5/+5 is added on startup, and the limit can
     never go below 10 or above 150.
 
@@ -191,7 +192,7 @@ Road route load orders mode:
 Approximate number of days in transit for water routes:
     Lower values may help pathfinding faster, but at the cost of lesser
     profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used. AI
+    yield the best profits, assuming the default engines are being used. A
     random value of up to -5/+5 is added on startup, and the limit can
     never go below 10 or above 150.
 
