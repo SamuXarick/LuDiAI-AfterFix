@@ -859,13 +859,13 @@ class ShipBuildManager {
 								local counter = 0;
 								do {
 									local costs = AIAccounting();
-									if ((!CanalPathFinder()._LockBlocksConnection(par.GetTile(), next_tile) || built_last_node) && TestBuildLock().TryBuild(next_tile)) {
+									if ((!Canal()._LockBlocksConnection(par.GetTile(), next_tile) || built_last_node) && TestBuildLock().TryBuild(next_tile)) {
 										canal_cost += costs.GetCosts();
 										built_last_node = true;
 //										if (!silent_mode) AILog.Info("Built lock at " + path.GetTile() + ", " + next_tile + " and " + par.GetTile());
 										break;
 									} else {
-										if (CanalPathFinder()._LockBlocksConnection(par.GetTile(), next_tile)) {
+										if (Canal()._LockBlocksConnection(par.GetTile(), next_tile)) {
 											if (m_pathfinderTries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't build lock at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile() + " - LockBlocksConnection = true - Retrying...");
 												return buildCanal(fromTile, last_node, silent_mode, null, m_builtTiles, canal_cost);

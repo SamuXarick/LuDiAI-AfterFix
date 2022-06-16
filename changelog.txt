@@ -1,6 +1,10 @@
 LuDiAI AfterFix
 ===============
+v20 (16-06-2022)
+- Fixed a crash when trying to build a lock
+
 v19 (15-06-2022)
+- OpenTTD and API requirements set to 12.0
 - Removed "Cities only" setting
 - Added "Water support" setting. AI can now build ship routes with canals
   if money allows it
