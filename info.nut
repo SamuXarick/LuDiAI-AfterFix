@@ -2,9 +2,9 @@ class LuDiAIAfterFix extends AIInfo {
 	function GetAuthor()        { return "lukin_, Samu"; }
 	function GetName()          { return "LuDiAI AfterFix"; }
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters and ships"; }
-	function GetVersion()       { return 20; }
-	function MinVersionToLoad() { return 19; }
-	function GetDate()          { return "16-06-2022"; }
+	function GetVersion()       { return 21; }
+	function MinVersionToLoad() { return 21; }
+	function GetDate()          { return "11-03-2023"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "12"; }
@@ -70,6 +70,16 @@ class LuDiAIAfterFix extends AIInfo {
 		});
 
 		AddSetting({
+			name = "rail_support",
+			description = "Rail support",
+			easy_value = 0,
+			medium_value = 0,
+			hard_value = 0,
+			custom_value = 0,
+			flags = CONFIG_BOOLEAN | CONFIG_INGAME
+		});
+
+		AddSetting({
 			name = "road_support",
 			description = "Road support",
 			easy_value = 1,
@@ -97,6 +107,38 @@ class LuDiAIAfterFix extends AIInfo {
 			hard_value = 1,
 			custom_value = 1,
 			flags = CONFIG_BOOLEAN | CONFIG_INGAME
+		});
+
+		AddSetting({
+			name = "rail_days_in_transit",
+			description = "Approximate number of days in transit for rail routes",
+			min_value = 10,
+			max_value = 150,
+			easy_value = 30,
+			medium_value = 45,
+			hard_value = 65,
+			custom_value = 85,
+			random_deviation = 5,
+			step_size = 5,
+			flags = CONFIG_NONE
+		});
+
+		AddSetting({
+			name = "rail_pf_profile",
+			description = "Rail pathfinder profile",
+			easy_value = 0,
+			medium_value = 1,
+			hard_value = 2,
+			custom_value = 0,
+			flags = CONFIG_RANDOM | CONFIG_INGAME,
+			min_value = 0,
+			max_value = 2
+		});
+
+		AddLabels("rail_pf_profile", {
+			_0 = "Custom",
+			_1 = "Default",
+			_2 = "Fastest"
 		});
 
 		AddSetting({
@@ -180,7 +222,6 @@ class LuDiAIAfterFix extends AIInfo {
 			step_size = 5,
 			flags = CONFIG_NONE
 		});
-
 
 		AddSetting({
 			name = "water_cap_mode",

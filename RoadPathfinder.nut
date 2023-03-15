@@ -1,4 +1,4 @@
-require("AyStar.nut");
+require("RoadAyStar.nut");
 
 /**
  * A Road Pathfinder.

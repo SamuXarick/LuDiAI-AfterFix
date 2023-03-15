@@ -18,14 +18,14 @@ class RoadTile {
 	}
 }
 
-class BuildManager {
+class RoadBuildManager {
 
 	m_cityFrom = -1;
 	m_cityTo = -1;
 	m_stationFrom = -1;
 	m_stationTo = -1;
 	m_depotTile = -1;
-	m_bridgeTiles = AIList();
+	m_bridgeTiles = [];
 	m_cargoClass = -1;
 	m_articulated = -1;
 	m_pathfinder = null;
@@ -59,7 +59,7 @@ class BuildManager {
 		m_stationFrom = -1;
 		m_stationTo = -1;
 		m_depotTile = -1;
-		m_bridgeTiles = AIList();
+		m_bridgeTiles = [];
 		m_cargoClass = -1;
 		m_articulated = -1;
 		m_builtTiles = [];
@@ -116,7 +116,7 @@ class BuildManager {
 						AIController.Sleep(1);
 					} while(counter < 500);
 					if (counter == 500) {
-						LuDiAIAfterFix().scheduledRemovals.AddItem(m_stationFrom, 0);
+						::scheduledRemovalsTable.Road.rawset(m_stationFrom, 0);
 						if (drivethrough) {
 //							AILog.Error("Failed to remove drive through station tile at " + m_stationFrom + " - " + AIError.GetLastErrorString());
 						} else {
@@ -157,7 +157,7 @@ class BuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_stationFrom, 0);
+					::scheduledRemovalsTable.Road.rawset(m_stationFrom, 0);
 					if (drivethrough) {
 //						AILog.Error("Failed to remove drive through station tile at " + m_stationFrom + " - " + AIError.GetLastErrorString());
 					} else {
@@ -184,7 +184,7 @@ class BuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_stationTo, 0);
+					::scheduledRemovalsTable.Road.rawset(m_stationTo, 0);
 					if (drivethrough) {
 //						AILog.Error("Failed to remove drive through station tile at " + m_stationTo + " - " + AIError.GetLastErrorString());
 					} else {
@@ -198,7 +198,7 @@ class BuildManager {
 		}
 
 		m_builtTiles = [];
-		return Route(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_sentToDepotRoadGroup);
+		return RoadRoute(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_sentToDepotRoadGroup);
 	}
 
 	function buildTownStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built) {
@@ -436,7 +436,7 @@ class BuildManager {
 									AIController.Sleep(1);
 								} while (counter < (stationTile == null ? 500 : 1));
 								if (counter == (stationTile == null ? 500 : 1)) {
-									LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
+									::scheduledRemovalsTable.Road.rawset(tile, 0);
 //									AILog.Error("Failed to remove road station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -495,7 +495,7 @@ class BuildManager {
 										AIController.Sleep(1);
 									} while (counter < (stationTile == null ? 500 : 1));
 									if (counter == (stationTile == null ? 500 : 1)) {
-										LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
+										::scheduledRemovalsTable.Road.rawset(tile, 0);
 //										AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
 										continue;
 									} else {
@@ -611,7 +611,7 @@ class BuildManager {
 									AIController.Sleep(1);
 								} while(counter < (stationTile == null ? 500 : 1));
 								if (counter == (stationTile == null ? 500 : 1)) {
-									LuDiAIAfterFix().scheduledRemovals.AddItem(tile, has_road ? 0 : 1);
+									::scheduledRemovalsTable.Road.rawset(tile, has_road ? 0 : 1);
 //									AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -683,7 +683,7 @@ class BuildManager {
 									AIController.Sleep(1);
 								} while(counter < (stationTile == null ? 500 : 1));
 								if (counter == (stationTile == null ? 500 : 1)) {
-									LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
+									::scheduledRemovalsTable.Road.rawset(tile, 0);
 //									AILog.Error("Failed to remove road station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -776,7 +776,7 @@ class BuildManager {
 								AIController.Sleep(1);
 							} while (counter < stationTile == null ? 500 : 1);
 							if (counter == (stationTile == null ? 500 : 1)) {
-								LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 1);
+								::scheduledRemovalsTable.Road.rawset(tile, 1);
 //								AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
 								continue;
 							} else {
@@ -1065,7 +1065,7 @@ class BuildManager {
 									if (!TestBuildBridge().TryBuild(AIVehicle.VT_ROAD, bridge_list.Begin(), path.GetTile(), par.GetTile())) {
 										if (AIError.GetLastErrorString() == "ERR_ALREADY_BUILT" || AIBridge.IsBridgeTile(path.GetTile()) && (AIBridge.GetOtherBridgeEnd(path.GetTile()) == par.GetTile()) && last_node != null && AIRoad.AreRoadTilesConnected(path.GetTile(), last_node)) {
 //											if (!silent_mode) AILog.Warning("We found a bridge already built at tiles " + path.GetTile() + " and " + par.GetTile());
-											m_bridgeTiles.AddItem(path.GetTile() < par.GetTile() ? path.GetTile() : par.GetTile(), path.GetTile() < par.GetTile() ? par.GetTile() : path.GetTile());
+											m_bridgeTiles.append(path.GetTile() < par.GetTile() ? [path.GetTile(), par.GetTile()] : [par.GetTile(), path.GetTile()]);
 											break;
 										}
 										else if (AIError.GetLastErrorString() == "ERR_NOT_ENOUGH_CASH") {
@@ -1085,7 +1085,7 @@ class BuildManager {
 									else {
 										road_cost += costs.GetCosts();
 //										if (!silent_mode) AILog.Warning("We built a bridge at tiles " + path.GetTile() + " and " + par.GetTile() + ". ec: " + (path.GetCost() - par.GetCost()) + ", ac: " + costs.GetCosts());
-										m_bridgeTiles.AddItem(path.GetTile() < par.GetTile() ? path.GetTile() : par.GetTile(), path.GetTile() < par.GetTile() ? par.GetTile() : path.GetTile());
+										m_bridgeTiles.append(path.GetTile() < par.GetTile() ? [path.GetTile(), par.GetTile()] : [par.GetTile(), path.GetTile()]);
 										break;
 									}
 
@@ -1198,7 +1198,7 @@ class BuildManager {
 					} while(counter < 500);
 
 					if (counter == 500) {
-						LuDiAIAfterFix().scheduledRemovals.AddItem(depotTile, 0);
+						::scheduledRemovalsTable.Road.rawset(depotTile, 0);
 						return null;
 					}
 					else {
@@ -1287,48 +1287,14 @@ class BuildManager {
 	}
 
 	function saveBuildManager() {
-		local route = [];
+		if (m_cityFrom == null) m_cityFrom = -1;
+		if (m_cityTo == null) m_cityTo = -1;
+		if (m_stationFrom == null) m_stationFrom = -1;
+		if (m_stationTo == null) m_stationTo = -1;
+		if (m_depotTile == null) m_depotTile = -1;
+		if (m_articulated == null) m_articulated = -1;
 
-		if (m_cityFrom == null) {
-			m_cityFrom = -1;
-		}
-
-		if (m_cityTo == null) {
-			m_cityTo = -1;
-		}
-
-		if (m_stationFrom == null) {
-			m_stationFrom = -1;
-		}
-
-		if (m_stationTo == null) {
-			m_stationTo = -1;
-		}
-
-		if (m_depotTile == null) {
-			m_depotTile = -1;
-		}
-
-		local bridgeTilesTable = {};
-		for (local bridge = m_bridgeTiles.Begin(), i = 0; !m_bridgeTiles.IsEnd(); bridge = m_bridgeTiles.Next(), ++i) {
-			bridgeTilesTable.rawset(i, [bridge, m_bridgeTiles.GetValue(bridge)]);
-		}
-
-		if (m_articulated == null) {
-			m_articulated = -1;
-		}
-
-		route.append(m_cityFrom);
-		route.append(m_cityTo);
-		route.append(m_stationFrom);
-		route.append(m_stationTo);
-		route.append(m_depotTile);
-		route.append(bridgeTilesTable);
-		route.append(m_cargoClass);
-		route.append(m_articulated);
-		route.append(m_best_routes_built);
-
-		return route;
+		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_articulated, m_best_routes_built];
 	}
 
 	function loadBuildManager(data) {
@@ -1343,14 +1309,10 @@ class BuildManager {
 		m_depotTile = data[4];
 //		AILog.Info("m_depotTile == " + m_depotTile);
 
-		local bridgeTable = data[5];
-		local i = 0;
-		while(bridgeTable.rawin(i)) {
-			local tile = bridgeTable.rawget(i);
-			m_bridgeTiles.AddItem(tile[0], tile[1]);
+		m_bridgeTiles = data[5];
+//		foreach(_, tile in m_bridgeTiles) {
 //			AILog.Info("m_bridgeTiles == " + tile[0] + ", " + tile[1]);
-			++i;
-		}
+//		}
 
 		m_cargoClass = data[6];
 //		AILog.Info("m_cargoClass == " + m_cargoClass);

@@ -1,63 +1,79 @@
-Utils <- class
-{
-	pass_capacities_list = AIList();
-	mail_capacities_list = AIList();
-	secondary_capacities_list = AIList(); // secondary capacity for a pass/mail aircraft
+class Utils {
+};
 
-	function GetBuildWithRefitCapacity(depot, engine, cargo) {
-//		if (!AIEngine.IsBuildable(engine)) return 0;
-		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
-			if (!Utils.pass_capacities_list.HasItem(engine)) {
-				Utils.pass_capacities_list.AddItem(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
+function Utils::ArrayHasItem(array, item) {
+	assert(typeof(item) == "array");
+
+	foreach (_, it in array) {
+		local i = 0;
+		do {
+			if (item[i] == it[0][i]) {
+				i++;
+			} else {
+				break;
 			}
-			return Utils.pass_capacities_list.GetValue(engine);
-		} else if (AICargo.HasCargoClass(cargo, AICargo.CC_MAIL)) {
-			if (!Utils.mail_capacities_list.HasItem(engine)) {
-				Utils.mail_capacities_list.AddItem(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
+		} while (i < item.len());
+		if (i == item.len()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function Utils::ArrayGetValue(array, item) {
+	assert(Utils.ArrayHasItem(array, item));
+
+	foreach (_, it in array) {
+		local i = 0;
+		do {
+			if (item[i] == it[0][i]) {
+				i++;
+			} else {
+				break;
 			}
-			return Utils.mail_capacities_list.GetValue(engine);
+		} while (i < item.len());
+		if (i == item.len()) {
+			return it[1];
 		}
-		assert(false);
 	}
+	assert(false);
+}
 
-	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
-//		if (!AIEngine.IsBuildable(engine)) return 0;
-		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
+function Utils::ArraySetValue(array, item, value) {
+	assert(Utils.ArrayHasItem(array, item));
 
-		if (!Utils.secondary_capacities_list.HasItem(engine)) {
-			local pass_capacity = Utils.GetBuildWithRefitCapacity(hangar, engine, Utils.getCargoId(AICargo.CC_PASSENGERS));
-			local mail_capacity = Utils.GetBuildWithRefitCapacity(hangar, engine, Utils.getCargoId(AICargo.CC_MAIL));
-			Utils.secondary_capacities_list.AddItem(engine, mail_capacity - pass_capacity);
-//			AILog.Info("Capacity for " + AIEngine.GetName(engine) + ": " + pass_capacity + " " + AICargo.GetCargoLabel(Utils.getCargoId(AICargo.CC_PASSENGERS)) + ", " + (mail_capacity - pass_capacity) + " " + AICargo.GetCargoLabel(Utils.getCargoId(AICargo.CC_MAIL)));
-		}
-		return Utils.secondary_capacities_list.GetValue(engine);
-	}
-
-	function GetCapacity(engine, cargo) {
-//		if (!AIEngine.IsBuildable(engine)) return 0;
-		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
-			if (!Utils.pass_capacities_list.HasItem(engine)) {
-				return AIEngine.GetCapacity(engine);
+	foreach (_, it in array) {
+		local i = 0;
+		do {
+			if (item[i] == it[0][i]) {
+				i++;
+			} else {
+				break;
 			}
-			return Utils.pass_capacities_list.GetValue(engine);
-		} else if (AICargo.HasCargoClass(cargo, AICargo.CC_MAIL)) {
-			if (!Utils.mail_capacities_list.HasItem(engine)) {
-				return AIEngine.GetCapacity(engine);
-			}
-			return Utils.mail_capacities_list.GetValue(engine);
+		} while (i < item.len());
+		if (i == item.len()) {
+			it[1] = value;
+			return;
 		}
-		assert(false);
 	}
+	assert(false);
+}
 
-	function GetSecondaryCapacity(engine) {
-//		if (!AIEngine.IsBuildable(engine)) return 0;
-		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
+function Utils::CountBits(value) {
+	assert(typeof(value) == "integer");
 
-		if (!Utils.secondary_capacities_list.HasItem(engine)) {
-			return 0;
-		}
-		return Utils.secondary_capacities_list.GetValue(engine);
+	local num;
+	for (num = 0; value != 0; num++) {
+		value = value & (value - 1);
 	}
+	return num;
+}
+
+function Utils::Clamp(a, min, max) {
+	assert(min <= max);
+	if (a <= min) return min;
+	if (a >= max) return max;
+	return a;
 }
 
 function Utils::TableListToAIList(table) {
@@ -381,6 +397,16 @@ function Utils::isTileMyStationWithoutDock(tile) {
 
 	return false;
 }
+
+function Utils::isTileMyStationWithoutRailwayStation(tile) {
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
+		return true;
+	}
+
+	return false;
+}
+
 /// getCargoId - Returns either mail cargo id, or passenger cargo id.
 ///
 /// @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
@@ -1149,6 +1175,25 @@ class TestBuildTunnel extends MoneyTest {
 	}
 }
 
+class TestRemoveTunnel extends MoneyTest {
+	t = null;
+
+	function DoAction() {
+		return AIExecMode() && AITunnel.RemoveTunnel(t);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AITunnel.RemoveTunnel(t);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(tile) {
+		t = tile;
+		return DoMoneyTest();
+	}
+}
+
 class TestBuildBridge extends MoneyTest {
 	t = null;
 	i = null;
@@ -1170,6 +1215,25 @@ class TestBuildBridge extends MoneyTest {
 		i = bridgeId;
 		s = start;
 		e = end;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveBridge extends MoneyTest {
+	t = null;
+
+	function DoAction() {
+		return AIExecMode() && AIBridge.RemoveBridge(t);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIBridge.RemoveBridge(t);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(tile) {
+		t = tile;
 		return DoMoneyTest();
 	}
 }
@@ -1468,6 +1532,211 @@ class TestRemoveWaterDepot extends MoneyTest {
 
 	function TryRemove(location) {
 		l = location;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildRailStation extends MoneyTest {
+	t = null;
+	d = null;
+	n = null;
+	l = null;
+	s = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.BuildRailStation(t, d, n, l, s);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.BuildRailStation(t, d, n, l, s);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(tile, direction, num_platforms, platform_length, stationId) {
+		t = tile;
+		d = direction;
+		n = num_platforms;
+		l = platform_length;
+		s = stationId;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildRailTrack extends MoneyTest {
+	l = null;
+	t = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.BuildRailTrack(l, t);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.BuildRailTrack(l, t);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(location, track) {
+		l = location;
+		t = track;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildRail extends MoneyTest {
+	f = null;
+	l = null;
+	t = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.BuildRail(f, l, t);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.BuildRail(f, l, t);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(from, location, to) {
+		f = from;
+		l = location;
+		t = to;
+		return DoMoneyTest();
+	}
+}
+
+class TestConvertRailType extends MoneyTest {
+	s = null;
+	e = null;
+	c = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.ConvertRailType(s, e, c);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.ConvertRailType(s, e, c);
+		return cost.GetCosts();
+	}
+
+	function TryConvert(start_tile, end_tile, convert_to) {
+		s = start_tile;
+		e = end_tile;
+		c = convert_to;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildRailDepot extends MoneyTest {
+	t = null;
+	f = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.BuildRailDepot(t, f);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.BuildRailDepot(t, f);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(tile, front) {
+		t = tile;
+		f = front;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveRailStationTileRectangle extends MoneyTest {
+	f = null;
+	t = null;
+	k = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.RemoveRailStationTileRectangle(f, t, k);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.RemoveRailStationTileRectangle(f, t, k);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(from, to, keep_rail) {
+		f = from;
+		t = to;
+		k = keep_rail;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveRailTrack extends MoneyTest {
+	l = null;
+	t = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.RemoveRailTrack(l, t);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.RemoveRailTrack(l, t);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(location, track) {
+		l = location;
+		t = track;
+		return DoMoneyTest();
+	}
+}
+
+class TestRemoveRail extends MoneyTest {
+	f = null;
+	l = null;
+	t = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.RemoveRail(f, l, t);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.RemoveRail(f, l, t);
+		return cost.GetCosts();
+	}
+
+	function TryRemove(from, location, to) {
+		f = from;
+		l = location;
+		t = to;
+		return DoMoneyTest();
+	}
+}
+
+class TestBuildSignal extends MoneyTest {
+	l = null;
+	t = null;
+	s = null;
+
+	function DoAction() {
+		return AIExecMode() && AIRail.BuildSignal(l, t, s);
+	}
+
+	function GetPrice() {
+		local cost = AIAccounting();
+		AITestMode() && AIRail.BuildSignal(l, t, s);
+		return cost.GetCosts();
+	}
+
+	function TryBuild(location, to, signal) {
+		l = location;
+		t = to;
+		s = signal;
 		return DoMoneyTest();
 	}
 }

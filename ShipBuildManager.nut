@@ -42,7 +42,7 @@ class ShipBuildManager {
 	function buildCanal(fromTile, toTile, silent_mode, pathfinder);
 	function findWaterTileShipDepot(tile);
 	function buildShipDepotOnCanal(canalArray);
-	function saveShipBuildManager();
+	function saveBuildManager();
 	function buildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built);
 
 	function hasUnfinishedRoute() {
@@ -111,7 +111,7 @@ class ShipBuildManager {
 						AIController.Sleep(1);
 					} while(counter < 500);
 					if (counter == 500) {
-						LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockFrom, 0);
+						::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
 //						AILog.Error("Failed to remove dock tile at " + m_dockFrom + " - " + AIError.GetLastErrorString());
 					} else {
 						local slope = AITile.GetSlope(m_dockFrom);
@@ -136,7 +136,7 @@ class ShipBuildManager {
 								AIController.Sleep(1);
 							} while(counter < 500);
 							if (counter == 500) {
-								LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+								::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 							}
 						}
@@ -154,7 +154,7 @@ class ShipBuildManager {
 								AIController.Sleep(1);
 							} while(counter < 500);
 							if (counter == 500) {
-								LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+								::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 							}
 						}
@@ -206,7 +206,7 @@ class ShipBuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockFrom, 0);
+					::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
 //					AILog.Error("Failed to remove dock tile at " + m_dockFrom + " - " + AIError.GetLastErrorString());
 				} else {
 					local slope = AITile.GetSlope(m_dockFrom);
@@ -231,7 +231,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -249,7 +249,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -269,7 +269,7 @@ class ShipBuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockTo, 0);
+					::scheduledRemovalsTable.Ship.rawset(m_dockTo, 0);
 //					AILog.Error("Failed to remove dock tile at " + m_dockTo + " - " + AIError.GetLastErrorString());
 				} else {
 					local slope = AITile.GetSlope(m_dockTo);
@@ -294,7 +294,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -312,7 +312,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -341,7 +341,7 @@ class ShipBuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockFrom, 0);
+					::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
 //					AILog.Error("Failed to remove dock tile at " + m_dockFrom + " - " + AIError.GetLastErrorString());
 				} else {
 					local slope = AITile.GetSlope(m_dockFrom);
@@ -366,7 +366,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -384,7 +384,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -404,7 +404,7 @@ class ShipBuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockTo, 0);
+					::scheduledRemovalsTable.Ship.rawset(m_dockTo, 0);
 //					AILog.Error("Failed to remove dock tile at " + m_dockTo + " - " + AIError.GetLastErrorString());
 				} else {
 					local slope = AITile.GetSlope(m_dockTo);
@@ -429,7 +429,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -447,7 +447,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while(counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 						}
 					}
@@ -467,7 +467,7 @@ class ShipBuildManager {
 					AIController.Sleep(1);
 				} while(counter < 500);
 				if (counter == 500) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_depotTile, 0);
+					::scheduledRemovalsTable.Ship.rawset(m_depotTile, 0);
 //					AILog.Error("Failed to remove ship depot at " + m_depotTile + " - " + AIError.GetLastErrorString());
 				}
 			}
@@ -626,7 +626,7 @@ class ShipBuildManager {
 								AIController.Sleep(1);
 							} while (counter < 500);
 							if (counter == 500) {
-								LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+								::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 								continue;
 							} else {
@@ -689,7 +689,7 @@ class ShipBuildManager {
 								AIController.Sleep(1);
 							} while (counter < 500);
 							if (counter == 500) {
-								LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+								::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 							} else {
 								/* The first canal was successfully removed after failing to build the dock. Try it all over again in the next location */
@@ -708,7 +708,7 @@ class ShipBuildManager {
 								AIController.Sleep(1);
 							} while (counter < 500);
 							if (counter == 500) {
-								LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+								::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 							} else {
 								/* The second canal was successfully removed after failing to build the dock. Try it all over again in the next location */
@@ -736,7 +736,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while (counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile2, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						} else {
 							/* The first canal was successfully removed after detecting a block. Try it all over again in the next location */
@@ -755,7 +755,7 @@ class ShipBuildManager {
 							AIController.Sleep(1);
 						} while (counter < 500);
 						if (counter == 500) {
-							LuDiAIAfterFix().scheduledRemovals.AddItem(tile3, 0);
+							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 						} else {
 							/* The second canal was successfully removed after detecting a block. Try it all over again in the next location */
@@ -779,7 +779,7 @@ class ShipBuildManager {
 			local max_pathfinderTries = 333 * route_dist;
 
 			//* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("c:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("s:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			if (pathfinder == null) {
 				// Create an instance of the pathfinder. */
@@ -1279,7 +1279,7 @@ class ShipBuildManager {
 											AIController.Sleep(1);
 										} while(counter < 500);
 										if (counter == 500) {
-											LuDiAIAfterFix().scheduledRemovals.AddItem(buoy, 0);
+											::scheduledRemovalsTable.Ship.rawset(buoy, 0);
 //											AILog.Error("Failed to remove buoy at tile " + buoy + " - " + AIError.GetLastErrorString());
 										}
 									}

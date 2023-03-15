@@ -102,7 +102,7 @@ class Canal
 				}
 			}
 
-			local best_distance = this._map_size;;
+			local best_distance = this._map_size;
 			local best_source = AIMap.TILE_INVALID;
 			local best_goal = AIMap.TILE_INVALID;
 			for (local i = 0; i < pair.len(); i++) {
@@ -290,7 +290,7 @@ function Canal::_Cost(self, path, new_tile, new_direction)
 			cost += AIMap.DistanceManhattan(new_tile, prev_tile) * (self._cost_tile + self._cost_aqueduct_per_tile) + self._cost_aqueduct_per_tile;
 		}
 		if (path_prev != null && path_prev._prev != null) {
-			local next_tile = new_tile - (new_tile - prev_tile) / AIMap.DistanceManhattan(new_tile, prev_tile);
+			local next_tile = prev_tile + (new_tile - prev_tile) / AIMap.DistanceManhattan(new_tile, prev_tile);
 			if (AIMap.DistanceManhattan(next_tile, path_prev._prev._tile) == 3 &&
 					path_prev._prev._tile - path_prev_tile != prev_tile - next_tile) {
 //				AILog.Info("Build aqueduct or lock. Check for a 45 degrees turn, Before: " + cost + " After: " + (cost + self._cost_turn45));
@@ -345,7 +345,7 @@ function Canal::_Estimate(self, cur_tile, cur_direction, goal_tiles)
 	foreach (tile in goal_tiles) {
 		local dx = abs(cur_tile_x - AIMap.GetTileX(tile));
 		local dy = abs(cur_tile_y - AIMap.GetTileY(tile));
-		min_cost = min(min_cost, min(dx, dy) * self._cost_diagonal_tile * 2 + (max(dx, dy) - min(dx, dy)) * self._cost_tile);
+		min_cost = min(min_cost, min(dx, dy) * self._cost_diagonal_tile * 2 + abs(dx - dy) * self._cost_tile);
 	}
 	return min_cost * self._estimate_multiplier;
 }
@@ -354,7 +354,7 @@ function Canal::_Neighbours(self, path, cur_node)
 {
 	/* self._max_cost is the maximum path cost, if we go over it, the path isn't valid. */
 	if (path._cost >= self._max_cost) return [];
-//	AIExecMode() && AISign.BuildSign(cur_node, /*cur_node.tostring()*/ "x");
+//	AIExecMode() && AISign.BuildSign(cur_node, cur_node.tostring());
 	local tiles = [];
 
 	local prev = path._prev;

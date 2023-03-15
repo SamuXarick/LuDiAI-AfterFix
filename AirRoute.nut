@@ -1,6 +1,6 @@
 require("AirRouteManager.nut");
 
-class AirRoute extends RouteManager {
+class AirRoute extends AirRouteManager {
 	m_cityFrom = null;
 	m_cityTo = null;
 	m_airportFrom = null;
@@ -134,8 +134,8 @@ class AirRoute extends RouteManager {
 					removelist.AddItem(engine, 0);
 					continue;
 				}
-				local primary_capacity = Utils.GetBuildWithRefitCapacity(hangar, engine, cargo);
-				local secondary_capacity = AIController.GetSetting("select_town_cargo") == 2 ? Utils.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
+				local primary_capacity = ::caches.GetBuildWithRefitCapacity(hangar, engine, cargo);
+				local secondary_capacity = AIController.GetSetting("select_town_cargo") == 2 ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
 				local engine_income = WrightAI.GetEngineRouteIncome(engine, cargo, fakedist, primary_capacity, secondary_capacity);
 				if (engine_income <= 0) {
 					removelist.AddItem(engine, 0);
@@ -522,7 +522,7 @@ class AirRoute extends RouteManager {
 		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
-		local engine_capacity = Utils.GetCapacity(m_engine, cargoId);
+		local engine_capacity = ::caches.GetCapacity(m_engine, cargoId);
 		local capacity_check = infrastructure ? min(engine_capacity, 100) : engine_capacity;
 
 		if (cargoWaiting1 < capacity_check && cargoWaiting2 < capacity_check) {
@@ -558,6 +558,10 @@ class AirRoute extends RouteManager {
 		local count = 1 + AIGroup.GetNumVehicles(m_sentToDepotAirGroup[1], AIVehicle.VT_AIR);
 
 		foreach (vehicle, _ in this.m_vehicleList) {
+//			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
+//			if (AIGroup.GetEngineReplacement(m_group, vehicle_engine) != m_engine) {
+//				AIGroup.SetAutoReplace(m_group, vehicle_engine, m_engine);
+//			}
 			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
 				if (sendVehicleToDepot(vehicle)) {
 					count++;
@@ -578,18 +582,10 @@ class AirRoute extends RouteManager {
 			m_activeRoute = false;
 
 			local stationFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_airportFrom));
-			local fromTiles = AITileList_StationType(AIStation.GetStationID(m_airportFrom), AIStation.STATION_AIRPORT);
-			for (local tile = fromTiles.Begin(); !fromTiles.IsEnd(); tile = fromTiles.Next()) {
-				LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
-				break;
-			}
+			::scheduledRemovalsTable.Aircraft.rawset(m_airportFrom, 0);
 
 			local stationTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_airportTo));
-			local toTiles = AITileList_StationType(AIStation.GetStationID(m_airportTo), AIStation.STATION_AIRPORT);
-			for (local tile = toTiles.Begin(); !toTiles.IsEnd(); tile = toTiles.Next()) {
-				LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
-				break;
-			}
+			::scheduledRemovalsTable.Aircraft.rawset(m_airportTo, 0);
 
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.DeleteGroup(m_group);

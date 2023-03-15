@@ -1,6 +1,6 @@
-require("BuildManager.nut");
+require("RoadvehBuildManager.nut");
 
-class RouteManager {
+class RoadRouteManager {
 	m_townRouteArray = null;
 	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
@@ -11,11 +11,11 @@ class RouteManager {
 		m_best_routes_built = best_routes_built;
 	}
 
-	function buildRoute(buildManager, cityFrom, cityTo, cargoClass, articulated, best_routes_built) {
-		local route = buildManager.buildRoute(cityFrom, cityTo, cargoClass, articulated, m_sentToDepotRoadGroup, best_routes_built);
+	function buildRoute(roadBuildManager, cityFrom, cityTo, cargoClass, articulated, best_routes_built) {
+		local route = roadBuildManager.buildRoute(cityFrom, cityTo, cargoClass, articulated, m_sentToDepotRoadGroup, best_routes_built);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
-			buildManager.setRouteFinish();
+			roadBuildManager.setRouteFinish();
 			return [1, route.m_stationFrom, route.m_stationTo];
 		}
 
@@ -113,11 +113,11 @@ class RouteManager {
 
 		local bridges = 0;
 		for (local i = 0; i < routearray.len(); i++) {
-			local route = Route.loadRoute(routearray[i]);
+			local route = RoadRoute.loadRoute(routearray[i]);
 			m_townRouteArray.append(route[0]);
 			bridges += route[1];
 		}
-		AILog.Info("Loaded " + m_townRouteArray.len() + " routes with " + bridges + " bridges.");
+		AILog.Info("Loaded " + m_townRouteArray.len() + " road routes with " + bridges + " bridges.");
 
 		m_sentToDepotRoadGroup = data[1];
 		m_best_routes_built = data[2];

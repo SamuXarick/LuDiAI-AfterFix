@@ -94,8 +94,8 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 	local distance_max_speed = aircraft ? WrightAI.GetEngineRealFakeDist(engine_id, 1000) : Utils.GetEngineTileDist(engine_id, 1000);
 	local distance_broken_speed = aircraft ? WrightAI.GetEngineBrokenRealFakeDist(engine_id, 1000) : distance_max_speed;
 	local running_cost = AIEngine.GetRunningCost(engine_id);
-	local primary_capacity = Utils.GetCapacity(engine_id, cargo);
-	local secondary_capacity = (aircraft && AIController.GetSetting("select_town_cargo") == 2) ? Utils.GetSecondaryCapacity(engine_id) : 0;
+	local primary_capacity = ::caches.GetCapacity(engine_id, cargo);
+	local secondary_capacity = (aircraft && AIController.GetSetting("select_town_cargo") == 2) ? ::caches.GetSecondaryCapacity(engine_id) : 0;
 	local reliability = AIEngine.GetReliability(engine_id);
 
 	local days_in_transit = 0;
@@ -172,8 +172,8 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 
 function WrightAI::GetEngineRouteIncome(engine_id, cargo, fakedist, primary_capacity = 0, secondary_capacity = 0) {
 	local running_cost = AIEngine.GetRunningCost(engine_id);
-	primary_capacity = primary_capacity == 0 ? Utils.GetCapacity(engine_id, cargo) : primary_capacity;
-	secondary_capacity = AIController.GetSetting("select_town_cargo") != 2 ? 0 : secondary_capacity == 0 ? Utils.GetSecondaryCapacity(engine_id) : secondary_capacity;
+	primary_capacity = primary_capacity == 0 ? ::caches.GetCapacity(engine_id, cargo) : primary_capacity;
+	secondary_capacity = AIController.GetSetting("select_town_cargo") != 2 ? 0 : secondary_capacity == 0 ? ::caches.GetSecondaryCapacity(engine_id) : secondary_capacity;
 	local days_in_transit = WrightAI.GetEngineDaysInTransit(engine_id, fakedist);
 	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
 	local reliability = AIEngine.GetReliability(engine_id);

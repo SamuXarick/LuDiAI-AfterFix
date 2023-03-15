@@ -1,6 +1,6 @@
-require("RouteManager.nut");
+require("RoadvehRouteManager.nut");
 
-class Route extends RouteManager {
+class RoadRoute extends RoadRouteManager {
 	MIN_VEHICLE_START_COUNT = 5;
 	MAX_VEHICLE_COUNT_MODE = AIController.GetSetting("road_cap_mode");
 	START_VEHICLE_COUNT = 10;
@@ -185,7 +185,7 @@ class Route extends RouteManager {
 			local max_speed = AIEngine.GetMaxSpeed(engine);
 			local days_in_transit = (distance * 192 * 16) / (2 * 3 * 74 * max_speed / 4);
 			local running_cost = AIEngine.GetRunningCost(engine);
-			local capacity = Utils.GetBuildWithRefitCapacity(m_depotTile, engine, cargo);
+			local capacity = ::caches.GetBuildWithRefitCapacity(m_depotTile, engine, cargo);
 			local income = ((capacity * AICargo.GetCargoIncome(cargo, distance, days_in_transit) - running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 //			AILog.Info("Engine: " + AIEngine.GetName(engine) + "; Capacity: " + capacity + "; Max Speed: " + max_speed + "; Days in transit: " + days_in_transit + "; Running Cost: " + running_cost + "; Distance: " + distance + "; Income: " + income);
 			if (best_income == null || income > best_income) {
@@ -207,9 +207,10 @@ class Route extends RouteManager {
 		if (!m_activeRoute) return;
 
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
-		for (local i = m_bridgeTiles.Begin(); !m_bridgeTiles.IsEnd(); i = m_bridgeTiles.Next()) {
-			local north_tile = i;
-			local south_tile = m_bridgeTiles.GetValue(i);
+//		for (local i = m_bridgeTiles.Begin(); !m_bridgeTiles.IsEnd(); i = m_bridgeTiles.Next()) {
+		foreach (_, tile in m_bridgeTiles) {
+			local north_tile = tile[0];
+			local south_tile = tile[1];
 
 			if (AIBridge.IsBridgeTile(north_tile) && (AIBridge.GetOtherBridgeEnd(north_tile) == south_tile)) {
 				local old_bridge = AIBridge.GetBridgeID(north_tile);
@@ -643,7 +644,7 @@ class Route extends RouteManager {
 		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
-		local engine_capacity = Utils.GetCapacity(this.m_engine, cargoId);
+		local engine_capacity = ::caches.GetCapacity(this.m_engine, cargoId);
 
 		if (cargoWaiting1 > engine_capacity || cargoWaiting2 > engine_capacity) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
@@ -677,6 +678,10 @@ class Route extends RouteManager {
 		local count = 1 + AIGroup.GetNumVehicles(m_sentToDepotRoadGroup[1], AIVehicle.VT_ROAD);
 
 		foreach (vehicle, _ in this.m_vehicleList) {
+//			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
+//			if (AIGroup.GetEngineReplacement(m_group, vehicle_engine) != m_engine) {
+//				AIGroup.SetAutoReplace(m_group, vehicle_engine, m_engine);
+//			}
 			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
 				if (sendVehicleToDepot(vehicle)) {
 					count++;
@@ -709,7 +714,7 @@ class Route extends RouteManager {
 		local population = AITown.GetPopulation(m_cityFrom);
 
 		if (population / 1000 > m_expandedFromCount + 1) {
-			if (BuildManager().buildTownStation(m_cityFrom, m_cargoClass, m_stationFrom, m_cityTo, articulated, false)) {
+			if (RoadBuildManager().buildTownStation(m_cityFrom, m_cargoClass, m_stationFrom, m_cityTo, articulated, false)) {
 				++m_expandedFromCount;
 				result = 1;
 				AILog.Info("Expanded " + AIBaseStation.GetName(AIStation.GetStationID(m_stationFrom)) + " station.");
@@ -719,7 +724,7 @@ class Route extends RouteManager {
 		population = AITown.GetPopulation(m_cityTo);
 
 		if (population / 1000 > m_expandedToCount + 1) {
-			if (BuildManager().buildTownStation(m_cityTo, m_cargoClass, m_stationTo, m_cityFrom, articulated, false)) {
+			if (RoadBuildManager().buildTownStation(m_cityTo, m_cargoClass, m_stationTo, m_cityFrom, articulated, false)) {
 				++m_expandedToCount;
 				result = 1;
 				AILog.Info("Expanded " + AIBaseStation.GetName(AIStation.GetStationID(m_stationTo)) + " station.");
@@ -738,16 +743,16 @@ class Route extends RouteManager {
 			local stationFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_stationFrom));
 			local fromTiles = AITileList_StationType(AIStation.GetStationID(m_stationFrom), m_cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 			for (local tile = fromTiles.Begin(); !fromTiles.IsEnd(); tile = fromTiles.Next()) {
-				LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
+				::scheduledRemovalsTable.Road.rawset(tile, 0);
 			}
 
 			local stationTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_stationTo));
 			local toTiles = AITileList_StationType(AIStation.GetStationID(m_stationTo), m_cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 			for (local tile = toTiles.Begin(); !toTiles.IsEnd(); tile = toTiles.Next()) {
-				LuDiAIAfterFix().scheduledRemovals.AddItem(tile, 0);
+				::scheduledRemovalsTable.Road.rawset(tile, 0);
 			}
 
-			LuDiAIAfterFix().scheduledRemovals.AddItem(m_depotTile, 0);
+			::scheduledRemovalsTable.Road.rawset(m_depotTile, 0);
 
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.DeleteGroup(m_group);
@@ -780,11 +785,7 @@ class Route extends RouteManager {
 	}
 
 	function saveRoute() {
-		local bridgeTilesTable = {};
-		for (local bridge = m_bridgeTiles.Begin(), i = 0; !m_bridgeTiles.IsEnd(); bridge = m_bridgeTiles.Next(), ++i) {
-			bridgeTilesTable.rawset(i, [bridge, m_bridgeTiles.GetValue(bridge)]);
-		}
-		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, bridgeTilesTable, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_expandedFromCount, m_expandedToCount, m_sentToDepotRoadGroup, m_group];
+		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_expandedFromCount, m_expandedToCount, m_sentToDepotRoadGroup, m_group];
 	}
 
 	function loadRoute(data) {
@@ -796,20 +797,11 @@ class Route extends RouteManager {
 //		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + "; cityTo = " + AITown.GetName(cityTo) + "; stationFrom = " + AIBaseStation.GetName(AIStation.GetStationID(stationFrom)) + " (" + stationFrom + "); stationTo = " + AIBaseStation.GetName(AIStation.GetStationID(stationTo)) + " (" + stationTo + "); depotTile = " + depotTile);
 //		AILog.Info("distFromdepot = " + AIMap.DistanceManhattan(depotTile, stationFrom) + "; distTodepot = " + AIMap.DistanceManhattan(depotTile, stationTo) + "; route dist = " + AIMap.DistanceManhattan(stationFrom, stationTo));
 
-		local bridgeTiles = AIList();
-		local bridgeTable = data[5];
-		local i = 0;
-		while(bridgeTable.rawin(i)) {
-			local tile = bridgeTable.rawget(i);
-			bridgeTiles.AddItem(tile[0], tile[1]);
-			++i;
-		}
-
+		local bridgeTiles = data[5];
 		local cargoClass = data[6];
-
 		local sentToDepotRoadGroup = data[12];
 
-		local route = Route(cityFrom, cityTo, stationFrom, stationTo, depotTile, bridgeTiles, cargoClass, sentToDepotRoadGroup, 1);
+		local route = RoadRoute(cityFrom, cityTo, stationFrom, stationTo, depotTile, bridgeTiles, cargoClass, sentToDepotRoadGroup, 1);
 
 		route.m_lastVehicleAdded = data[7];
 		route.m_lastVehicleRemoved = data[8];
@@ -843,6 +835,6 @@ class Route extends RouteManager {
 			}
 		}
 
-		return [route, i];
+		return [route, bridgeTiles.len()];
 	}
 }

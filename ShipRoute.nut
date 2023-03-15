@@ -92,12 +92,18 @@ class ShipRoute extends ShipRouteManager {
 		}
 
 		for (local v = removelist.Begin(); !removelist.IsEnd(); v = removelist.Next()) {
+			local exists = AIVehicle.IsValidVehicle(v);
+			if (exists) {
+				AILog.Error("Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+//				AIController.Break(" ");
+			}
 			m_vehicleList.rawdelete(v);
 		}
 	}
 
 	function sentToDepotList(i) {
 		local sentToDepotList = AIList();
+		ValidateVehicleList();
 		foreach (vehicle, status in m_vehicleList) {
 			if (status == i) sentToDepotList.AddItem(vehicle, i);
 		}
@@ -146,7 +152,7 @@ class ShipRoute extends ShipRouteManager {
 			local max_speed = AIEngine.GetMaxSpeed(engine);
 			local days_in_transit = (distance * 256 * 16) / (2 * 74 * max_speed);
 			local running_cost = AIEngine.GetRunningCost(engine);
-			local capacity = Utils.GetBuildWithRefitCapacity(m_depotTile, engine, cargo);
+			local capacity = ::caches.GetBuildWithRefitCapacity(m_depotTile, engine, cargo);
 			local income = ((capacity * AICargo.GetCargoIncome(cargo, distance, days_in_transit) - running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 //			AILog.Info("Engine: " + AIEngine.GetName(engine) + "; Capacity: " + capacity + "; Max Speed: " + max_speed + "; Days in transit: " + days_in_transit + "; Running Cost: " + running_cost + "; Distance: " + distance + "; Income: " + income);
 			if (best_income == null || income > best_income) {
@@ -208,6 +214,7 @@ class ShipRoute extends ShipRouteManager {
 	}
 
 	function addVehicle(return_vehicle = false) {
+		ValidateVehicleList();
 		if (MAX_VEHICLE_COUNT_MODE != 2 && m_vehicleList.len() >= optimalVehicleCount()) {
 			return null;
 		}
@@ -376,6 +383,7 @@ class ShipRoute extends ShipRouteManager {
 		m_group = GroupVehicles();
 		local optimalVehicleCount = optimalVehicleCount();
 
+		ValidateVehicleList();
 		local numvehicles = m_vehicleList.len();
 		local numvehicles_before = numvehicles;
 		if (numvehicles >= optimalVehicleCount) {
@@ -558,6 +566,8 @@ class ShipRoute extends ShipRouteManager {
 
 //		if (AIDate.GetCurrentDate() - m_lastVehicleRemoved <= 30) return;
 
+		ValidateVehicleList();
+
 		foreach (vehicle, _ in m_vehicleList) {
 			if (AIVehicle.GetAge(vehicle) > 730 && AIVehicle.GetProfitLastYear(vehicle) < 0) {
 				if (sendVehicleToDepot(vehicle)) {
@@ -573,6 +583,7 @@ class ShipRoute extends ShipRouteManager {
 	}
 
 	function sendLowProfitVehiclesToDepot(maxAllRoutesProfit) {
+		ValidateVehicleList();
 		local vehicleList = AIList();
 		foreach (vehicle, _ in this.m_vehicleList) {
 			if (AIVehicle.GetAge(vehicle) > 730) {
@@ -669,6 +680,7 @@ class ShipRoute extends ShipRouteManager {
 		}
 
 		local optimalVehicleCount = optimalVehicleCount();
+		ValidateVehicleList();
 		local numvehicles = m_vehicleList.len();
 		local numvehicles_before = numvehicles;
 
@@ -686,7 +698,7 @@ class ShipRoute extends ShipRouteManager {
 		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
-		local engine_capacity = Utils.GetCapacity(this.m_engine, cargoId);
+		local engine_capacity = ::caches.GetCapacity(this.m_engine, cargoId);
 		local group_usage = GetGroupUsage();
 //		AILog.Info(AIGroup.GetName(this.m_group) + ": usage = " + group_usage + "; engine_capacity = " + engine_capacity + "; cargoWaiting1 = " + cargoWaiting1 + "; cargoWaiting2 = " + cargoWaiting2);
 
@@ -718,10 +730,15 @@ class ShipRoute extends ShipRouteManager {
 	}
 
 	function renewVehicles() {
+		ValidateVehicleList();
 		local engine_price = AIEngine.GetPrice(this.m_engine);
 		local count = 1 + AIGroup.GetNumVehicles(m_sentToDepotWaterGroup[1], AIVehicle.VT_WATER);
 
 		foreach (vehicle, _ in this.m_vehicleList) {
+//			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
+//			if (AIGroup.GetEngineReplacement(m_group, vehicle_engine) != m_engine) {
+//				AIGroup.SetAutoReplace(m_group, vehicle_engine, m_engine);
+//			}
 			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
 				if (sendVehicleToDepot(vehicle)) {
 					count++;
@@ -736,21 +753,22 @@ class ShipRoute extends ShipRouteManager {
 	}
 
 	function removeIfUnserviced() {
+		ValidateVehicleList();
 		if (this.m_vehicleList.len() == 0 && (((!AIEngine.IsValidEngine(m_engine) || !AIEngine.IsBuildable(m_engine)) && m_lastVehicleAdded == 0) ||
 				(AIDate.GetCurrentDate() - m_lastVehicleAdded >= 90) && m_lastVehicleAdded > 0)) {
 			m_activeRoute = false;
 
 			local dockFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_dockFrom));
-			LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockFrom, 0);
+			::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
 
 			local dockTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_dockTo));
-			LuDiAIAfterFix().scheduledRemovals.AddItem(m_dockTo, 0);
+			::scheduledRemovalsTable.Ship.rawset(m_dockTo, 0);
 
-			LuDiAIAfterFix().scheduledRemovals.AddItem(m_depotTile, 0);
+			::scheduledRemovalsTable.Ship.rawset(m_depotTile, 0);
 
 			for (local i = 0; i < m_buoyTiles.len(); i++) {
 				if (AIMarine.IsBuoyTile(m_buoyTiles[i])) {
-					LuDiAIAfterFix().scheduledRemovals.AddItem(m_buoyTiles[i], 0);
+					::scheduledRemovalsTable.Ship.rawset(m_buoyTiles[i], 0);
 				}
 			}
 
