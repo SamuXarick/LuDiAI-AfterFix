@@ -1,9 +1,9 @@
-require("railaystar.nut");
+require("DoubleRailAyStar.nut");
 
 /**
- * A Rail Pathfinder.
+ * A DoubleRail Pathfinder.
  */
-class Rail
+class DoubleRail
 {
 	_aystar_class = AyStar;
 	_max_cost = null;               ///< The maximum cost for a route.
@@ -91,8 +91,8 @@ class Rail
 
 		if (this._search_range) {
 			local pair = [];
-			local min_freeform = AIMap.IsValidTile(0) ? 0 : 1;
-			local max_freeform = min_freeform == 0 ? 3 : 2;
+			local max_freeform = AIMap.IsValidTile(0) ? 3 : 2;
+
 			foreach (source in [sources[0][0], sources[1][0]]) {
 				foreach (goal in [goals[0][1], goals[1][1]]) {
 					local distance = AIMap.DistanceManhattan(source, goal);
@@ -103,8 +103,8 @@ class Rail
 					local goal_x = AIMap.GetTileX(goal);
 					local goal_y = AIMap.GetTileY(goal);
 
-					this._min_x = max(min_freeform, min(source_x, goal_x) - this._search_range);
-					this._min_y = max(min_freeform, min(source_y, goal_y) - this._search_range);
+					this._min_x = max(1, min(source_x, goal_x) - this._search_range);
+					this._min_y = max(1, min(source_y, goal_y) - this._search_range);
 					this._max_x = min(AIMap.GetMapSizeX() - max_freeform, max(source_x, goal_x) + this._search_range);
 					this._max_y = min(AIMap.GetMapSizeY() - max_freeform, max(source_y, goal_y) + this._search_range);
 				}
@@ -141,7 +141,7 @@ class Rail
 	function FindPath(iterations);
 };
 
-class Rail.Cost
+class DoubleRail.Cost
 {
 	_main = null;
 
@@ -201,7 +201,7 @@ class Rail.Cost
 	}
 };
 
-function Rail::FindPath(iterations)
+function DoubleRail::FindPath(iterations)
 {
 	local test_mode = AITestMode();
 	local ret = this._pathfinder.FindPath(iterations);
@@ -214,7 +214,7 @@ function Rail::FindPath(iterations)
 	return ret;
 }
 
-function Rail::_IsSlopedBridge(end_a, end_b, end)
+function DoubleRail::_IsSlopedBridge(end_a, end_b, end)
 {
 	local direction;
 	local slope;
@@ -235,7 +235,7 @@ function Rail::_IsSlopedBridge(end_a, end_b, end)
 			slope == AITile.SLOPE_N || slope == AITile.SLOPE_E || slope == AITile.SLOPE_S || slope == AITile.SLOPE_W);
 }
 
-function Rail::_GetBridgeNumSlopes(end_a, end_b, res = false)
+function DoubleRail::_GetBridgeNumSlopes(end_a, end_b, res = false)
 {
 	local slopes = 0;
 	local ret = {};
@@ -265,7 +265,7 @@ function Rail::_GetBridgeNumSlopes(end_a, end_b, res = false)
 	return res ? ret : slopes;
 }
 
-function Rail::_Cost(path, new_segment, self)
+function DoubleRail::_Cost(path, new_segment, self)
 {
 	/* path == null means this is the first node of a path, so the cost is 0. */
 	if (path == null) return 0;
@@ -298,7 +298,7 @@ function Rail::_Cost(path, new_segment, self)
 	return path._cost + costs;
 }
 
-function Rail::_CostSingleTile(pppprev_tile, ppprev_tile, pprev_tile, prev_tile, new_tile, self)
+function DoubleRail::_CostSingleTile(pppprev_tile, ppprev_tile, pprev_tile, prev_tile, new_tile, self)
 {
 	if (self._search_range) {
 		local cur_tile_x = AIMap.GetTileX(new_tile);
@@ -410,7 +410,7 @@ function Rail::_CostSingleTile(pppprev_tile, ppprev_tile, pprev_tile, prev_tile,
 	return cost;
 }
 
-function Rail::_Estimate(cur_segment, goal_segment, self)
+function DoubleRail::_Estimate(cur_segment, goal_segment, self)
 {
 	local cost = 0;
 	/* As estimate we multiply the lowest possible cost for a single tile with
@@ -427,7 +427,7 @@ function Rail::_Estimate(cur_segment, goal_segment, self)
 	return cost * self._estimate_multiplier;
 }
 
-function Rail::_Neighbours(path, cur_segment, self)
+function DoubleRail::_Neighbours(path, cur_segment, self)
 {
 	/* self._max_cost is the maximum path cost, if we go over it, the path isn't valid. */
 	if (path._cost >= self._max_cost) return [];
@@ -603,7 +603,7 @@ function Rail::_Neighbours(path, cur_segment, self)
 	return neighbours;
 }
 
-function Rail::_NeighboursSingleTile(pprev_tile, prev_tile, cur_tile, self)
+function DoubleRail::_NeighboursSingleTile(pprev_tile, prev_tile, cur_tile, self)
 {
 	if (AITile.HasTransportType(cur_tile, AITile.TRANSPORT_RAIL)) return [];
 
@@ -686,7 +686,7 @@ function Rail::_NeighboursSingleTile(pprev_tile, prev_tile, cur_tile, self)
 	return tiles;
 }
 
-function Rail::_CheckDirection(is_neighbour, existing_direction, new_direction, self)
+function DoubleRail::_CheckDirection(is_neighbour, existing_direction, new_direction, self)
 {
 	local trackdir_left_n = 1 << 6;
 	local trackdir_left_s = 1 << 17;
@@ -745,7 +745,7 @@ function Rail::_CheckDirection(is_neighbour, existing_direction, new_direction, 
 	return false;
 }
 
-function Rail::_dir(from, to)
+function DoubleRail::_dir(from, to)
 {
 	if (from - to == 1) return 0;
 	if (from - to == -1) return 1;
@@ -754,7 +754,7 @@ function Rail::_dir(from, to)
 	throw("Shouldn't come here in _dir");
 }
 
-function Rail::_GetDirection(pre_from, from, to, is_bridge)
+function DoubleRail::_GetDirection(pre_from, from, to, is_bridge)
 {
 	if (is_bridge) {
 		if (from - to == 1) return 1;
@@ -765,7 +765,7 @@ function Rail::_GetDirection(pre_from, from, to, is_bridge)
 	return 1 << (4 + (pre_from == null ? 0 : 4 * this._dir(pre_from, from)) + this._dir(from, to));
 }
 
-function Rail::_IsSlopedRail(start, middle, end)
+function DoubleRail::_IsSlopedRail(start, middle, end)
 {
 	local NW = 0; // Set to true if we want to build a rail to / from the north-west
 	local NE = 0; // Set to true if we want to build a rail to / from the north-east
@@ -794,7 +794,7 @@ function Rail::_IsSlopedRail(start, middle, end)
 	return false;
 }
 
-function Rail::_GetUsedTiles(from, to, is_bridge)
+function DoubleRail::_GetUsedTiles(from, to, is_bridge)
 {
 	local used_list = [];
 	local offset = (to - from) / AIMap.DistanceManhattan(from, to);
@@ -826,7 +826,7 @@ function Rail::_GetUsedTiles(from, to, is_bridge)
  * @param used_list List of used tiles (for the current node).
  * @return true if there is a conflict with one of the tiles.
  */
-function Rail::_UsedTileListsConflict(prev_used_list, used_list)
+function DoubleRail::_UsedTileListsConflict(prev_used_list, used_list)
 {
 	foreach (prev_item in prev_used_list) {
 		foreach (item in used_list) {
@@ -947,7 +947,7 @@ function Rail::_UsedTileListsConflict(prev_used_list, used_list)
 	return false;
 }
 
-function Rail::_GetParents(path)
+function DoubleRail::_GetParents(path)
 {
 	local parent_tiles = [[], []];
 	local cur_tile;
@@ -1053,7 +1053,7 @@ enum SegmentDir {
 	NW_SE_CUSTOM
 };
 
-function Rail::_GetMatchingSegmentDir(from, to)
+function DoubleRail::_GetMatchingSegmentDir(from, to)
 {
 	local from1;
 	local to1;
@@ -1221,17 +1221,17 @@ function Rail::_GetMatchingSegmentDir(from, to)
 	}
 }
 
-function Rail::_GetSegmentDirection(segment, j)
+function DoubleRail::_GetSegmentDirection(segment, j)
 {
 	return 1 << (j * 24 + segment.m_segment_dir);
 }
 
-function Rail::_GetNodeID(segment, j, i)
+function DoubleRail::_GetNodeID(segment, j, i)
 {
 	return 1 << (j * 32 + i);
 }
 
-class Segment extends Rail {
+class Segment extends DoubleRail {
 	m_segment_dir = null;
 	m_neighbours = null;
 	m_nodes = null;

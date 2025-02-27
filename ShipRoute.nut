@@ -10,7 +10,6 @@ class ShipRoute extends ShipRouteManager {
 	m_dockFrom = null;
 	m_dockTo = null;
 	m_depotTile = null;
-	m_buoyTiles = null;
 	m_cargoClass = null;
 
 	m_engine = null;
@@ -26,13 +25,12 @@ class ShipRoute extends ShipRouteManager {
 	m_vehicleList = null;
 
 
-	constructor(cityFrom, cityTo, dockFrom, dockTo, depotTile, buoyTiles, cargoClass, sentToDepotWaterGroup, isLoaded = 0) {
+	constructor(cityFrom, cityTo, dockFrom, dockTo, depotTile, cargoClass, sentToDepotWaterGroup, isLoaded = 0) {
 		m_cityFrom = cityFrom;
 		m_cityTo = cityTo;
 		m_dockFrom = dockFrom;
 		m_dockTo = dockTo;
 		m_depotTile = depotTile;
-		m_buoyTiles = buoyTiles;
 		m_cargoClass = cargoClass;
 
 		m_engine = GetShipEngine(cargoClass);
@@ -94,7 +92,7 @@ class ShipRoute extends ShipRouteManager {
 		for (local v = removelist.Begin(); !removelist.IsEnd(); v = removelist.Next()) {
 			local exists = AIVehicle.IsValidVehicle(v);
 			if (exists) {
-				AILog.Error("Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("s:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 //				AIController.Break(" ");
 			}
 			m_vehicleList.rawdelete(v);
@@ -170,43 +168,6 @@ class ShipRoute extends ShipRouteManager {
 		m_engine = GetShipEngine(m_cargoClass);
 	}
 
-	function AppendBuoyOrders(vehicle, reverse = false, start_from_depot = true) {
-		if (m_buoyTiles.len() == 1) return true; // only ship depot is included
-
-		local depot = start_from_depot;
-		if (!reverse) {
-			for (local i = 0; i < m_buoyTiles.len(); i++) {
-				local tile = m_buoyTiles[i];
-				assert(AIMarine.IsBuoyTile(tile) || AIMarine.IsWaterDepotTile(tile));
-
-				if (depot && tile != m_depotTile) continue;
-				if (tile == m_depotTile) {
-					depot = !depot;
-					continue;
-				}
-				if (!AIOrder.AppendOrder(vehicle, tile, AIOrder.OF_NONE)) {
-					return false;
-				}
-			}
-		} else {
-			for (local i = m_buoyTiles.len() - 1; i >= 0; i--) {
-				local tile = m_buoyTiles[i];
-				assert(AIMarine.IsBuoyTile(tile) || AIMarine.IsWaterDepotTile(tile))
-
-				if (depot && tile != m_depotTile) continue;
-				if (tile == m_depotTile) {
-					depot = !depot;
-					continue;
-				}
-				if (!AIOrder.AppendOrder(vehicle, tile, AIOrder.OF_NONE)) {
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
 	function sellVehicle(vehicle) {
 		m_vehicleList.rawdelete(vehicle);
 		AIVehicle.SellVehicle(vehicle);
@@ -248,15 +209,11 @@ class ShipRoute extends ShipRouteManager {
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
 					if (AIOrder.AppendOrder(new_vehicle, m_depotTile, depot_order_flags) &&
-							AppendBuoyOrders(new_vehicle, true, true) &&
 							AIOrder.AppendOrder(new_vehicle, m_dockFrom, AIOrder.OF_NONE) &&
 							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true) &&
-							AppendBuoyOrders(new_vehicle, false, false) &&
 							AIOrder.AppendOrder(new_vehicle, m_depotTile, depot_order_flags) &&
-							AppendBuoyOrders(new_vehicle, false, true) &&
 							AIOrder.AppendOrder(new_vehicle, m_dockTo, AIOrder.OF_NONE) &&
-							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true) &&
-							AppendBuoyOrders(new_vehicle, true, false)) {
+							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true)) {
 						vehicle_ready_to_start = true;
 					} else {
 						sellVehicle(new_vehicle);
@@ -298,13 +255,13 @@ class ShipRoute extends ShipRouteManager {
 					}
 					new_vehicle_order_depot2_flags = AIOrder.GetOrderFlags(new_vehicle, GetSecondDepotOrderIndex(new_vehicle));
 					if (new_vehicle_order_depot1_flags == depot_order_flags && new_vehicle_order_depot2_flags == depot_order_flags) {
-						if (load_mode == 0 && !HasConditionalOrders(new_vehicle)) {
-							if (!AddConditionalOrders(new_vehicle)) {
-								AILog.Error("Failed to add conditional orders to " + AIVehicle.GetName(new_vehicle));
-								sellVehicle(new_vehicle);
-								return null;
-							}
-						}
+					 	if (load_mode == 0 && !HasConditionalOrders(new_vehicle)) {
+					 		if (!AddConditionalOrders(new_vehicle)) {
+					 			AILog.Error("Failed to add conditional orders to " + AIVehicle.GetName(new_vehicle));
+					 			sellVehicle(new_vehicle);
+					 			return null;
+					 		}
+					 	}
 						vehicle_ready_to_start = true;
 					} else {
 						AILog.Error("Order Flags of " + AIVehicle.GetName(new_vehicle) + " mismatch! " + new_vehicle_order_depot1_flags + "/" + new_vehicle_order_depot2_flags + " != " + depot_order_flags + "/" + depot_order_flags + " ; clone_vehicle_id = " + (!AIVehicle.IsValidVehicle(clone_vehicle_id) ? "null" : AIVehicle.GetName(clone_vehicle_id)) + " ; share_orders_vid = " + (AIVehicle.IsValidVehicle(share_orders_vid) ? "null" : AIVehicle.GetName(share_orders_vid)));
@@ -375,7 +332,7 @@ class ShipRoute extends ShipRouteManager {
 				return i;
 			}
 		}
-		AILog.Error(AIVehicle.GetName(vehicle_id) + " doesn't have a second ship depot order.");
+		AILog.Error(AIVehicle.GetName(vehicle) + " doesn't have a second ship depot order.");
 		return 0;
 	}
 
@@ -447,7 +404,7 @@ class ShipRoute extends ShipRouteManager {
 					}
 				}
 			}
-		} while(interrupted);
+		} while (interrupted);
 
 		return true;
 	}
@@ -474,7 +431,7 @@ class ShipRoute extends ShipRouteManager {
 					}
 				}
 			}
-		} while(interrupted);
+		} while (interrupted);
 
 		return true;
 	}
@@ -705,7 +662,7 @@ class ShipRoute extends ShipRouteManager {
 		if ((cargoWaiting1 > engine_capacity || cargoWaiting2 > engine_capacity) && group_usage > 66) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
 			local routedist = AITile.GetDistanceManhattanToTile(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
-			while(number_to_add) {
+			while (number_to_add) {
 				number_to_add--;
 				local added_vehicle = addVehicle(true);
 				if (added_vehicle != null) {
@@ -766,12 +723,6 @@ class ShipRoute extends ShipRouteManager {
 
 			::scheduledRemovalsTable.Ship.rawset(m_depotTile, 0);
 
-			for (local i = 0; i < m_buoyTiles.len(); i++) {
-				if (AIMarine.IsBuoyTile(m_buoyTiles[i])) {
-					::scheduledRemovalsTable.Ship.rawset(m_buoyTiles[i], 0);
-				}
-			}
-
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.DeleteGroup(m_group);
 			}
@@ -803,7 +754,7 @@ class ShipRoute extends ShipRouteManager {
 	}
 
 	function saveRoute() {
-		return [m_cityFrom, m_cityTo, m_dockFrom, m_dockTo, m_depotTile, m_buoyTiles, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_sentToDepotWaterGroup, m_group/*, m_vehicleList*/];
+		return [m_cityFrom, m_cityTo, m_dockFrom, m_dockTo, m_depotTile, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_sentToDepotWaterGroup, m_group];
 	}
 
 	function loadRoute(data) {
@@ -815,18 +766,16 @@ class ShipRoute extends ShipRouteManager {
 //		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + "; cityTo = " + AITown.GetName(cityTo) + "; dockFrom = " + AIBaseStation.GetName(AIStation.GetStationID(dockFrom)) + " (" + dockFrom + "); dockTo = " + AIBaseStation.GetName(AIStation.GetStationID(dockTo)) + " (" + dockTo + "); depotTile = " + depotTile);
 //		AILog.Info("distFromdepot = " + AIMap.DistanceManhattan(depotTile, Utils.GetDockDockingTile(dockFrom)) + "; distTodepot = " + AIMap.DistanceManhattan(depotTile, Utils.GetDockDockingTile(dockTo)) + "; route dist = " + AIMap.DistanceManhattan(Utils.GetDockDockingTile(dockFrom), Utils.GetDockDockingTile(dockTo)));
 
-		local buoyTiles = data[5];
+		local cargoClass = data[5];
 
-		local cargoClass = data[6];
+		local sentToDepotWaterGroup = data[9];
 
-		local sentToDepotWaterGroup = data[10];
+		local route = ShipRoute(cityFrom, cityTo, dockFrom, dockTo, depotTile, cargoClass, sentToDepotWaterGroup, 1);
 
-		local route = ShipRoute(cityFrom, cityTo, dockFrom, dockTo, depotTile, buoyTiles, cargoClass, sentToDepotWaterGroup, 1);
-
-		route.m_lastVehicleAdded = data[7];
-		route.m_lastVehicleRemoved = data[8];
-		route.m_activeRoute = data[9];
-		route.m_group = data[11];
+		route.m_lastVehicleAdded = data[6];
+		route.m_lastVehicleRemoved = data[7];
+		route.m_activeRoute = data[8];
+		route.m_group = data[10];
 
 		local vehicleList = AIVehicleList_Station(AIStation.GetStationID(route.m_dockFrom));
 		for (local v = vehicleList.Begin(); !vehicleList.IsEnd(); v = vehicleList.Next()) {
@@ -854,6 +803,6 @@ class ShipRoute extends ShipRouteManager {
 		}
 //		route.m_vehicleList = data[12];
 
-		return [route, buoyTiles.len()];
+		return route;
 	}
 }

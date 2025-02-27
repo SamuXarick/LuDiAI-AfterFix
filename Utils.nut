@@ -415,12 +415,14 @@ function Utils::getCargoId(cargoClass) {
 	local cargoList = AICargoList();
 	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
 
-	local cargoId = null;
-	for (cargoId = cargoList.Begin(); !cargoList.IsEnd(); cargoId = cargoList.Next()) {
-		if (AICargo.HasCargoClass(cargoId, cargoClass)) {
+	local cargoId = 0xFF;
+	for (local cargo = cargoList.Begin(); !cargoList.IsEnd(); cargo = cargoList.Next()) {
+		if (AICargo.HasCargoClass(cargo, cargoClass)) {
+			cargoId = cargo;
 			break;
 		}
 	}
+//	assert(AICargo.IsValidCargo(cargoId));
 
 	/* both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should return the first available cargo */
 	return cargoId;
@@ -555,7 +557,7 @@ function Utils::checkAdjacentNonRoadStation(stationTile, stationId)
 			list.RemoveItem(stationId);
 		}
 	}
-	list.Sort(AIList.SORT_BY_VALUE, true);
+	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 	local adjacentStation = AIStation.STATION_NEW;
 	if (list.Count()) {
@@ -629,7 +631,7 @@ function Utils::checkAdjacentNonDock(stationTile)
 			list.RemoveItem(stationId);
 		}
 	}
-	list.Sort(AIList.SORT_BY_VALUE, true);
+	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 	local adjacentStation = AIStation.STATION_NEW;
 	if (list.Count()) {
@@ -714,7 +716,8 @@ function Utils::GetEngineTileDist(engine_id, days_in_transit)
 	} else if (veh_type == AIVehicle.VT_WATER) {
 		return (AIEngine.GetMaxSpeed(engine_id) * 2 * 74 * days_in_transit) / (256 * 16);
 	} else {
-		assert(false);
+		assert(!AIEngine.IsValidEngine(engine_id) || !AIEngine.IsBuildable(engine_id));
+		return 0;
 	}
 }
 
@@ -940,7 +943,7 @@ function Utils::estimateTownRectangle(town)
 	local bottomCornerTile = townLocation;
 
 	local isMaxExpanded = false;
-	while(!isMaxExpanded) {
+	while (!isMaxExpanded) {
 		local maxExpandedCounter = 0;
 		for (local i = 0; i < 4; ++i) {
 			switch(i) {
@@ -1028,11 +1031,14 @@ function Utils::estimateTownRectangle(town)
  */
 function Utils::HasMoney(money)
 {
+	if (AIGameSettings.IsValid("infinite_money") && AIGameSettings.GetValue("infinite_money")) return true;
+
 	local loan_amount = AICompany.GetLoanAmount();
 	local max_loan_amount = AICompany.GetMaxLoanAmount();
 	local bank_balance = AICompany.GetBankBalance(AICompany.COMPANY_SELF);
-	if (bank_balance + max_loan_amount - loan_amount >= money) return true;
-	return false;
+//	AILog.Info("loan_amount = " + loan_amount + "; max_loan_amount = " + max_loan_amount + "; bank_balance = " + bank_balance);
+//	AILog.Info("bank_balance + max_loan_amount - loan_amount >= money : " + (bank_balance + max_loan_amount - loan_amount) + " >= " + money + " : " + (bank_balance + max_loan_amount - loan_amount >= money));
+	return (bank_balance + max_loan_amount - loan_amount) >= money;
 }
 
 function Utils::GetMoney(money)

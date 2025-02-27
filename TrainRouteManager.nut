@@ -24,15 +24,7 @@ class RailRouteManager {
 
 
 	function getTrainCount() {
-		local list = AIVehicleList();
-		local vehiclecount = 0;
-		for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_RAIL) {
-				vehiclecount++;
-			}
-		}
-
-		return vehiclecount;
+		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_RAIL);
 	}
 
 	function townRouteExists(cityFrom, cityTo, cargoClass) {

@@ -107,7 +107,7 @@ class RailRoute extends RailRouteManager {
 		for (local v = removelist.Begin(); !removelist.IsEnd(); v = removelist.Next()) {
 			local exists = AIVehicle.IsValidVehicle(v);
 			if (exists) {
-				AILog.Error("Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 //				AIController.Break(" ");
 			}
 			m_vehicleList.rawdelete(v);
@@ -636,7 +636,7 @@ class RailRoute extends RailRouteManager {
 		if (cargoWaiting1 > train_capacity || cargoWaiting2 > train_capacity) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / train_capacity);
 
-			while(number_to_add) {
+			while (number_to_add) {
 				number_to_add--;
 				local skip_order = cargoWaiting1 <= cargoWaiting2;
 				local added_vehicle = addVehicle(true, skip_order);
@@ -817,7 +817,7 @@ class RailRoute extends RailRouteManager {
 				}
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(prevTile, railtype, frontTile, nextTile));
+				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(frontTile, railtype, prevTile, nextTile));
 				ScheduleRemoveTracks(nextTile, frontTile);
 			}
 		} else if (AIBridge.IsBridgeTile(frontTile)) {
@@ -825,7 +825,7 @@ class RailRoute extends RailRouteManager {
 			local otherTile = AIBridge.GetOtherBridgeEnd(frontTile);
 			local railtype = AIRail.GetRailType(frontTile);
 			if (((otherTile - frontTile) / AIMap.DistanceManhattan(otherTile, frontTile)) == dir) {
-				nextTile = otherTile + 1;
+				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
 				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, railtype, otherTile));
@@ -836,7 +836,7 @@ class RailRoute extends RailRouteManager {
 			local otherTile = AITunnel.GetOtherTunnelEnd(frontTile);
 			local railtype = AIRail.GetRailType(frontTile);
 			if (((otherTile - frontTile) / AIMap.DistanceManhattan(otherTile, frontTile)) == dir) {
-				nextTile = otherTile + 1;
+				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
 				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, railtype, otherTile));
@@ -864,7 +864,7 @@ class RailRoute extends RailRouteManager {
 			ScheduleRemoveTracks(station.GetExitTile(line, 1), station.GetExitTile(line));
 
 			station = RailStation.CreateFromTile(m_stationTo, m_stationToDir);
-			line = station.GetPlatformLine(1);
+			line = station.GetPlatformLine(2);
 			ScheduleRemoveTracks(station.GetExitTile(line, 1), station.GetExitTile(line));
 
 			if (AIGroup.IsValidGroup(m_group)) {
@@ -929,14 +929,14 @@ class RailRoute extends RailRouteManager {
 
 		local vehicleList = AIVehicleList_Station(AIStation.GetStationID(route.m_stationFrom));
 		for (local v = vehicleList.Begin(); !vehicleList.IsEnd(); v = vehicleList.Next()) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_ROAD) {
+			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_RAIL) {
 				route.m_vehicleList.rawset(v, 2);
 			}
 		}
 
 		vehicleList = AIVehicleList_Group(route.m_sentToDepotRailGroup[0]);
 		for (local v = vehicleList.Begin(); !vehicleList.IsEnd(); v = vehicleList.Next()) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_ROAD) {
+			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_RAIL) {
 				if (route.m_vehicleList.rawin(v)) {
 					route.m_vehicleList.rawset(v, 0);
 				}
@@ -945,7 +945,7 @@ class RailRoute extends RailRouteManager {
 
 		vehicleList = AIVehicleList_Group(route.m_sentToDepotRailGroup[1]);
 		for (local v = vehicleList.Begin(); !vehicleList.IsEnd(); v = vehicleList.Next()) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_ROAD) {
+			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_RAIL) {
 				if (route.m_vehicleList.rawin(v)) {
 					route.m_vehicleList.rawset(v, 1);
 				}

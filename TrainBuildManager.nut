@@ -1,4 +1,5 @@
-require("RailPathfinder.nut");
+require("DoubleRailPathfinder.nut");
+require("SingleRailPathfinder.nut");
 
 enum RailStationDir {
 	NE,
@@ -211,12 +212,12 @@ class RailStation {
 	}
 }
 
-enum RailStructType {
-	RAIL,
-	TUNNEL,
-	BRIDGE,
-	STATION,
-	DEPOT,
+class RailStructType {
+	RAIL = 0;
+	TUNNEL = 1;
+	BRIDGE = 2;
+	STATION = 3;
+	DEPOT = 4;
 }
 
 class RailStruct {
@@ -270,6 +271,7 @@ class RailBuildManager {
 	m_cargoClass = -1;
 	m_pathfinder = null;
 	m_pathfinderTries = 0;
+	m_pathfinderProfile = AIController.GetSetting("rail_pf_profile");
 	m_builtTiles = [];
 	m_sentToDepotRailGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
@@ -278,7 +280,8 @@ class RailBuildManager {
 	m_stationToDir = -1;
 
 	function buildTrainStation(town, cargoClass, otherTown, best_routes_built, railtype);
-	function buildRail(fromTile, toTile, silent_mode, pathfinder);
+	function buildSingleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0);
+	function buildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0);
 	function findRailTileDepot(tile);
 	function buildDepot(station, stationDir);
 	function saveBuildManager();
@@ -409,7 +412,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_railtype, depot, depotRaila));
 //					AILog.Error("Failed to remove rail track in front of depot towards the station at tile " + depotFront);
@@ -424,7 +427,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_railtype, depot, depotRailb));
 //					AILog.Error("Failed to remove rail track in front of depot towards the railroad at tile " + depotFront);
@@ -439,7 +442,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_railtype, depot, depotRailc));
 //					AILog.Error("Failed to remove rail track in front of depot towards accross the lines at tile " + depotFront);
@@ -454,7 +457,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, m_railtype));
 //					AILog.Error("Failed to remove rail depot at tile " + depot);
@@ -476,7 +479,7 @@ class RailBuildManager {
 					local tile_to = i.m_tile3;
 					if (!TestRemoveRail().TryRemove(tile_from, tile, tile_to)) {
 //						AILog.Info("Failed to remove rail at tile " + tile + ", connecting " + tile_from + " to " + tile_to + ".");
-						::scheduledRemovalsTable.Train.append(RailStruct.SetRail(tile_from, type, tile, tile_to));
+						::scheduledRemovalsTable.Train.append(RailStruct.SetRail(tile, type, tile_from, tile_to));
 					}
 				} else {
 //					AILog.Info("No rail tile found to remove at tile " + tile + ", connecting " + tile_from + " to " + tile_to + ".");
@@ -484,7 +487,7 @@ class RailBuildManager {
 			} else if (struct == RailStructType.BRIDGE) {
 				local tile2 = i.m_tile2;
 				if (AIBridge.IsBridgeTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) && AIBridge.GetOtherBridgeEnd(tile) == tile2) {
-					if (!TestDemolishTile().TryDemolish(tile)) {
+					if (!TestRemoveBridge().TryRemove(tile)) {
 //						AILog.Info("Failed to demolish bridge at tiles " + tile + " and " + tile2 + ".");
 						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(tile, RailStructType.BRIDGE, type, tile2));
 					}
@@ -494,7 +497,7 @@ class RailBuildManager {
 			} else if (struct == RailStructType.TUNNEL) {
 				local tile2 = i.m_tile2;
 				if (AITunnel.IsTunnelTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) && AITunnel.GetOtherTunnelEnd(tile) == tile2) {
-					if (!TestDemolishTile().TryDemolish(tile)) {
+					if (!TestRemoveTunnel().TryRemove(tile)) {
 //						AILog.Info("Failed to demolish tunnel at tiles " + tile + " and " + tile2 + ".");
 						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(tile, RailStructType.TUNNEL, type, tile2));
 					}
@@ -513,13 +516,7 @@ class RailBuildManager {
 		m_best_routes_built = best_routes_built;
 		m_railtype = railtype;
 
-		local list = AIVehicleList();
-		local num_vehicles = 0;
-		for (local v = list.Begin(); !list.IsEnd(); v = list.Next()) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_RAIL) {
-				num_vehicles++;
-			}
-		}
+		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_RAIL);
 		if (num_vehicles >= AIGameSettings.GetValue("max_trains") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_RAIL)) {
 			/* Don't terminate the route, or it may leave already built stations behind. */
 			return 0;
@@ -568,7 +565,9 @@ class RailBuildManager {
 		}
 
 		if (m_stationFrom != null && m_depotFrom != null && m_stationTo != null && m_depotTo != null) {
-			local railArray = buildRail(m_stationFrom, m_stationFromDir, m_stationTo, m_stationToDir, false, m_pathfinder, m_builtTiles);
+			local railArray;
+			if (m_pathfinderProfile == 1) railArray = buildDoubleRail(m_stationFrom, m_stationFromDir, m_depotFrom, m_stationTo, m_stationToDir, m_depotTo, m_pathfinderProfile, false, m_pathfinder, m_builtTiles);
+			if (m_pathfinderProfile == 0) railArray = buildSingleRail(m_stationFrom, m_stationFromDir, m_depotFrom, m_stationTo, m_stationToDir, m_depotTo, m_pathfinderProfile, false, m_pathfinder, m_builtTiles);
 			m_pathfinder = railArray[1];
 			if (railArray[0] == null && m_pathfinder != null) {
 				return 0;
@@ -585,7 +584,6 @@ class RailBuildManager {
 			return null;
 		}
 		m_builtTiles = [];
-		AILog.Info(typeof(m_pathfinder));
 		return RailRoute(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargoClass, m_sentToDepotRailGroup, m_railtype, m_stationFromDir, m_stationToDir);
 	}
 
@@ -764,7 +762,7 @@ class RailBuildManager {
 				list.RemoveItem(stationId);
 			}
 		}
-		list.Sort(AIList.SORT_BY_VALUE, true);
+		list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 		local adjacentStation = AIStation.STATION_NEW;
 		if (list.Count()) {
@@ -947,7 +945,7 @@ class RailBuildManager {
 					break;
 				}
 				AIController.Sleep(1);
-			} while(counter < 1);
+			} while (counter < 1);
 			if (counter == 1) {
 				continue;
 			}
@@ -963,7 +961,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 1);
+				} while (counter < 1);
 				if (counter == 1) {
 					local counter = 0;
 					do {
@@ -1156,109 +1154,62 @@ class RailBuildManager {
 		return null;
 	}
 
-	// find rail way between fromTile and toTile
-	function buildRail(fromTile, fromTileDir, toTile, toTileDir, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0) {
+	// find rail way between tileFrom and tileTo
+	function buildSingleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0) {
 		//can store rail tiles into array
 
-		if (fromTile != toTile) {
+		if (tileFrom != tileTo) {
 			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
-			local profile = AIController.GetSetting("rail_pf_profile");
 			local max_pathfinderTries = route_dist;
-			if (profile == 0) {
+			if (pathfinderProfile == 0) {
 				max_pathfinderTries = 1250 * route_dist;
-			} else if (profile == 1) {
+			} else if (pathfinderProfile == 1) {
 				max_pathfinderTries = 1000 * route_dist;
 			} else {
 				max_pathfinderTries = 5000 * route_dist / 5 + 5000 * route_dist % 5;
 			}
 
 			//* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + tileFrom + ") and " + AITown.GetName(m_cityTo) + " (tile " + tileTo + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			// Tell OpenTTD we want to build this railtype. */
 			AIRail.SetCurrentRailType(m_railtype);
 
 			if (pathfinder == null) {
-				// Create an instance of the pathfinder. */
-				pathfinder = Rail();
+				/* Create an instance of the pathfinder. */
+//				pathfinder = DoubleRail();
+				pathfinder = SingleRail();
 
-				switch(profile) {
-					case 0:
-						AILog.Info("rail pathfinder: custom");
+				AILog.Info("rail pathfinder: " + (pathfinderProfile == 0 ? "single rail" : "double rail"));
 /*defaults*/
-/*10000000*/			pathfinder.cost.max_cost;
-/*100*/					pathfinder.cost.tile;
-/*70*/					pathfinder.cost.diagonal_tile;
-/*50*/					pathfinder.cost.turn45;
-/*300*/					pathfinder.cost.turn90 = pathfinder.cost.max_cost;
-/*250*/					pathfinder.cost.consecutive_turn = pathfinder.cost.max_cost;
-/*100*/					pathfinder.cost.slope = AIGameSettings.GetValue("train_acceleration_model") ? AIGameSettings.GetValue("train_slope_steepness") * 20 : pathfinder.cost.slope;
-/*400*/					pathfinder.cost.consecutive_slope = pathfinder.cost.max_cost/*4 * pathfinder.cost.slope*/;
-/*150*/					pathfinder.cost.bridge_per_tile = 50;
-/*120*/					pathfinder.cost.tunnel_per_tile = 60;
-/*20*/					pathfinder.cost.coast = (AICompany.GetLoanAmount() == 0) ? pathfinder.cost.coast : 5000;
-/*900*/					pathfinder.cost.level_crossing = pathfinder.cost.max_cost;
-/*6*/					pathfinder.cost.max_bridge_length = (AICompany.GetLoanAmount() == 0) ? AIGameSettings.GetValue("max_bridge_length") + 2 : 13;
-/*6*/					pathfinder.cost.max_tunnel_length = (AICompany.GetLoanAmount() == 0) ? AIGameSettings.GetValue("max_tunnel_length") + 2 : 11;
-/*1*/					pathfinder.cost.estimate_multiplier = 1.0 + route_dist / 2000.0;
-/*0*/					pathfinder.cost.search_range = max(route_dist / 15, 25);
-						break;
+/*10000000*/	pathfinder.cost.max_cost;
+/*100*/			pathfinder.cost.tile;
+/*70*/			pathfinder.cost.diagonal_tile;
+/*50*/			pathfinder.cost.turn45 = 10 * pathfinder.cost.turn45;
+/*300*/			pathfinder.cost.turn90 = AIGameSettings.GetValue("forbid_90_deg") ? pathfinder.cost.max_cost : 10 * pathfinder.cost.turn90;
+/*250*/			pathfinder.cost.consecutive_turn = (AICompany.GetLoanAmount() == 0) ? 5000 : pathfinder.cost.consecutive_turn;
+/*100*/			pathfinder.cost.slope = AIGameSettings.GetValue("train_acceleration_model") ? AIGameSettings.GetValue("train_slope_steepness") * 20 : pathfinder.cost.slope;
+/*400*/			pathfinder.cost.consecutive_slope = 4 * pathfinder.cost.slope;
+/*150*/			pathfinder.cost.bridge_per_tile = (AICompany.GetLoanAmount() == 0) ? 75/*50*/ : pathfinder.cost.bridge_per_tile;
+/*120*/			pathfinder.cost.tunnel_per_tile = (AICompany.GetLoanAmount() == 0) ? 60 : pathfinder.cost.tunnel_per_tile;
+/*20*/			pathfinder.cost.coast = (AICompany.GetLoanAmount() == 0) ? pathfinder.cost.coast : 5000;
+/*900*/			pathfinder.cost.level_crossing = pathfinder.cost.max_cost;
+/*6*/			pathfinder.cost.max_bridge_length = (AICompany.GetLoanAmount() == 0) ? AIGameSettings.GetValue("max_bridge_length") + 2 : 13;
+/*6*/			pathfinder.cost.max_tunnel_length = (AICompany.GetLoanAmount() == 0) ? AIGameSettings.GetValue("max_tunnel_length") + 2 : 11;
+/*1*/			pathfinder.cost.estimate_multiplier = 1.0 + route_dist / 2000.0;
+/*0*/			pathfinder.cost.search_range = max(route_dist / 15, 25);
 
-					case 2:
-						AILog.Info("rail pathfinder: fastest");
-
-						pathfinder.cost.max_cost;
-						pathfinder.cost.tile;
-						pathfinder.cost.diagonal_tile;
-						pathfinder.cost.turn45 = 250;
-						pathfinder.cost.turn90 = pathfinder.cost.max_cost;
-						pathfinder.cost.consecutive_turn = 5000;
-						pathfinder.cost.slope = 50;
-						pathfinder.cost.consecutive_slope = 5000;
-						pathfinder.cost.bridge_per_tile;
-						pathfinder.cost.tunnel_per_tile;
-						pathfinder.cost.coast = 5000;
-						pathfinder.cost.level_crossing = pathfinder.cost.max_cost;
-						pathfinder.cost.max_bridge_length;
-						pathfinder.cost.max_tunnel_length;
-						pathfinder.cost.estimate_multiplier = 2;
-						pathfinder.cost.search_range = max(route_dist / 30, 7);
-						break;
-
-					case 1:
-					default:
-						AILog.Info("rail pathfinder: default");
-
-						pathfinder.cost.max_cost;
-						pathfinder.cost.tile;
-						pathfinder.cost.diagonal_tile;
-						pathfinder.cost.turn45;
-						pathfinder.cost.turn90;
-						pathfinder.cost.consecutive_turn;
-						pathfinder.cost.slope;
-						pathfinder.cost.consecutive_slope
-						pathfinder.cost.bridge_per_tile;
-						pathfinder.cost.tunnel_per_tile;
-						pathfinder.cost.coast;
-						pathfinder.cost.level_crossing
-						pathfinder.cost.max_bridge_length;
-						pathfinder.cost.max_tunnel_length;
-						pathfinder.cost.estimate_multiplier;
-						pathfinder.cost.search_range;
-						break;
-
-				}
-				// Give the source and goal tiles to the pathfinder. */
-				local stationFrom = RailStation.CreateFromTile(fromTile, fromTileDir);
-				local stationTo = RailStation.CreateFromTile(toTile, toTileDir);
+				/* Give the source and goal tiles to the pathfinder. */
+				local stationFrom = RailStation.CreateFromTile(tileFrom, stationFromDir);
+				local stationTo = RailStation.CreateFromTile(tileTo, stationToDir);
 
 				local stationFromPlat1;
 				local stationToPlat1;
 				local stationFromPlat2;
 				local stationToPlat2;
-				switch (fromTileDir) {
+				switch (stationFromDir) {
 					case RailStationDir.NE:
-						switch (toTileDir) {
+						switch (stationToDir) {
 							case RailStationDir.NE:
 								stationFromPlat1 = 1;
 								stationToPlat1 = 2;
@@ -1290,7 +1241,7 @@ class RailBuildManager {
 						break;
 
 					case RailStationDir.NW:
-						switch (toTileDir) {
+						switch (stationToDir) {
 							case RailStationDir.NE:
 								stationFromPlat1 = 2;
 								stationToPlat1 = 2;
@@ -1322,7 +1273,7 @@ class RailBuildManager {
 						break;
 
 					case RailStationDir.SE:
-						switch (toTileDir) {
+						switch (stationToDir) {
 							case RailStationDir.NE:
 								stationFromPlat1 = 1;
 								stationToPlat1 = 2;
@@ -1354,7 +1305,379 @@ class RailBuildManager {
 						break;
 
 					case RailStationDir.SW:
-						switch (toTileDir) {
+						switch (stationToDir) {
+							case RailStationDir.NE:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.NW:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 2;
+								break;
+
+							case RailStationDir.SE:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.SW:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 2;
+								break;
+						}
+						break;
+				}
+
+				local stationFromEntryBefore1 = stationFrom.GetEntryTile(stationFromPlat1);
+				local stationFromEntry1 = stationFrom.GetExitTile(stationFromPlat1);
+				local stationFromExit1 = stationFrom.GetExitTile(stationFromPlat1) - stationFrom.GetEntryTile(stationFromPlat1) + stationFrom.GetExitTile(stationFromPlat1);
+				local stationToEntryBefore1 = stationTo.GetEntryTile(stationToPlat1);
+				local stationToEntry1 = stationTo.GetExitTile(stationToPlat1);
+				local stationToExit1 = stationTo.GetExitTile(stationToPlat1) - stationTo.GetEntryTile(stationToPlat1) + stationTo.GetExitTile(stationToPlat1);
+				local stationFromEntryBefore2 = stationFrom.GetEntryTile(stationFromPlat2);
+				local stationFromEntry2 = stationFrom.GetExitTile(stationFromPlat2);
+				local stationFromExit2 = stationFrom.GetExitTile(stationFromPlat2) - stationFrom.GetEntryTile(stationFromPlat2) + stationFrom.GetExitTile(stationFromPlat2);
+				local stationToEntryBefore2 = stationTo.GetEntryTile(stationToPlat2);
+				local stationToEntry2 = stationTo.GetExitTile(stationToPlat2);
+				local stationToExit2 = stationTo.GetExitTile(stationToPlat2) - stationTo.GetEntryTile(stationToPlat2) + stationTo.GetExitTile(stationToPlat2);
+				local ignoreTileFrom1 = stationFromExit1 - stationFromExit2 + stationFromExit1;
+				local ignoreTileFrom2 = stationFromExit2 - stationFromExit1 + stationFromExit2;
+				local ignoreTileTo1 = stationToExit1 - stationToExit2 + stationToExit1;
+				local ignoreTileTo2 = stationToExit2 - stationToExit1 + stationToExit2;
+
+				/* SingleRail */
+				AILog.Info("stationFromExit2 = " + stationFromExit2 + "; stationFromEntry2 = " + stationFromEntry2 + "; stationFromEntryBefore2 = " + stationFromEntryBefore2);
+				AILog.Info("stationToExit2 = " + stationToExit2 + "; stationToEntry2 = " + stationToEntry2 + "; stationToEntryBefore2 = " + stationToEntryBefore2);
+				AILog.Info("ignoreTileFrom1 = " + ignoreTileFrom1 + "; ignoreTileFrom2 = " + ignoreTileFrom2 + "; ignoreTileTo1 = " + ignoreTileTo1 + "; ignoreTileTo2 = " + ignoreTileTo2 + "; stationFromExit1 = " + stationFromExit1 + "; stationToExit1 = " + stationToExit1);
+				pathfinder.InitializePath(
+					[[stationFromExit2, stationFromEntry2, stationFromEntryBefore2]],
+					[[stationToExit2, stationToEntry2, stationToEntryBefore2]],
+					[ignoreTileFrom1, ignoreTileFrom2, ignoreTileTo1, ignoreTileTo2, stationFromExit1, stationToExit1]
+				);
+			}
+
+			local cur_date = AIDate.GetCurrentDate();
+			local path;
+
+//			local count = 0;
+			do {
+				++m_pathfinderTries;
+//				++count;
+				path = pathfinder.FindPath(1);
+
+				if (path == false) {
+					if (m_pathfinderTries < max_pathfinderTries) {
+						if (AIDate.GetCurrentDate() - cur_date > 1) {
+//							if (!silent_mode) AILog.Info("rail pathfinder: FindPath iterated: " + count);
+//							local signList = AISignList();
+//							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
+//								if (signList.Count() < 64000) break;
+//								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
+//							}
+							return [null, pathfinder];
+						}
+					} else {
+						// Timed out
+						if (!silent_mode) AILog.Error("rail pathfinder: FindPath return false (timed out)");
+						m_pathfinderTries = 0;
+						return [null, null];
+					}
+				}
+
+				if (path == null ) {
+					// No path was found. */
+					if (!silent_mode) AILog.Error("rail pathfinder: FindPath return null (no path)");
+					m_pathfinderTries = 0;
+					return [null, null];
+				}
+			} while (path == false);
+
+//			if (!silent_mode && m_pathfinderTries != count) AILog.Info("rail pathfinder: FindPath iterated: " + count);
+			if (!silent_mode) AILog.Info("Rail path found! FindPath iterated: " + m_pathfinderTries + ". Building track... ");
+			if (!silent_mode) AILog.Info("rail pathfinder: FindPath cost: " + path.GetCost());
+
+			/* If a path was found, build a track over it. */
+			local track_cost = cost_so_far;
+			local prev = null;
+			local prevprev = null;
+			while (path != null) {
+				if (prevprev != null) {
+					if (AIMap.DistanceManhattan(prev, path.GetTile()) > 1) {
+						if (AITunnel.GetOtherTunnelEnd(prev) == path.GetTile()) {
+							local counter = 0;
+							do {
+								local costs = AIAccounting();
+								if (!TestBuildTunnel().TryBuild(AIVehicle.VT_RAIL, prev)) {
+									++counter;
+								}
+								else {
+									track_cost += costs.GetCosts();
+									if (!silent_mode) AILog.Warning("We built a rail tunnel at tiles " + prev + " and " + path.GetTile() + ", ac: " + costs.GetCosts());
+									m_builtTiles.append(RailStruct.SetStruct(prev, RailStructType.TUNNEL, m_railtype, path.GetTile()));
+									break;
+								}
+								AIController.Sleep(1);
+							} while (counter < 500);
+
+							if (counter == 500) {
+								if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + prev + " and " + path.GetTile() + " - " + AIError.GetLastErrorString());
+//								m_pathfinderTries = 0;
+//								return [null, null];
+							}
+						} else {
+							local bridge_length = AIMap.DistanceManhattan(path.GetTile(), prev) + 1;
+							local bridge_list = AIBridgeList_Length(bridge_length);
+							for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
+								bridge_list.SetValue(bridge, AIBridge.GetMaxSpeed(bridge));
+							}
+							bridge_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
+							local counter = 0;
+							do {
+								local costs = AIAccounting();
+								if (!TestBuildBridge().TryBuild(AIVehicle.VT_RAIL, bridge_list.Begin(), prev, path.GetTile())) {
+									if (AIError.GetLastErrorString() == "ERR_NOT_ENOUGH_CASH") {
+										for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
+											bridge_list.SetValue(bridge, AIBridge.GetPrice(bridge, bridge_length));
+										}
+										bridge_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
+									}
+									++counter;
+								}
+								else {
+									track_cost += costs.GetCosts();
+									if (!silent_mode) AILog.Warning("We built a rail bridge at tiles " + prev + " and " + path.GetTile() + ", ac: " + costs.GetCosts());
+									m_builtTiles.append(RailStruct.SetStruct(prev, RailStructType.BRIDGE, m_railtype, path.GetTile()));
+									m_bridgeTiles.append(prev < path.GetTile() ? [prev, path.GetTile()] : [path.GetTile(), prev]);
+									break;
+								}
+								AIController.Sleep(1);
+							} while (counter < 500);
+
+							if (counter == 500) {
+								if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + prev + " and " + path.GetTile() + " - " + AIError.GetLastErrorString());
+//								m_pathfinderTries = 0;
+//								return [null, null];
+							}
+						}
+						prevprev = prev;
+						prev = path.GetTile();
+						path = path.GetParent();
+					} else {
+						local counter = 0;
+						do {
+							local costs = AIAccounting();
+							if (!TestBuildRail().TryBuild(prevprev, prev, path.GetTile())) {
+								++counter;
+							}
+							else {
+								track_cost += costs.GetCosts();
+								if (!silent_mode) AILog.Warning("We built a rail track at tile " + prev + ", connecting " + prevprev + " to " + path.GetTile() + ", ac: " + costs.GetCosts());
+								m_builtTiles.append(RailStruct.SetRail(prev, m_railtype, prevprev, path.GetTile()));
+								break;
+							}
+							AIController.Sleep(1);
+						} while (counter < 500);
+
+						if (counter == 500) {
+							if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + prev + ", connecting " + prevprev + " to " + path.GetTile() + " - " + AIError.GetLastErrorString());
+//							m_pathfinderTries = 0;
+//							return [null, null];
+						}
+					}
+				}
+				if (path != null) {
+					prevprev = prev;
+					prev = path.GetTile();
+					path = path.GetParent();
+				}
+			}
+
+			if (!silent_mode) AILog.Info("Track built! Actual cost for building track: " + track_cost);
+		}
+
+//		if (!silent_mode) AILog.Info("Track built!");
+		m_pathfinderTries = 0;
+		return [builtTiles, null];
+	}
+
+	// find rail way between tileFrom and tileTo
+	function buildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0) {
+		//can store rail tiles into array
+
+		if (tileFrom != tileTo) {
+			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
+			local max_pathfinderTries = route_dist;
+			if (pathfinderProfile == 0) {
+				max_pathfinderTries = 1250 * route_dist;
+			} else if (pathfinderProfile == 1) {
+				max_pathfinderTries = 1000 * route_dist;
+			} else {
+				max_pathfinderTries = 5000 * route_dist / 5 + 5000 * route_dist % 5;
+			}
+
+			//* Print the names of the towns we'll try to connect. */
+			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + tileFrom + ") and " + AITown.GetName(m_cityTo) + " (tile " + tileTo + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+
+			// Tell OpenTTD we want to build this railtype. */
+			AIRail.SetCurrentRailType(m_railtype);
+
+			if (pathfinder == null) {
+				/* Create an instance of the pathfinder. */
+				pathfinder = DoubleRail();
+//				pathfinder = SingleRail();
+
+				AILog.Info("rail pathfinder: " + (pathfinderProfile == 0 ? "single rail" : "double rail"));
+/*defaults*/
+/*10000000*/	//pathfinder.cost.max_cost;
+/*100*/			//pathfinder.cost.tile;
+/*70*/			//pathfinder.cost.diagonal_tile;
+/*50*/			//pathfinder.cost.turn45;
+/*300*/			//pathfinder.cost.turn90 = pathfinder.cost.max_cost;
+/*250*/			//pathfinder.cost.consecutive_turn = pathfinder.cost.max_cost;
+/*100*/			//pathfinder.cost.slope = AIGameSettings.GetValue("train_acceleration_model") ? AIGameSettings.GetValue("train_slope_steepness") * 20 : pathfinder.cost.slope;
+/*400*/			//pathfinder.cost.consecutive_slope = 4 * pathfinder.cost.slope;
+/*150*/			//pathfinder.cost.bridge_per_tile = 50;
+/*120*/			//pathfinder.cost.tunnel_per_tile = 60;
+/*20*/			//pathfinder.cost.coast = (AICompany.GetLoanAmount() == 0) ? pathfinder.cost.coast : 5000;
+/*900*/			//pathfinder.cost.level_crossing = pathfinder.cost.max_cost;
+/*6*/			//pathfinder.cost.max_bridge_length = (AICompany.GetLoanAmount() == 0) ? AIGameSettings.GetValue("max_bridge_length") + 2 : 13;
+/*6*/			//pathfinder.cost.max_tunnel_length = (AICompany.GetLoanAmount() == 0) ? AIGameSettings.GetValue("max_tunnel_length") + 2 : 11;
+/*1*/			//pathfinder.cost.estimate_multiplier = 1.0 + route_dist / 2000.0;
+/*0*/			//pathfinder.cost.search_range = max(route_dist / 15, 25);
+
+				pathfinder.cost.max_cost;
+				pathfinder.cost.tile;
+				pathfinder.cost.diagonal_tile;
+				pathfinder.cost.turn45 = 250;
+				pathfinder.cost.turn90 = AIGameSettings.GetValue("forbid_90_deg") ? pathfinder.cost.max_cost : pathfinder.cost.turn90;
+				pathfinder.cost.consecutive_turn = 5000;
+				pathfinder.cost.slope = 50;
+				pathfinder.cost.consecutive_slope = 5000;
+				pathfinder.cost.bridge_per_tile;
+				pathfinder.cost.tunnel_per_tile;
+				pathfinder.cost.coast = (AICompany.GetLoanAmount() == 0) ? pathfinder.cost.coast : 5000;
+				pathfinder.cost.level_crossing = pathfinder.cost.max_cost;
+				pathfinder.cost.max_bridge_length;
+				pathfinder.cost.max_tunnel_length;
+				pathfinder.cost.estimate_multiplier = 2;
+				pathfinder.cost.search_range = max(route_dist / 30, 7);
+
+				/* Give the source and goal tiles to the pathfinder. */
+				local stationFrom = RailStation.CreateFromTile(tileFrom, stationFromDir);
+				local stationTo = RailStation.CreateFromTile(tileTo, stationToDir);
+
+				local stationFromPlat1;
+				local stationToPlat1;
+				local stationFromPlat2;
+				local stationToPlat2;
+				switch (stationFromDir) {
+					case RailStationDir.NE:
+						switch (stationToDir) {
+							case RailStationDir.NE:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.NW:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 2;
+								break;
+
+							case RailStationDir.SE:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.SW:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 2;
+								break;
+						}
+						break;
+
+					case RailStationDir.NW:
+						switch (stationToDir) {
+							case RailStationDir.NE:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.NW:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 2;
+								break;
+
+							case RailStationDir.SE:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.SW:
+								stationFromPlat1 = 2;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 1;
+								stationToPlat2 = 2;
+								break;
+						}
+						break;
+
+					case RailStationDir.SE:
+						switch (stationToDir) {
+							case RailStationDir.NE:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.NW:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 2;
+								break;
+
+							case RailStationDir.SE:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 2;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 1;
+								break;
+
+							case RailStationDir.SW:
+								stationFromPlat1 = 1;
+								stationToPlat1 = 1;
+								stationFromPlat2 = 2;
+								stationToPlat2 = 2;
+								break;
+						}
+						break;
+
+					case RailStationDir.SW:
+						switch (stationToDir) {
 							case RailStationDir.NE:
 								stationFromPlat1 = 2;
 								stationToPlat1 = 2;
@@ -1398,13 +1721,16 @@ class RailBuildManager {
 				local ignoreTileFrom2 = stationFromExit2 - stationFromExit1 + stationFromExit2;
 				local ignoreTileTo1 = stationToExit1 - stationToExit2 + stationToExit1;
 				local ignoreTileTo2 = stationToExit2 - stationToExit1 + stationToExit2;
-				AILog.Info("stationFromEntry1 = " + stationFromEntry1 + "; stationFromExit1 = " + stationFromExit1 + "; stationToEntry1 = " + stationToEntry1 + "; stationToExit1 = " + stationToExit1);
-				AILog.Info("stationFromEntry2 = " + stationFromEntry2 + "; stationFromExit2 = " + stationFromExit2 + "; stationToEntry2 = " + stationToEntry2 + "; stationToExit2 = " + stationToExit2);
-				AILog.Info("ignoreTileFrom1 = " + ignoreTileFrom1 + "; ignoreTileFrom2 = " + ignoreTileFrom2 + "; ignoreTileTo1 = " + ignoreTileTo1 + "; ignoreTileTo2 = " + ignoreTileTo2);
+
+				/* DoubleRail */
+//				AILog.Info("stationFromEntry1 = " + stationFromEntry1 + "; stationFromExit1 = " + stationFromExit1 + "; stationToEntry1 = " + stationToEntry1 + "; stationToExit1 = " + stationToExit1);
+//				AILog.Info("stationFromEntry2 = " + stationFromEntry2 + "; stationFromExit2 = " + stationFromExit2 + "; stationToEntry2 = " + stationToEntry2 + "; stationToExit2 = " + stationToExit2);
+//				AILog.Info("ignoreTileFrom1 = " + ignoreTileFrom1 + "; ignoreTileFrom2 = " + ignoreTileFrom2 + "; ignoreTileTo1 = " + ignoreTileTo1 + "; ignoreTileTo2 = " + ignoreTileTo2);
 				pathfinder.InitializePath(
 					[[stationFromEntry1, stationFromExit1], [stationFromEntry2, stationFromExit2]],
 					[[stationToExit1, stationToEntry1], [stationToExit2, stationToEntry2]],
-					[ignoreTileFrom1, ignoreTileFrom2, ignoreTileTo1, ignoreTileTo2]);
+					[ignoreTileFrom1, ignoreTileFrom2, ignoreTileTo1, ignoreTileTo2]
+				);
 			}
 
 			local cur_date = AIDate.GetCurrentDate();
@@ -1420,11 +1746,11 @@ class RailBuildManager {
 					if (m_pathfinderTries < max_pathfinderTries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							if (!silent_mode) AILog.Info("rail pathfinder: FindPath iterated: " + count);
-							local signList = AISignList();
-							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
-								if (signList.Count() < 64000) break;
-								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
-							}
+//							local signList = AISignList();
+//							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
+//								if (signList.Count() < 64000) break;
+//								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
+//							}
 							return [null, pathfinder];
 						}
 					} else {
@@ -1441,48 +1767,60 @@ class RailBuildManager {
 					m_pathfinderTries = 0;
 					return [null, null];
 				}
-			} while(path == false);
+			} while (path == false);
 
 //			if (!silent_mode && m_pathfinderTries != count) AILog.Info("rail pathfinder: FindPath iterated: " + count);
 			if (!silent_mode) AILog.Info("Rail path found! FindPath iterated: " + m_pathfinderTries + ". Building track... ");
 			if (!silent_mode) AILog.Info("rail pathfinder: FindPath cost: " + path.GetCost());
-			local track_cost = cost_so_far;
-			// If a path was found, build a track over it. */
 
+			local segments = [];
 			local scan_path = path;
-			local prev = [null, null];
-			local prevprev = [null, null];
+			while (scan_path != null) {
+				segments.append(scan_path._segment);
+				scan_path = scan_path.GetParent();
+			}
+			segments.reverse();
+
+			/* If a path was found, build a track over it. */
+			local track_cost = cost_so_far;
+			local scan_path = path;
+			local next = [null, null];
+			local nextnext = [null, null];
 			local scan_tile = [null, null];
 			local last_tile = false;
-			while (scan_path != null) {
+			for (local id = 0; id <= segments.len(); id++) {
+				last_tile = id == segments.len();
+				local segment = last_tile ? segments[id - 1] : segments[id];
 				foreach (j in [0, 1]) {
-					for (local i = scan_path._segment.m_nodes[j].len() - 1; i >= 0; i--) {
-						scan_tile[j] = scan_path._segment.m_nodes[j][i][last_tile ? 3 : 0];
-						if (prevprev[j] != null) {
-							if (AIMap.DistanceManhattan(prev[j], scan_tile[j]) > 1) {
-								if (AITunnel.GetOtherTunnelEnd(prev[j]) == scan_tile[j]) {
+					for (local i = 0; i < segment.m_nodes[j].len(); i++) {
+						scan_tile[j] = segment.m_nodes[j][i][!last_tile ? 3 : 0];
+//						AILog.Info("id = " + id + "; line = " + (j + 1) + "; node = " + i + "; scan_tile = " + scan_tile[j] + "; next = " + next[j] + "; nextnext = " + nextnext[j]);
+						if (nextnext[j] != null) {
+							if (AIMap.DistanceManhattan(next[j], scan_tile[j]) > 1) {
+								if (AITunnel.GetOtherTunnelEnd(next[j]) == scan_tile[j]) {
 									local counter = 0;
 									do {
 										local costs = AIAccounting();
-										if (!TestBuildTunnel().TryBuild(AIVehicle.VT_RAIL, prev[j])) {
+										if (!TestBuildTunnel().TryBuild(AIVehicle.VT_RAIL, next[j])) {
 											++counter;
 										}
 										else {
 											track_cost += costs.GetCosts();
-//											if (!silent_mode) AILog.Warning("We built a rail tunnel at tiles " + prev[j] + " and " + scan_tile[j] + ", ac: " + costs.GetCosts());
-											m_builtTiles.append(RailStruct.SetStruct(prev[j], RailStructType.TUNNEL, m_railtype, scan_tile[j]));
+//											if (!silent_mode) AILog.Warning("We built a rail tunnel at tiles " + next[j] + " and " + scan_tile[j] + ", ac: " + costs.GetCosts());
+											m_builtTiles.append(RailStruct.SetStruct(next[j], RailStructType.TUNNEL, m_railtype, scan_tile[j]));
 											break;
 										}
 										AIController.Sleep(1);
-									} while(counter < 500);
+									} while (counter < 500);
 
 									if (counter == 500) {
-										if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + prev[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString());
+										if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + next[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString());
 										m_pathfinderTries = 0;
 										return [null, null];
 									}
 								} else {
-									local bridge_list = AIBridgeList_Length(AIMap.DistanceManhattan(scan_tile[j], prev[j]) + 1);
+									local bridge_length = AIMap.DistanceManhattan(scan_tile[j], next[j]) + 1;
+									local bridge_list = AIBridgeList_Length(bridge_length);
 									for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
 										bridge_list.SetValue(bridge, AIBridge.GetMaxSpeed(bridge));
 									}
@@ -1490,7 +1828,7 @@ class RailBuildManager {
 									local counter = 0;
 									do {
 										local costs = AIAccounting();
-										if (!TestBuildBridge().TryBuild(AIVehicle.VT_RAIL, bridge_list.Begin(), prev[j], scan_tile[j])) {
+										if (!TestBuildBridge().TryBuild(AIVehicle.VT_RAIL, bridge_list.Begin(), next[j], scan_tile[j])) {
 											if (AIError.GetLastErrorString() == "ERR_NOT_ENOUGH_CASH") {
 												for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
 													bridge_list.SetValue(bridge, AIBridge.GetPrice(bridge, bridge_length));
@@ -1501,38 +1839,38 @@ class RailBuildManager {
 										}
 										else {
 											track_cost += costs.GetCosts();
-//											if (!silent_mode) AILog.Warning("We built a rail bridge at tiles " + prev[j] + " and " + scan_tile[j] + ", ac: " + costs.GetCosts());
-											m_builtTiles.append(RailStruct.SetStruct(prev[j], RailStructType.BRIDGE, m_railtype, scan_tile[j]));
-											m_bridgeTiles.append(prev[j] < scan_tile[j] ? [prev[j], scan_tile[j]] : [scan_tile[j], prev[j]]);
+//											if (!silent_mode) AILog.Warning("We built a rail bridge at tiles " + next[j] + " and " + scan_tile[j] + ", ac: " + costs.GetCosts());
+											m_builtTiles.append(RailStruct.SetStruct(next[j], RailStructType.BRIDGE, m_railtype, scan_tile[j]));
+											m_bridgeTiles.append(next[j] < scan_tile[j] ? [next[j], scan_tile[j]] : [scan_tile[j], next[j]]);
 											break;
 										}
 										AIController.Sleep(1);
-									} while(counter < 500);
+									} while (counter < 500);
 
 									if (counter == 500) {
-										if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + prev[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString());
+										if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + next[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString());
 										m_pathfinderTries = 0;
 										return [null, null];
 									}
 								}
-							} else if (AIMap.DistanceManhattan(prevprev[j], prev[j]) == 1) {
+							} else if (AIMap.DistanceManhattan(nextnext[j], next[j]) == 1) {
 								local counter = 0;
 								do {
 									local costs = AIAccounting();
-									if (!TestBuildRail().TryBuild(prevprev[j], prev[j], scan_tile[j])) {
+									if (!TestBuildRail().TryBuild(nextnext[j], next[j], scan_tile[j])) {
 										++counter;
 									}
 									else {
 										track_cost += costs.GetCosts();
-//										if (!silent_mode) AILog.Warning("We built a rail track at tile " + prev[j] + ", connecting " + prevprev[j] + " to " + scan_tile[j] + ", ac: " + costs.GetCosts());
-										m_builtTiles.append(RailStruct.SetRail(prev[j], m_railtype, prevprev[j], scan_tile[j]));
+//										if (!silent_mode) AILog.Warning("We built a rail track at tile " + next[j] + ", connecting " + nextnext[j] + " to " + scan_tile[j] + ", ac: " + costs.GetCosts());
+										m_builtTiles.append(RailStruct.SetRail(next[j], m_railtype, nextnext[j], scan_tile[j]));
 										break;
 									}
 									AIController.Sleep(1);
-								} while(counter < 500);
+								} while (counter < 500);
 
 								if (counter == 500) {
-									if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + prev[j] + ", connecting " + prevprev[j] + " to " + scan_tile[j] + " - " + AIError.GetLastErrorString());
+									if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + next[j] + ", connecting " + nextnext[j] + " to " + scan_tile[j] + " - " + AIError.GetLastErrorString());
 									m_pathfinderTries = 0;
 									return [null, null];
 								}
@@ -1540,19 +1878,19 @@ class RailBuildManager {
 									local counter = 0;
 									do {
 										local costs = AIAccounting();
-										if (!TestBuildSignal().TryBuild(prev[j], prevprev[j], AIRail.SIGNALTYPE_PBS_ONEWAY)) {
+										if (!TestBuildSignal().TryBuild(next[j], scan_tile[j], AIRail.SIGNALTYPE_PBS_ONEWAY)) {
 											++counter;
 										}
 										else {
 											track_cost += costs.GetCosts();
-//											if (!silent_mode) AILog.Warning("We built a rail signal at tile " + prev[j] + " towards " + prevprev[j] + ", ac: " + costs.GetCosts());
+//											if (!silent_mode) AILog.Warning("We built a rail signal at tile " + next[j] + " towards " + scan_tile[j] + ", ac: " + costs.GetCosts());
 											break;
 										}
 										AIController.Sleep(1);
 									} while (counter < 500);
 
 									if (counter == 500) {
-										if (!silent_mode) AILog.Warning("Couldn't build rail signal at tile " + prev[j] + " towards " + prevprev[j] + " - " + AIError.GetLastErrorString());
+										if (!silent_mode) AILog.Warning("Couldn't build rail signal at tile " + next[j] + " towards " + scan_tile[j] + " - " + AIError.GetLastErrorString());
 										m_pathfinderTries = 0;
 										return [null, null];
 									}
@@ -1561,43 +1899,39 @@ class RailBuildManager {
 									local counter = 0;
 									do {
 										local costs = AIAccounting();
-										if (!TestBuildSignal().TryBuild(prev[j], scan_tile[j], AIRail.SIGNALTYPE_PBS_ONEWAY)) {
+										if (!TestBuildSignal().TryBuild(next[j], nextnext[j], AIRail.SIGNALTYPE_PBS_ONEWAY)) {
 											++counter;
 										}
 										else {
 											track_cost += costs.GetCosts();
-//											if (!silent_mode) AILog.Warning("We built a rail signal at tile " + prev[j] + " towards " + scan_tile[j] + ", ac: " + costs.GetCosts());
+//											if (!silent_mode) AILog.Warning("We built a rail signal at tile " + next[j] + " towards " + nextnext[j] + ", ac: " + costs.GetCosts());
 											break;
 										}
 										AIController.Sleep(1);
 									} while (counter < 500);
 
 									if (counter == 500) {
-										if (!silent_mode) AILog.Warning("Couldn't build rail signal at tile " + prev[j] + " towards " + scan_tile[j] + " - " + AIError.GetLastErrorString());
+										if (!silent_mode) AILog.Warning("Couldn't build rail signal at tile " + next[j] + " towards " + nextnext[j] + " - " + AIError.GetLastErrorString());
 										m_pathfinderTries = 0;
 										return [null, null];
 									}
 								}
 							}
 						}
-						prevprev[j] = prev[j];
-						prev[j] = scan_tile[j];
+						nextnext[j] = next[j];
+						next[j] = scan_tile[j];
 					}
-				}
-				if (last_tile == false && scan_path.GetParent() == null) {
-					last_tile = true;
-				} else {
-					scan_path = scan_path.GetParent();
 				}
 			}
 
-			if (!silent_mode) AILog.Info("Track built! Actual cost for building track: " + track_cost);
-		}
+ 			if (!silent_mode) AILog.Info("Track built! Actual cost for building track: " + track_cost);
+ 		}
 
 //		if (!silent_mode) AILog.Info("Track built!");
 		m_pathfinderTries = 0;
 		return [builtTiles, null];
 	}
+
 
 	function buildDepotOnTile(depotTile, depotFront, depotRaila, depotRailb, depotRailc) {
 		local counter = 0;
@@ -1609,7 +1943,7 @@ class RailBuildManager {
 				break;
 			}
 			AIController.Sleep(1);
-		} while(counter < 1);
+		} while (counter < 1);
 
 		if (counter == 1) {
 			return null;
@@ -1624,7 +1958,7 @@ class RailBuildManager {
 					break;
 				}
 				AIController.Sleep(1);
-			} while(counter < 1);
+			} while (counter < 1);
 
 			if (counter == 1) {
 				local counter = 0;
@@ -1636,7 +1970,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 1);
+				} while (counter < 1);
 
 				if (counter == 1) {
 					::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depotTile, RailStructType.DEPOT, m_railtype));
@@ -1656,7 +1990,7 @@ class RailBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 1);
+				} while (counter < 1);
 
 				if (counter == 1) {
 					local counter = 0;
@@ -1668,7 +2002,7 @@ class RailBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 1);
+					} while (counter < 1);
 
 					if (counter == 1) {
 						::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_railtype, depotTile, depotRaila));
@@ -1714,7 +2048,7 @@ class RailBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 1);
+						} while (counter < 1);
 
 						if (counter == 1) {
 							::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_railtype, depotTile, depotRailb));
@@ -1728,7 +2062,7 @@ class RailBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 1);
+						} while (counter < 1);
 
 						if (counter == 1) {
 							::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_railtype, depotTile, depotRaila));
@@ -1765,7 +2099,6 @@ class RailBuildManager {
 
 		AIRail.SetCurrentRailType(m_railtype);
 		local station = RailStation.CreateFromTile(stationTile, stationDir);
-		local stationFromPlat2 = station.GetPlatformLine(2);
 
 		/* first attempt, build next to line 2 */
 		local depotTile2 = station.GetExitTile(2) - station.GetExitTile(1) + station.GetExitTile(2);
@@ -1810,7 +2143,7 @@ class RailBuildManager {
 		if (m_depotFrom == null) m_depotFrom = -1;
 		if (m_depotTo == null) m_depotTo = -1;
 
-		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargoClass, m_railtype, m_best_routes_built, m_stationFromDir, m_stationToDir, m_builtTiles];
+		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargoClass, m_railtype, m_best_routes_built, m_stationFromDir, m_stationToDir, m_builtTiles, m_pathfinderProfile];
 	}
 
 	function loadBuildManager(data) {
@@ -1827,6 +2160,7 @@ class RailBuildManager {
 		m_stationFromDir = data[10];
 		m_stationToDir = data[11];
 		m_builtTiles = data[12];
+		m_pathfinderProfile = data[13];
 
 		if (m_builtTiles.len() != 0) {
 			/* incomplete route found most likely */

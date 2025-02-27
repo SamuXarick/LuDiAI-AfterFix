@@ -24,15 +24,7 @@ class AirRouteManager {
 
 
 	function getAircraftCount() {
-		local list = AIVehicleList();
-		local vehiclecount = 0;
-		for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_AIR) {
-				vehiclecount++;
-			}
-		}
-
-		return vehiclecount;
+		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_AIR);
 	}
 
 	function townRouteExists(cityFrom, cityTo, cargoClass) {

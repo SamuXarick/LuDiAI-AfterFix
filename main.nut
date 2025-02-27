@@ -98,7 +98,7 @@ class LuDiAIAfterFix extends AIController {
 		airTownManager = TownManager();
 		railTownManager = TownManager();
 
-		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
+		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.getCargoId(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
 		cargoClassWater = cargoClassRoad;
 		cargoClassAir = cargoClassRoad;
 		cargoClassRail = cargoClassRoad;
@@ -295,7 +295,7 @@ class LuDiAIAfterFix extends AIController {
 				if (struct == RailStructType.STATION) {
 					local tile2 = i.m_tile2;
 					if (AIRail.IsRailStationTile(tile) && AIRail.IsRailStationTile(tile2) &&
-							AICompany.IsMine(AITile.GetOwner(tile) && AICompany.IsMine(AITile.GetOwner(tile))) &&
+							AICompany.IsMine(AITile.GetOwner(tile)) && AICompany.IsMine(AITile.GetOwner(tile)) &&
 							AIStation.GetStationID(tile) == AIStation.GetStationID(tile2)) {
 						if (TestRemoveRailStationTileRectangle().TryRemove(tile, tile2, false)) {
 							clearedList.AddItem(id, 0);
@@ -307,7 +307,7 @@ class LuDiAIAfterFix extends AIController {
 				}
 				else if (struct == RailStructType.DEPOT) {
 					if (AIRail.IsRailDepotTile(tile) && AICompany.IsMine(AITile.GetOwner(tile))) {
-						if (TestDemolishTile().TryDemolish(depot)) {
+						if (TestDemolishTile().TryDemolish(tile)) {
 							clearedList.AddItem(id, 0);
 						}
 					} else {
@@ -329,8 +329,8 @@ class LuDiAIAfterFix extends AIController {
 				}
 				else if (struct == RailStructType.TUNNEL) {
 					local tile2 = i.m_tile2;
-					if (AIBridge.IsTunnelTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) &&
-							AIBridge.GetOtherTunnelEnd(tile) == tile2 && AICompany.IsMine(AITile.GetOwner(tile))) {
+					if (AITunnel.IsTunnelTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) &&
+							AITunnel.GetOtherTunnelEnd(tile) == tile2 && AICompany.IsMine(AITile.GetOwner(tile))) {
 						if (TestRemoveTunnel().TryRemove(tile)) {
 							clearedList.AddItem(id, 0);
 						}
@@ -338,7 +338,8 @@ class LuDiAIAfterFix extends AIController {
 						/* Does not match the criteria */
 						clearedList.AddItem(id, 0);
 					}
-				} else if (struct == RailStructType.RAIL) {
+				}
+				else if (struct == RailStructType.RAIL) {
 					local tile_from = i.m_tile2;
 					local tile_to = i.m_tile3;
 					if (AIRail.IsRailTile(tile) && AICompany.IsMine(AITile.GetOwner(tile))) {
@@ -355,89 +356,6 @@ class LuDiAIAfterFix extends AIController {
 				::scheduledRemovalsTable.Train.remove(id);
 			}
 		}
-//		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
-//
-//		local clearedList = AIList();
-//		local toclearList = AIList();
-//		for (local tile = scheduledRemovals.Begin(); !scheduledRemovals.IsEnd(); tile = scheduledRemovals.Next()) {
-//			if (scheduledRemovals.GetValue(tile) == 0) { // Remove without using demolish
-//				if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile)) {
-//					if (TestRemoveRoadStation().TryRemove(tile)) {
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else if (AIRoad.IsRoadDepotTile(tile)) {
-//					if (TestRemoveRoadDepot().TryRemove(tile)) {
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else if (AIMarine.IsDockTile(tile)) {
-//					local slope = AITile.GetSlope(tile);
-//					if (slope == AITile.SLOPE_NE || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW) {
-//						if (TestRemoveDock().TryRemove(tile)) {
-//							/* Check for canal and remove it */
-//							local offset = 0;
-//							if (slope == AITile.SLOPE_NE) offset = AIMap.GetTileIndex(1, 0);
-//							if (slope == AITile.SLOPE_SE) offset = AIMap.GetTileIndex(0, -1);
-//							if (slope == AITile.SLOPE_SW) offset = AIMap.GetTileIndex(-1, 0);
-//							if (slope == AITile.SLOPE_NW) offset = AIMap.GetTileIndex(0, 1);
-//							local tile2 = tile + offset;
-//							if (AIMarine.IsCanalTile(tile2)) {
-//								if (!TestRemoveCanal().TryRemove(tile2)) {
-//									toclearList.AddItem(tile2, 0);
-//								}
-//							}
-//							local tile3 = tile2 + offset;
-//							if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
-//								if (!TestRemoveCanal().TryRemove(tile3)) {
-//									toclearList.AddItem(tile3, 0);
-//								}
-//							}
-//							clearedList.AddItem(tile, 0);
-//						}
-//					} else {
-//						/* Not our dock, someone overbuilt it on top of a canal tile */
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else if (AIMarine.IsCanalTile(tile) && !Utils.RemovingCanalBlocksConnection(tile)) {
-//					if (TestRemoveCanal().TryRemove(tile)) {
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else if (AIMarine.IsWaterDepotTile(tile)) {
-//					if (TestRemoveWaterDepot().TryRemove(tile)) {
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else if (AIMarine.IsBuoyTile(tile)) {
-//					if (TestRemoveBuoy().TryRemove(tile)) {
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else if (AIAirport.IsAirportTile(tile)) {
-//					if (TestRemoveAirport().TryRemove(tile)) {
-//						clearedList.AddItem(tile, 0);
-//					}
-//				}
-//				else {
-//					/* there was nothing to remove */
-//					clearedList.AddItem(tile, 0);
-//				}
-//			}
-//			/* Remove using demolish */
-//			else if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile) || AIRoad.IsRoadDepotTile(tile)) {
-//				if (TestDemolishTile().TryDemolish(tile)) {
-//					clearedList.AddItem(tile, 1);
-//				}
-//			}
-//			else {
-//				/* there was nothing to remove */
-//				clearedList.AddItem(tile, 1);
-//			}
-//		}
-//		scheduledRemovals.RemoveList(clearedList);
-//		scheduledRemovals.AddList(toclearList);
 	}
 
 	function PerformTownActions() {
@@ -445,7 +363,7 @@ class LuDiAIAfterFix extends AIController {
 		if (!cvgs.IsCompanyValueGSGame() || cvgs.GetCompanyIDRank(myCID) == 1) {
 			if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) return;
 
-			local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
+			local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.getCargoId(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
 			local cargoId = Utils.getCargoId(cC);
 
 			local stationList = AIStationList(AIStation.STATION_ANY);
@@ -626,7 +544,7 @@ class LuDiAIAfterFix extends AIController {
 							AITile.GetSlope(tileW) == AITile.SLOPE_FLAT && AITile.GetSlope(tileS) == AITile.SLOPE_FLAT) {
 //						AILog.Info("All tiles are valid, buildable and flat");
 						local clear_costs = AIAccounting();
-						AITestMode() && AITile.DemolishTile(tileN) && AITile.DemolishTile(tileE) && AITile.DemolishTile(tileW) && AITile.DemolishTile(tileS)
+						AITestMode() && AITile.DemolishTile(tileN) && AITile.DemolishTile(tileE) && AITile.DemolishTile(tileW) && AITile.DemolishTile(tileS);
 						AIExecMode();
 						if (clear_costs.GetCosts() <= AITile.GetBuildCost(AITile.BT_CLEAR_ROUGH) * 4) {
 							if (TestBuildHQ().TryBuild(tileN)) {
@@ -713,7 +631,7 @@ class LuDiAIAfterFix extends AIController {
 		table.rawset("rail_route_manager", railRouteManager.saveRouteManager());
 		table.rawset("rail_build_manager", railBuildManager.saveBuildManager());
 
-		table.rawset("scheduled_removes", ::scheduledRemovalsTable);
+		table.rawset("scheduled_removals_table", ::scheduledRemovalsTable);
 
 		table.rawset("best_routes_built", bestRoutesBuilt);
 		table.rawset("all_routes_built", allRoutesBuilt);
@@ -852,8 +770,8 @@ function LuDiAIAfterFix::Start() {
 				railBuildManager.loadBuildManager(loadData[1].rawget("rail_build_manager"));
 			}
 
-			if (loadData[1].rawin("scheduled_removes")) {
-				::scheduledRemovalsTable = loadData[1].rawget("scheduled_removes");
+			if (loadData[1].rawin("scheduled_removals_table")) {
+				::scheduledRemovalsTable = loadData[1].rawget("scheduled_removals_table");
 			}
 
 			if (loadData[1].rawin("best_routes_built")) {

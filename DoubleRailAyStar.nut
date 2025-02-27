@@ -1,12 +1,10 @@
-/* $Id: main.nut 15062 2009-01-13 16:30:24Z smatz $ */
-
 /**
  * An AyStar implementation.
  *  It solves graphs by finding the fastest route from one point to the other.
  */
 class AyStar
 {
-	_queue_class = AIPriorityQueue/*import("queue.sorted_list", "", 22)*/;
+	_queue_class = AIPriorityQueue;
 	_pf_instance = null;
 	_cost_callback = null;
 	_estimate_callback = null;
@@ -83,7 +81,7 @@ function AyStar::InitializePath(sources, goals, ignored_tiles = [])
 
 	this._open = this._queue_class();
 	this._closed = {};
-	
+
 	this._goals = goals;
 
 	local path = this.Path(null, sources, this._cost_callback, this._pf_instance);
@@ -118,7 +116,7 @@ function AyStar::FindPath(iterations)
 //		AIController.Break("");
 		local closed_copy = {};
 		closed_copy = clone this._closed;
-		
+
 		local collider = AIList();
 		local passed_all = true;
 		foreach (j in [0, 1]) {
@@ -139,8 +137,8 @@ function AyStar::FindPath(iterations)
 						passed_all = false;
 						break;
 					}
-				
-			
+
+
 					/* Scan the path for a possible collision */
 					foreach (cur_j in [0, 1]) {
 						local scan_path = path;
@@ -148,10 +146,10 @@ function AyStar::FindPath(iterations)
 						local scan_dir = cur_segment.m_nodes[cur_j][cur_i][1];
 						local scan_prev_dir;
 						local scan_node = scan_path.GetPreviousNode(cur_j, cur_i, 1, true);
-					
+
 //						AILog.Info("Scan path start: cur_j = " + (cur_j + 1) + "; cur_i = " + cur_i);
 						local temp_i;
-					
+
 						local mismatch = false;
 						while (scan_node != null) {
 							scan_path = scan_node[0];
@@ -195,11 +193,11 @@ function AyStar::FindPath(iterations)
 //					AILog.Info("line = " + (j + 1) + "; node = " + i + ";  New entry! Make sure we don't check it again: cur_tile = " + cur_tile + "; direction = " + direction + "; segment_dir = " + segment_dir + "; node_id = " + node_id);
 				}
 			}
-			
+
 			if (!passed_all) {
 				break;
 			}
-			
+
 		}
 		if (passed_all) {
 			this._closed.clear();
@@ -264,7 +262,7 @@ function AyStar::FindPath(iterations)
 //					AILog.Info("line = " + (j + 1) + "; node = " + i + ";  neighbour_tile = " + neighbour_tile + "; neighbour_dir = " + neighbour_dir + "; neigh_seg_dir = " + neigh_seg_dir + "; neigh_node_id = " + neigh_node_id);
 //					if (neighbour_dir <= 0) throw("directional value should never be zero or negative.");
 //					if (neigh_seg_dir <= 0) throw("segment directional value should never be zero or negative.");
-					
+
 					if (this._closed.rawin(neighbour_tile)) {
 						local closed_dir = this._closed.rawget(neighbour_tile);
 //						AILog.Info("line = " + (j + 1) + "; node = " + i + ";   neighbours: this._closed.rawin(" + neighbour_tile + ") == true");
@@ -293,7 +291,7 @@ function AyStar::FindPath(iterations)
 					break;
 				}
 			}
-			
+
 			if (passed_all) {
 				/* Calculate the new paths and add them to the open list */
 				local new_path = this.Path(path, neighbour, this._cost_callback, this._pf_instance);
@@ -351,7 +349,7 @@ class AyStar.Path
 	 * Return the cost of this (partial-)path from the beginning up to this node.
 	 */
 	function GetCost() { return this._cost; }
-	
+
 	/**
 	 * Return the used tiles of this (partial-)path from the beginning up to this node.
 	 */
@@ -365,10 +363,10 @@ class AyStar.Path
 				}
 			}
 			path = path._prev;
-		} while(path != null);
+		} while (path != null);
 		return used_tiles;
 	}
-	
+
 	function GetPreviousNode(cur_j, cur_i, depth = 1, return_path_and_cur_i = false) {
 		local node;
 		local cur_path = this;

@@ -1,5 +1,5 @@
 function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
-	if (unfinished || (railRouteManager.getTrainCount() < MAX_TRAIN_VEHICLES - 10) && ((allRoutesBuilt >> 6) & 3) != 3) {
+	if (unfinished || (railRouteManager.getTrainCount() < max(MAX_TRAIN_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 6) & 3) != 3) {
 
 		local cityTo = null;
 		local best_railtype;
@@ -148,7 +148,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 			local train_max_speed = min(railtype_max_speed == 0 ? 65535 : railtype_max_speed, min(engine_max_speed == 0 ? 65535 : engine_max_speed, wagon_max_speed == 0 ? 65535 : wagon_max_speed));
 			local max_distance = bestpairinfo[1];
 //			local max_distance = (RAIL_DAYS_IN_TRANSIT * 2 * 74 * train_max_speed) / (256 * 16);
-			local min_distance = max(20, max_distance * 2 / 3);
+			local min_distance = max(40, max_distance * 2 / 3);
 
 			local map_size = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
 			local min_dist = min_distance > map_size / 3 ? map_size / 3 : min_distance;
@@ -306,7 +306,6 @@ function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, pl
 	local best_platform_length = 0;
 	local queue = AIPriorityQueue();
 
-//	local length = 1;
 	local length = platform_length;
 	while (length <= platform_length) {
 		foreach (_, pair in pairList) {
@@ -333,7 +332,7 @@ function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, pl
 
 	while (!queue.IsEmpty()) {
 		local item = queue.Pop();
-		AILog.Info("Length " + item[7] + ": " + AIEngine.GetName(item[0]) + " + " + item[4] + " * " + AIEngine.GetName(item[1]) + " (" + item[6].len() + " railtypes): " + item[5] + " " + AICargo.GetName(cargo) + ", " + item[3] + " dist, " + item[2] + " income");
+//		AILog.Info("Length " + item[7] + ": " + AIEngine.GetName(item[0]) + " + " + item[4] + " * " + AIEngine.GetName(item[1]) + " (" + item[6].len() + " railtypes): " + item[5] + " " + AICargo.GetName(cargo) + ", " + item[3] + " dist, " + item[2] + " income");
 	}
 	return [best_pair, best_distance, best_num_wagons, best_capacity];
 }
@@ -389,19 +388,19 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(pair, railtypes, cargo, da
 	local wagon_running_cost = AIEngine.GetRunningCost(wagon);
 	local train_running_cost = engine_running_cost + wagon_running_cost * num_wagons;
 
-	local engine_weight = AIEngine.GetWeight(engine);
-	local wagon_weight = AIEngine.GetWeight(wagon);
-	local freight_cargo = AICargo.IsFreight(cargo);
-	local freight_multiplier = AIGameSettings.GetValue("freight_trains");
-	local engine_cargo_weight = AICargo.GetWeight(cargo, engine_capacity) * (freight_cargo ? freight_multiplier : 1);
-	local wagon_cargo_weight = AICargo.GetWeight(cargo, wagon_capacity) * (freight_cargo ? freight_multiplier : 1);
-	local train_cargo_weight = engine_weight + engine_cargo_weight + (wagon_weight + wagon_cargo_weight) * num_wagons;
-	local engine_power = AIEngine.GetPower(engine);
-	local engine_max_tractive_effort = AIEngine.GetMaxTractiveEffort(engine);
-	local engine_cargo_max_tractive_effort_N = 1000 * engine_max_tractive_effort * (engine_weight + engine_cargo_weight) / engine_weight;
+//	local engine_weight = AIEngine.GetWeight(engine);
+//	local wagon_weight = AIEngine.GetWeight(wagon);
+//	local freight_cargo = AICargo.IsFreight(cargo);
+//	local freight_multiplier = AIGameSettings.GetValue("freight_trains");
+//	local engine_cargo_weight = AICargo.GetWeight(cargo, engine_capacity) * (freight_cargo ? freight_multiplier : 1);
+//	local wagon_cargo_weight = AICargo.GetWeight(cargo, wagon_capacity) * (freight_cargo ? freight_multiplier : 1);
+//	local train_cargo_weight = engine_weight + engine_cargo_weight + (wagon_weight + wagon_cargo_weight) * num_wagons;
+//	local engine_power = AIEngine.GetPower(engine);
+//	local engine_max_tractive_effort = AIEngine.GetMaxTractiveEffort(engine);
+//	local engine_cargo_max_tractive_effort_N = 1000 * engine_max_tractive_effort * (engine_weight + engine_cargo_weight) / engine_weight;
 
-	local air_drag = (train_max_speed <= 10) ? 192 : max(2048 / train_max_speed, 1);
-	local train_air_drag = air_drag + 3 * air_drag * (1 + num_wagons) / 20; // assumes 1 unit for multihead
+//	local air_drag = (train_max_speed <= 10) ? 192 : max(2048 / train_max_speed, 1);
+//	local train_air_drag = air_drag + 3 * air_drag * (1 + num_wagons) / 20; // assumes 1 unit for multihead
 
 //	AILog.Info("engine = " + AIEngine.GetName(engine));
 //	AILog.Info("wagon = " + AIEngine.GetName(wagon));
@@ -436,12 +435,12 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(pair, railtypes, cargo, da
 //	AILog.Info("air_drag = " + air_drag);
 //	AILog.Info("train_air_drag = " + train_air_drag);
 
-	local engine_max_age = AIEngine.GetMaxAge(engine);
-	local engine_price = ::caches.GetCostWithRefit(engine, cargo);
-	local wagon_price = ::caches.GetCostWithRefit(wagon, cargo);
-	local train_price = engine_price + wagon_price * num_wagons;
+//	local engine_max_age = AIEngine.GetMaxAge(engine);
+//	local engine_price = ::caches.GetCostWithRefit(engine, cargo);
+//	local wagon_price = ::caches.GetCostWithRefit(wagon, cargo);
+//	local train_price = engine_price + wagon_price * num_wagons;
 	local engine_reliability = AIEngine.GetReliability(engine);
-	local reliability = min(65535, (engine_reliability << 16) / 100);
+//	local reliability = min(65535, (engine_reliability << 16) / 100);
 
 //	AILog.Info("engine_max_age = " + engine_max_age);
 //	AILog.Info("engine_price = " + engine_price);
@@ -452,52 +451,70 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(pair, railtypes, cargo, da
 
 //	AIController.Break(" ");
 
-	local distance_advanced = 0;
-	local breakdown_ctr = 0;
-	local breakdown_chance = 0;
-	local breakdown_delay = 0;
-	local tick_counter = 0;
-	local sub_speed = 0;
-	local cur_speed = 0;
-	local progress = 0;
-	local train_tick;
-	local days_in_ticks = days_in_transit * 74;
-	local timer = 0;
-	while (timer < days_in_ticks) {
-		timer++;
-		if (timer % 74 == 1) {
-			local check_vehicle_breakdown = CheckVehicleBreakdown(cur_speed, reliability, breakdown_ctr, breakdown_chance, breakdown_delay);
-			reliability = check_vehicle_breakdown[0];
-			breakdown_ctr = check_vehicle_breakdown[1];
-			breakdown_chance = check_vehicle_breakdown[2];
-			breakdown_delay = check_vehicle_breakdown[3];
-		}
-		train_tick = TrainTick(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress);
-		distance_advanced += train_tick[1];
-		tick_counter = train_tick[2];
-		breakdown_ctr = train_tick[3];
-		breakdown_delay = train_tick[4];
-		sub_speed = train_tick[5];
-		cur_speed = train_tick[6];
-		progress = train_tick[7];
+//	local distance_advanced = 0;
+//	local breakdown_ctr = 0;
+//	local breakdown_chance = 0;
+//	local breakdown_delay = 0;
+//	local tick_counter = 0;
+//	local sub_speed = 0;
+//	local cur_speed = 0;
+//	local progress = 0;
+//	local train_tick;
+//	local days_in_ticks = days_in_transit * 74;
+//	local timer = 0;
+//	while (timer < days_in_ticks) {
+//		timer++;
+//		if (timer % 74 == 1) {
+//			local check_vehicle_breakdown = CheckVehicleBreakdown(cur_speed, reliability, breakdown_ctr, breakdown_chance, breakdown_delay);
+//			reliability = check_vehicle_breakdown[0];
+//			breakdown_ctr = check_vehicle_breakdown[1];
+//			breakdown_chance = check_vehicle_breakdown[2];
+//			breakdown_delay = check_vehicle_breakdown[3];
+//		}
+//		train_tick = TrainTick(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress);
+//		distance_advanced += train_tick[1];
+//		tick_counter = train_tick[2];
+//		breakdown_ctr = train_tick[3];
+//		breakdown_delay = train_tick[4];
+//		sub_speed = train_tick[5];
+//		cur_speed = train_tick[6];
+//		progress = train_tick[7];
 //		if (timer % 74 == 0) {
 //			AILog.Info("distance_advanced = " + distance_advanced + "; reliability = " + reliability + "; breakdown_ctr = " + breakdown_ctr +
 //					"; breakdown_chance = " + breakdown_chance + "; breakdown_delay = " + breakdown_delay + "; tick_counter = " + tick_counter +
 //					"; cur_speed = " + cur_speed + "; sub_speed = " + sub_speed + "; progress = " + progress + "; timer = " + timer);
 //			AIController.Sleep(1);
 //		}
-	}
+//	}
 //	local income = (train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced / 16, days_in_transit) - train_running_cost * days_in_transit / 365 - days_in_transit * train_price / engine_max_age);
-	local income = (train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced / 16, days_in_transit) * 365 * engine_max_age - train_running_cost * days_in_transit * engine_max_age - days_in_transit * train_price * 365) / (365 * engine_max_age);
+//	local income = (train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced / 16, days_in_transit) * 365 * engine_max_age - train_running_cost * days_in_transit * engine_max_age - days_in_transit * train_price * 365) / (365 * engine_max_age);
 
 //	AILog.Info("engine = " + AIEngine.GetName(engine) + "; wagon = " + AIEngine.GetName(wagon) + " * " + num_wagons + "; days_in_transit = " + days_in_transit + "; distance_advanced = " + distance_advanced / 16 + "; income = " + income);
 //	AILog.Info("train_max_speed = " + train_max_speed + "; capacity = " + train_capacity + "; running cost = " + (train_running_cost * days_in_transit / 366) + "; train_price = " + (days_in_transit * train_price / engine_max_age) + "; engine_max_age = " + engine_max_age);
 
 //	AIController.Break(" ");
-	return [income, distance_advanced / 16, num_wagons, train_capacity, best_railtypes];
+//	return [income, distance_advanced / 16, num_wagons, train_capacity, best_railtypes];
+
+	/* Simplified method for estimated income. */
+	local multiplier = engine_reliability;
+	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
+	switch (breakdowns) {
+		case 0:
+			multiplier = 100;
+			break;
+		case 1:
+			multiplier = engine_reliability + (100 - engine_reliability) / 2;
+			break;
+		case 2:
+		default:
+			multiplier = engine_reliability;
+			break;
+	}
+	local distance_advanced = (train_max_speed * 2 * 74 * days_in_transit) / (256 * 16);
+	days_in_transit = days_in_transit + RailRoute.STATION_LOADING_INTERVAL;
+	local income = ((train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
+	return [income, distance_advanced, num_wagons, train_capacity, best_railtypes];
 }
-
-
 
 function LuDiAIAfterFix::CheckVehicleBreakdown(cur_speed, reliability, breakdown_ctr, breakdown_chance, breakdown_delay) {
 	local rel;
@@ -532,7 +549,7 @@ function LuDiAIAfterFix::CheckVehicleBreakdown(cur_speed, reliability, breakdown
 			 40,  44,  48,  52,  56,  60,  64,  68,
 			 72,  80,  90, 100, 110, 120, 130, 140,
 			150, 170, 190, 210, 230, 250, 250, 250
-	]
+	];
 
 	if (_breakdown_chance[min(rel, 0xFFFF) >> 10] <= breakdown_chance) {
 		breakdown_ctr = ((r >> 16) & ((1 << 6) - 1)) + 0x3F;
@@ -543,150 +560,150 @@ function LuDiAIAfterFix::CheckVehicleBreakdown(cur_speed, reliability, breakdown
 	return [reliability, breakdown_ctr, breakdown_chance, breakdown_delay];
 }
 
-function LuDiAIAfterFix::HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay) {
-	switch (breakdown_ctr) {
-		case 0:
-			return [false, breakdown_ctr, cur_speed, breakdown_delay];
+// function LuDiAIAfterFix::HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay) {
+//	switch (breakdown_ctr) {
+//		case 0:
+//			return [false, breakdown_ctr, cur_speed, breakdown_delay];
+//
+//		case 2:
+//			breakdown_ctr = 1;
+//			cur_speed = 0;
+//
+//		case 1:
+//			if ((tick_counter & 3) == 0) {
+//				if (--breakdown_delay == 0) {
+//					breakdown_ctr = 0;
+//				}
+//			}
+//			return [true, breakdown_ctr, cur_speed, breakdown_delay];
+//
+//		default:
+//			breakdown_ctr--;
+//			return [false, breakdown_ctr, cur_speed, breakdown_delay];
+//	}
+// }
 
-		case 2:
-			breakdown_ctr = 1;
-			cur_speed = 0;
+// function LuDiAIAfterFix::TrainTick(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress) {
+//	tick_counter = (tick_counter + 1) & 0xFF;
+//
+//	local distance_advanced = 0;
+//	local train_loco_handler = TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress);
+//	local res = train_loco_handler[0];
+//	distance_advanced += train_loco_handler[1];
+//	breakdown_ctr = train_loco_handler[2];
+//	breakdown_delay = train_loco_handler[3];
+//	sub_speed = train_loco_handler[4];
+//	cur_speed = train_loco_handler[5];
+//	progress = train_loco_handler[6];
+//
+//	if (!res) return [false, distance_advanced, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
+//
+//	train_loco_handler = TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress);
+//	res = train_loco_handler[0];
+//	distance_advanced += train_loco_handler[1];
+//	breakdown_ctr = train_loco_handler[2];
+//	breakdown_delay = train_loco_handler[3];
+//	sub_speed = train_loco_handler[4];
+//	cur_speed = train_loco_handler[5];
+//	progress = train_loco_handler[6];
+//	return [res, distance_advanced, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
+// }
 
-		case 1:
-			if ((tick_counter & 3) == 0) {
-				if (--breakdown_delay == 0) {
-					breakdown_ctr = 0;
-				}
-			}
-			return [true, breakdown_ctr, cur_speed, breakdown_delay];
+// function LuDiAIAfterFix::TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress) {
+//	local distance_advanced = 0;
+//	local handle_breakdown = HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay);
+//	local res = handle_breakdown[0];
+//	breakdown_ctr = handle_breakdown[1];
+//	cur_speed = handle_breakdown[2];
+//	breakdown_delay = handle_breakdown[3];
+//
+//	if (res) return [true, distance_advanced, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
+//
+//	local update_speed = UpdateSpeed(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, sub_speed, cur_speed, progress);
+//	local scaled_spd = update_speed[0];
+//	sub_speed = update_speed[1];
+//	cur_speed = update_speed[2];
+//
+//	local adv_spd = 192; // assumes going straight, 128 for corners;
+//
+//	if (scaled_spd >= adv_spd) {
+//		if (breakdown_ctr > 1) {
+//			local _breakdown_speeds = [225, 210, 195, 180, 165, 150, 135, 120, 105, 90, 75, 60, 45, 30, 15, 15];
+//			local break_speed = (~breakdown_ctr >> 4) & ((1 << 4) - 1);
+//			if (break_speed < cur_speed) cur_speed = break_speed;
+//		}
+//		for (;;) {
+//			scaled_spd -= adv_spd;
+//			distance_advanced++;
+//			if (scaled_spd < adv_spd) break;
+//		}
+//	}
+//
+//	progress = scaled_spd;
+//	return [true, distance_advanced, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
+// }
 
-		default:
-			breakdown_ctr--;
-			return [false, breakdown_ctr, cur_speed, breakdown_delay];
-	}
-}
+// function LuDiAIAfterFix::UpdateSpeed(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, sub_speed, cur_speed, progress) {
+//	local acceleration_model = AIGameSettings.GetValue("train_acceleration_model");
+//
+//	if (acceleration_model == 0) {
+//		/* Original */
+//		local train_acceleration_base = Utils.Clamp(engine_power / train_cargo_weight * 4, 1, 255);
+//		return DoUpdateSpeed(train_acceleration_base * 2, 0, train_max_speed, sub_speed, cur_speed, progress);
+//	} else if (acceleration_model == 1) {
+//		/* Realistic */
+//		local train_power_watts = engine_power * 746;
+//		return DoUpdateSpeed(GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N), 2, train_max_speed, sub_speed, cur_speed, progress);
+//	} else {
+//		assert(false);
+//	}
+// }
 
-function LuDiAIAfterFix::TrainTick(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress) {
-	tick_counter = (tick_counter + 1) & 0xFF;
+// function LuDiAIAfterFix::DoUpdateSpeed(accel, min_speed, max_speed, sub_speed, cur_speed, progress) {
+//	local spd = sub_speed + accel;
+//	sub_speed = spd & 0xFF;
+//
+//	local tempmax = max_speed;
+//	if (cur_speed > max_speed) {
+//		tempmax = max(cur_speed - (cur_speed / 10 ) - 1, max_speed);
+//	}
+//
+//	cur_speed = spd = max(min(cur_speed + (spd >> 8), tempmax), min_speed);
+//
+//	local scaled_spd = spd * 3 / 4;
+//
+//	scaled_spd += progress;
+//
+//	return [scaled_spd, sub_speed, cur_speed];
+// }
 
-	local distance_advanced = 0;
-	local train_loco_handler = TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress);
-	local res = train_loco_handler[0];
-	distance_advanced += train_loco_handler[1];
-	breakdown_ctr = train_loco_handler[2];
-	breakdown_delay = train_loco_handler[3];
-	sub_speed = train_loco_handler[4];
-	cur_speed = train_loco_handler[5];
-	progress = train_loco_handler[6];
-
-	if (!res) return [false, distance_advanced, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
-
-	train_loco_handler = TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress);
-	res = train_loco_handler[0];
-	distance_advanced += train_loco_handler[1];
-	breakdown_ctr = train_loco_handler[2];
-	breakdown_delay = train_loco_handler[3];
-	sub_speed = train_loco_handler[4];
-	cur_speed = train_loco_handler[5];
-	progress = train_loco_handler[6];
-	return [res, distance_advanced, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
-}
-
-function LuDiAIAfterFix::TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress) {
-	local distance_advanced = 0;
-	local handle_breakdown = HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay);
-	local res = handle_breakdown[0];
-	breakdown_ctr = handle_breakdown[1];
-	cur_speed = handle_breakdown[2];
-	breakdown_delay = handle_breakdown[3];
-
-	if (res) return [true, distance_advanced, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
-
-	local update_speed = UpdateSpeed(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, sub_speed, cur_speed, progress);
-	local scaled_spd = update_speed[0];
-	sub_speed = update_speed[1];
-	cur_speed = update_speed[2];
-
-	local adv_spd = 192; // assumes going straight, 128 for corners;
-
-	if (scaled_spd >= adv_spd) {
-		if (breakdown_ctr > 1) {
-			local _breakdown_speeds = [225, 210, 195, 180, 165, 150, 135, 120, 105, 90, 75, 60, 45, 30, 15, 15];
-			local break_speed = (~breakdown_ctr >> 4) & ((1 << 4) - 1);
-			if (break_speed < cur_speed) cur_speed = break_speed;
-		}
-		for (;;) {
-			scaled_spd -= adv_spd;
-			distance_advanced++;
-			if (scaled_spd < adv_spd) break;
-		}
-	}
-
-	progress = scaled_spd;
-	return [true, distance_advanced, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
-}
-
-function LuDiAIAfterFix::UpdateSpeed(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, sub_speed, cur_speed, progress) {
-	local acceleration_model = AIGameSettings.GetValue("train_acceleration_model");
-
-	if (acceleration_model == 0) {
-		/* Original */
-		local train_acceleration_base = Utils.Clamp(engine_power / train_cargo_weight * 4, 1, 255);
-		return DoUpdateSpeed(train_acceleration_base * 2, 0, train_max_speed, sub_speed, cur_speed, progress);
-	} else if (acceleration_model == 1) {
-		/* Realistic */
-		local train_power_watts = engine_power * 746;
-		return DoUpdateSpeed(GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N), 2, train_max_speed, sub_speed, cur_speed, progress);
-	} else {
-		assert(false);
-	}
-}
-
-function LuDiAIAfterFix::DoUpdateSpeed(accel, min_speed, max_speed, sub_speed, cur_speed, progress) {
-	local spd = sub_speed + accel;
-	sub_speed = spd & 0xFF;
-
-	local tempmax = max_speed;
-	if (cur_speed > max_speed) {
-		tempmax = max(cur_speed - (cur_speed / 10 ) - 1, max_speed);
-	}
-
-	cur_speed = spd = max(min(cur_speed + (spd >> 8), tempmax), min_speed);
-
-	local scaled_spd = spd * 3 / 4;
-
-	scaled_spd += progress;
-
-	return [scaled_spd, sub_speed, cur_speed];
-}
-
-function LuDiAIAfterFix::GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N) {
-	local train_axle_resistance = 10 * train_cargo_weight;
-	local train_rolling_friction = 15 * (512 + cur_speed) / 512;
-	local air_drag_area = 14; // 28 in tunnels.
-	local slope_steepness = AIGameSettings.GetValue("train_slope_steepness");
-	local train_slope_resistance = train_cargo_weight * slope_steepness * 100;
-
-	local resistance = 0;
-	resistance += train_axle_resistance;
-	resistance += train_cargo_weight * train_rolling_friction;
-	resistance += air_drag_area * train_air_drag * cur_speed * cur_speed / 1000;
-//	resistance += train_slope_resistance; // this assumes worst case, entire train going uphill
-
-	local force;
-	if (cur_speed > 0) {
-		force = train_power_watts * 18 / (cur_speed * 5);
-		if (force > engine_cargo_max_tractive_effort_N) force = engine_cargo_max_tractive_effort_N;
-	} else {
-		force = min(engine_cargo_max_tractive_effort_N, train_power_watts);
-		force = max(force, (train_cargo_weight * 8) + resistance);
-	}
-
-	if (force == resistance) return 0;
-
-	local accel = Utils.Clamp((force - resistance) / (train_cargo_weight * 4), -2147483648, 2147483647);
-	return force < resistance ? min(-1, accel) : max(1, accel);
-}
+// function LuDiAIAfterFix::GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N) {
+//	local train_axle_resistance = 10 * train_cargo_weight;
+//	local train_rolling_friction = 15 * (512 + cur_speed) / 512;
+//	local air_drag_area = 14; // 28 in tunnels.
+//	local slope_steepness = AIGameSettings.GetValue("train_slope_steepness");
+//	local train_slope_resistance = train_cargo_weight * slope_steepness * 100;
+//
+//	local resistance = 0;
+//	resistance += train_axle_resistance;
+//	resistance += train_cargo_weight * train_rolling_friction;
+//	resistance += air_drag_area * train_air_drag * cur_speed * cur_speed / 1000;
+////	resistance += train_slope_resistance; // this assumes worst case, entire train going uphill
+//
+//	local force;
+//	if (cur_speed > 0) {
+//		force = train_power_watts * 18 / (cur_speed * 5);
+//		if (force > engine_cargo_max_tractive_effort_N) force = engine_cargo_max_tractive_effort_N;
+//	} else {
+//		force = min(engine_cargo_max_tractive_effort_N, train_power_watts);
+//		force = max(force, (train_cargo_weight * 8) + resistance);
+//	}
+//
+//	if (force == resistance) return 0;
+//
+//	local accel = Utils.Clamp((force - resistance) / (train_cargo_weight * 4), -2147483648, 2147483647);
+//	return force < resistance ? min(-1, accel) : max(1, accel);
+// }
 
 
 function LuDiAIAfterFix::ResetRailManagementVariables() {

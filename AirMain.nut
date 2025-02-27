@@ -1,9 +1,10 @@
 function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished) {
-	if (unfinished || (airRouteManager.getAircraftCount() < MAX_AIR_VEHICLES - 10) && ((allRoutesBuilt >> 4) & 3) != 3) {
+	if (unfinished || (airRouteManager.getAircraftCount() < max(MAX_AIR_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 4) & 3) != 3) {
 
 		local cityTo = null;
-		local cC = cargoClassAir;
+		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassAir : (!unfinished ? cargoClassAir : (cargoClassAir == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
 		if (!unfinished) {
+			cargoClassAir = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassAir : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
 			local cargo = Utils.getCargoId(cC);
 

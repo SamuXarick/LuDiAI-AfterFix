@@ -24,15 +24,7 @@ class ShipRouteManager {
 
 
 	function getShipCount() {
-		local list = AIVehicleList();
-		local vehiclecount = 0;
-		for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_WATER) {
-				vehiclecount++;
-			}
-		}
-
-		return vehiclecount;
+		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_WATER);
 	}
 
 	function townRouteExists(cityFrom, cityTo, cargoClass) {
@@ -111,13 +103,11 @@ class ShipRouteManager {
 
 		local routearray = data[0];
 
-		local buoys = 0;
 		for (local i = 0; i < routearray.len(); i++) {
 			local route = ShipRoute.loadRoute(routearray[i]);
-			m_townRouteArray.append(route[0]);
-			buoys += route[1];
+			m_townRouteArray.append(route);
 		}
-		AILog.Info("Loaded " + m_townRouteArray.len() + " water routes with " + buoys + " buoys.");
+		AILog.Info("Loaded " + m_townRouteArray.len() + " water routes.");
 
 		m_sentToDepotWaterGroup = data[1];
 		m_best_routes_built = data[2];

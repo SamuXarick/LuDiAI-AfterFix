@@ -1,5 +1,5 @@
 function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
-	if (unfinished || (roadRouteManager.getRoadVehicleCount() < MAX_ROAD_VEHICLES - 10) && ((allRoutesBuilt >> 0) & 3) != 3) {
+	if (unfinished || (roadRouteManager.getRoadVehicleCount() < max(MAX_ROAD_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 0) & 3) != 3) {
 
 		local cityTo = null;
 		local articulated;

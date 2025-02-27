@@ -99,7 +99,7 @@ class RoadRoute extends RoadRouteManager {
 		for (local v = removelist.Begin(); !removelist.IsEnd(); v = removelist.Next()) {
 			local exists = AIVehicle.IsValidVehicle(v);
 			if (exists) {
-				AILog.Error("Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("r:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 //				AIController.Break(" ");
 			}
 			m_vehicleList.rawdelete(v);
@@ -649,7 +649,7 @@ class RoadRoute extends RoadRouteManager {
 		if (cargoWaiting1 > engine_capacity || cargoWaiting2 > engine_capacity) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
 			local routedist = AITile.GetDistanceManhattanToTile(m_stationFrom, m_stationTo);
-			while(number_to_add) {
+			while (number_to_add) {
 				number_to_add--;
 				local added_vehicle = addVehicle(true);
 				if (added_vehicle != null) {

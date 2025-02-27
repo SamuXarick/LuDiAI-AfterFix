@@ -70,11 +70,10 @@ class Road
 			local goal_x = AIMap.GetTileX(goal);
 			local goal_y = AIMap.GetTileY(goal);
 
-			local min_freeform = AIMap.IsValidTile(0) ? 0 : 1;
-			local max_freeform = min_freeform == 0 ? 3 : 2;
+			local max_freeform = AIMap.IsValidTile(0) ? 3 : 2;
 
-			this._min_x = max(min_freeform, min(source_x, goal_x) - this._search_range);
-			this._min_y = max(min_freeform, min(source_y, goal_y) - this._search_range);
+			this._min_x = max(1, min(source_x, goal_x) - this._search_range);
+			this._min_y = max(1, min(source_y, goal_y) - this._search_range);
 			this._max_x = min(AIMap.GetMapSizeX() - max_freeform, max(source_x, goal_x) + this._search_range);
 			this._max_y = min(AIMap.GetMapSizeY() - max_freeform, max(source_y, goal_y) + this._search_range);
 		}

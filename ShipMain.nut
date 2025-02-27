@@ -1,5 +1,5 @@
 function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
-	if (unfinished || (shipRouteManager.getShipCount() < MAX_SHIP_VEHICLES - 10) && ((allRoutesBuilt >> 2) & 3) != 3) {
+	if (unfinished || (shipRouteManager.getShipCount() < max(MAX_SHIP_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 2) & 3) != 3) {
 
 		local cityTo = null;
 		local cheaper_route = false;
@@ -322,8 +322,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute() {
 			local allTilesFound = AITileList();
 			if (dockFrom != -1) allTilesFound.AddTile(dockFrom);
 			for (local tile = allStationsTiles.Begin(); !allStationsTiles.IsEnd(); tile = allStationsTiles.Next()) {
-				if (scheduledRemovals.HasItem(tile)) {
-//					AILog.Info("scheduledRemovals has tile " + tile);
+				if (::scheduledRemovalsTable.Ship.rawin(tile)) {
+//					AILog.Info("scheduledRemovalsTable.Ship has tile " + tile);
 					allTilesFound.AddTile(tile);
 					break;
 				}
@@ -345,7 +345,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute() {
 				for (local tile = allTilesMissing.Begin(); !allTilesMissing.IsEnd(); tile = allTilesMissing.Next()) {
 					if (AIMarine.IsDockTile(tile) && AITile.GetSlope(tile) != AITile.SLOPE_FLAT) {
 //						AILog.Info("Tile " + tile + " is missing");
-						scheduledRemovals.AddItem(tile, 0);
+						::scheduledRemovalsTable.Ship.rawset(tile, 0);
 					}
 				}
 			}
@@ -356,8 +356,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute() {
 //			AILog.Info("allDepotsTiles has " + allDepotsTiles.Count() + " tiles");
 			local allTilesFound = AITileList();
 			for (local tile = allDepotsTiles.Begin(); !allDepotsTiles.IsEnd(); tile = allDepotsTiles.Next()) {
-				if (scheduledRemovals.HasItem(tile)) {
-//					AILog.Info("scheduledRemovals has tile " + tile);
+				if (::scheduledRemovalsTable.Ship.rawin(tile)) {
+//					AILog.Info("scheduledRemovalsTable.Ship has tile " + tile);
 					allTilesFound.AddTile(tile);
 					break;
 				}
@@ -377,7 +377,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute() {
 				allTilesMissing.RemoveList(allTilesFound);
 				for (local tile = allTilesMissing.Begin(); !allTilesMissing.IsEnd(); tile = allTilesMissing.Next()) {
 //					AILog.Info("Tile " + tile + " is missing");
-					scheduledRemovals.AddItem(tile, 0);
+					::scheduledRemovalsTable.Ship.rawset(tile, 0);
 				}
 			}
 		}

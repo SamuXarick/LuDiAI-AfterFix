@@ -24,15 +24,7 @@ class RoadRouteManager {
 
 
 	function getRoadVehicleCount() {
-		local list = AIVehicleList();
-		local vehiclecount = 0;
-		for (local vehicle = list.Begin(); !list.IsEnd(); vehicle = list.Next()) {
-			if (AIVehicle.GetVehicleType(vehicle) == AIVehicle.VT_ROAD) {
-				vehiclecount++;
-			}
-		}
-
-		return vehiclecount;
+		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_ROAD);
 	}
 
 	function townRouteExists(cityFrom, cityTo, cargoClass) {

@@ -138,7 +138,11 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 			local fakedist = distance_max_speed * days / 1000;
 			max_count = (count_interval > 0 ? (fakedist / count_interval) : max_count) + WrightAI.GetNumTerminals(aircraft_type, type_from) + WrightAI.GetNumTerminals(aircraft_type, type_from);
 		}
-		local income_max_speed = (primary_capacity * AICargo.GetCargoIncome(cargo, distance_max_speed * days / 1000, days) + secondary_capacity * AICargo.GetCargoIncome(Utils.getCargoId(AICargo.CC_MAIL), distance_max_speed * days / 1000, days) - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count)/* * multiplier / 100*/;
+		local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo, distance_max_speed * days / 1000, days);
+		local secondary_cargo = Utils.getCargoId(AICargo.CC_MAIL);
+		local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
+		local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_max_speed * days / 1000, days) : 0;
+		local income_max_speed = (income_primary + income_secondary - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count)/* * multiplier / 100*/;
 		if (income_max_speed > 0 && max_count < min_count && max_count != 1) {
 			min_count = max_count;
 		} else if (income_max_speed <= 0 && max_count <= min_count && max_count != 1) {
@@ -146,7 +150,9 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 		}
 //		AILog.Info("engine = " + AIEngine.GetName(engine_id) + " ; days_in_transit = " + days + " ; distance = " + (distance_max_speed * days / 1000) + " ; income = " + income_max_speed + " ; " + (aircraft ? "fakedist" : "tiledist") + " = " + (aircraft ? WrightAI.GetEngineRealFakeDist(engine_id, days) : Utils.GetEngineTileDist(engine_id, days)) + " ; max_count = " + max_count);
 		if (breakdowns) {
-			local income_broken_speed = (primary_capacity * AICargo.GetCargoIncome(cargo, distance_broken_speed * days / 1000, days) + secondary_capacity * AICargo.GetCargoIncome(Utils.getCargoId(AICargo.CC_MAIL), distance_broken_speed * days / 1000, days) - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count);
+			local income_primary_broken_speed = primary_capacity * AICargo.GetCargoIncome(cargo, distance_broken_speed * days / 1000, days);
+			local income_secondary_broken_speed = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_broken_speed * days / 1000, days) : 0;
+			local income_broken_speed = (income_primary_broken_speed + income_secondary_broken_speed - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count);
 			if (income_max_speed > 0 && income_broken_speed > 0 && income_max_speed > best_income) {
 				best_income = income_max_speed;
 				best_distance = distance_max_speed * days / 1000;
@@ -173,7 +179,9 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 function WrightAI::GetEngineRouteIncome(engine_id, cargo, fakedist, primary_capacity = 0, secondary_capacity = 0) {
 	local running_cost = AIEngine.GetRunningCost(engine_id);
 	primary_capacity = primary_capacity == 0 ? ::caches.GetCapacity(engine_id, cargo) : primary_capacity;
-	secondary_capacity = AIController.GetSetting("select_town_cargo") != 2 ? 0 : secondary_capacity == 0 ? ::caches.GetSecondaryCapacity(engine_id) : secondary_capacity;
+	local secondary_cargo = Utils.getCargoId(AICargo.CC_MAIL);
+	local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
+	secondary_capacity = AIController.GetSetting("select_town_cargo") != 2 ? 0 : secondary_capacity == 0 ? is_valid_secondary_cargo ? ::caches.GetSecondaryCapacity(engine_id) : 0 : secondary_capacity;
 	local days_in_transit = WrightAI.GetEngineDaysInTransit(engine_id, fakedist);
 	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
 	local reliability = AIEngine.GetReliability(engine_id);
@@ -190,7 +198,9 @@ function WrightAI::GetEngineRouteIncome(engine_id, cargo, fakedist, primary_capa
 			multiplier = reliability;
 			break;
 	}
-	local income = (primary_capacity * AICargo.GetCargoIncome(cargo, fakedist, days_in_transit) + secondary_capacity * AICargo.GetCargoIncome(Utils.getCargoId(AICargo.CC_MAIL), fakedist, days_in_transit) - running_cost * days_in_transit / 365) * multiplier;
+	local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo, fakedist, days_in_transit);
+	local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, fakedist, days_in_transit) : 0;
+	local income = (income_primary + income_secondary - running_cost * days_in_transit / 365) * multiplier;
 //	AILog.Info("Engine = " + AIEngine.GetName(engine_id) + "; income = " + income);
 	return income;
 }
@@ -256,7 +266,7 @@ function WrightAI::checkAdjacentNonAirport(airportTile, airport_type) {
 			list.RemoveItem(stationId);
 		}
 	}
-	list.Sort(AIList.SORT_BY_VALUE, true);
+	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 	local adjacentStation = AIStation.STATION_NEW;
 	if (list.Count()) {

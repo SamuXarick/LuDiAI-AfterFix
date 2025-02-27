@@ -8,14 +8,14 @@ class Caches {
 	attach_list = [];
 	costs_with_refit = [];
 
-    function GetBuildWithRefitCapacity(depot, engine, cargo);
-    function GetBuildWithRefitSecondaryCapacity(hangar, engine);
-    function GetCapacity(engine, cargo);
-    function GetSecondaryCapacity(engine);
-    function BuildFirstDepot(veh_type = AIVehicle.VT_RAIL);
-    function GetLength(engine, cargo, depot = AIMap.TILE_INVALID);
-    function CanAttachToEngine(wagon, engine, cargo, railtype, depot = AIMap.TILE_INVALID);
-    function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID);
+	function GetBuildWithRefitCapacity(depot, engine, cargo);
+	function GetBuildWithRefitSecondaryCapacity(hangar, engine);
+	function GetCapacity(engine, cargo);
+	function GetSecondaryCapacity(engine);
+	function BuildFirstDepot(veh_type = AIVehicle.VT_RAIL);
+	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID);
+	function CanAttachToEngine(wagon, engine, cargo, railtype, depot = AIMap.TILE_INVALID);
+	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID);
 
 	function GetBuildWithRefitCapacity(depot, engine, cargo) {
 //		if (!AIEngine.IsBuildable(engine)) return 0;
@@ -38,6 +38,7 @@ class Caches {
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
 //		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
+		if (!AICargo.IsValidCargo(Utils.getCargoId(AICargo.CC_MAIL))) return 0;
 
 		if (!this.secondary_capacities_list.rawin(engine)) {
 			local pass_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.getCargoId(AICargo.CC_PASSENGERS));
@@ -106,7 +107,8 @@ class Caches {
 	}
 
 	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID) {
-		AIRail.SetCurrentRailType(AIEngine.GetRailType(engine));
+		local railtype = AIEngine.GetRailType(engine);
+		AIRail.SetCurrentRailType(railtype);
 		if (!this.vehicle_lengths.rawin(engine)) {
 			local veh_type = AIEngine.GetVehicleType(engine);
 			if (veh_type == AIVehicle.VT_RAIL) {
@@ -117,7 +119,7 @@ class Caches {
 				}
 
 				if (AIRail.IsRailDepotTile(depot)) {
-					AIRail.ConvertRailType(depot, depot, AIEngine.GetRailType(engine));
+					AIRail.ConvertRailType(depot, depot, railtype);
 					local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 					if (AIVehicle.IsValidVehicle(v)) {
 						local vehicle_length = AIVehicle.GetLength(v);
@@ -129,7 +131,9 @@ class Caches {
 					}
 				}
 				if (remove_depot) {
-					TestDemolishTile().TryDemolish(depot);
+					if (!TestDemolishTile().TryDemolish(depot)) {
+						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
+					}
 				}
 				return length;
 			} else {
@@ -230,7 +234,9 @@ class Caches {
 			}
 		}
 		if (remove_depot) {
-			TestDemolishTile().TryDemolish(depot);
+			if (!TestDemolishTile().TryDemolish(depot)) {
+				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
+			}
 		}
 
 		if (result) this.attach_list.append([combo, result]);
@@ -239,7 +245,8 @@ class Caches {
 	}
 
 	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID) {
-		AIRail.SetCurrentRailType(AIEngine.GetRailType(engine));
+		local railtype = AIEngine.GetRailType(engine);
+		AIRail.SetCurrentRailType(railtype);
 		local pair = [engine, cargo];
 		if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
 			local veh_type = AIEngine.GetVehicleType(engine);
@@ -251,7 +258,7 @@ class Caches {
 				}
 
 				if (AIRail.IsRailDepotTile(depot)) {
-					AIRail.ConvertRailType(depot, depot, AIEngine.GetRailType(engine));
+					AIRail.ConvertRailType(depot, depot, railtype);
 					local cost = AIAccounting();
 					local v = AITestMode() && TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 					price = cost.GetCosts();
@@ -262,7 +269,9 @@ class Caches {
 					}
 				}
 				if (remove_depot) {
-					TestDemolishTile().TryDemolish(depot);
+					if (!TestDemolishTile().TryDemolish(depot)) {
+						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
+					}
 				}
 				return price;
 			} else {
@@ -272,17 +281,17 @@ class Caches {
 		return Utils.ArrayGetValue(this.costs_with_refit, pair);
 	}
 
-    function SaveCaches() {
-        return [_depot_tile, pass_capacities_list, mail_capacities_list, secondary_capacities_list, vehicle_lengths, attach_list, costs_with_refit];
-    }
+	function SaveCaches() {
+		return [_depot_tile, pass_capacities_list, mail_capacities_list, secondary_capacities_list, vehicle_lengths, attach_list, costs_with_refit];
+	}
 
-    function LoadCaches(data) {
-        _depot_tile = data[0];
-        pass_capacities_list = data[1];
-        mail_capacities_list = data[2];
-        secondary_capacities_list = data[3];
-        vehicle_lengths = data[4];
-        attach_list = data[5];
-        costs_with_refit = data[6];
-    }
+	function LoadCaches(data) {
+		_depot_tile = data[0];
+		pass_capacities_list = data[1];
+		mail_capacities_list = data[2];
+		secondary_capacities_list = data[3];
+		vehicle_lengths = data[4];
+		attach_list = data[5];
+		costs_with_refit = data[6];
+	}
 }

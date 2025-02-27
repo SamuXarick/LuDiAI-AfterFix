@@ -25,7 +25,6 @@ class ShipBuildManager {
 	m_dockFrom = -1;
 	m_dockTo = -1;
 	m_depotTile = -1;
-	m_buoyTiles = [];
 	m_cargoClass = -1;
 	m_cheaperRoute = -1;
 	m_pathfinder = null;
@@ -59,7 +58,6 @@ class ShipBuildManager {
 		m_dockFrom = -1;
 		m_dockTo = -1;
 		m_depotTile = -1;
-		m_buoyTiles = [];
 		m_cargoClass = -1;
 		m_cheaperRoute = -1;
 		m_builtTiles = [];
@@ -75,13 +73,7 @@ class ShipBuildManager {
 		m_sentToDepotWaterGroup = sentToDepotWaterGroup;
 		m_best_routes_built = best_routes_built;
 
-		local list = AIVehicleList();
-		local num_vehicles = 0;
-		for (local v = list.Begin(); !list.IsEnd(); v = list.Next()) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_WATER) {
-				num_vehicles++;
-			}
-		}
+		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_WATER);
 		if (num_vehicles >= AIGameSettings.GetValue("max_ships") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_WATER)) {
 			/* Don't terminate the route, or it may leave already built docks behind. */
 			return 0;
@@ -109,7 +101,7 @@ class ShipBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 500);
+					} while (counter < 500);
 					if (counter == 500) {
 						::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
 //						AILog.Error("Failed to remove dock tile at " + m_dockFrom + " - " + AIError.GetLastErrorString());
@@ -134,7 +126,7 @@ class ShipBuildManager {
 									break;
 								}
 								AIController.Sleep(1);
-							} while(counter < 500);
+							} while (counter < 500);
 							if (counter == 500) {
 								::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
@@ -152,7 +144,7 @@ class ShipBuildManager {
 									break;
 								}
 								AIController.Sleep(1);
-							} while(counter < 500);
+							} while (counter < 500);
 							if (counter == 500) {
 								::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
@@ -204,7 +196,7 @@ class ShipBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
 //					AILog.Error("Failed to remove dock tile at " + m_dockFrom + " - " + AIError.GetLastErrorString());
@@ -229,7 +221,7 @@ class ShipBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 500);
+						} while (counter < 500);
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
@@ -247,7 +239,7 @@ class ShipBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 500);
+						} while (counter < 500);
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
@@ -267,7 +259,7 @@ class ShipBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Ship.rawset(m_dockTo, 0);
 //					AILog.Error("Failed to remove dock tile at " + m_dockTo + " - " + AIError.GetLastErrorString());
@@ -292,7 +284,7 @@ class ShipBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 500);
+						} while (counter < 500);
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
@@ -310,165 +302,12 @@ class ShipBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 500);
+						} while (counter < 500);
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
 						}
 					}
-				}
-			}
-
-			setRouteFinish();
-			return null;
-		}
-
-		if (m_buoyTiles.len() == 0) {
-			m_buoyTiles = BuildBuoysOnCanal(m_builtTiles);
-		}
-
-		if (m_buoyTiles == null) {
-			if (m_dockFrom != null) {
-				local counter = 0;
-				do {
-					if (!TestRemoveDock().TryRemove(m_dockFrom)) {
-						++counter;
-					}
-					else {
-//						AILog.Warning("m_buoyTiles == null; Removed dock tile at " + m_dockFrom);
-						break;
-					}
-					AIController.Sleep(1);
-				} while(counter < 500);
-				if (counter == 500) {
-					::scheduledRemovalsTable.Ship.rawset(m_dockFrom, 0);
-//					AILog.Error("Failed to remove dock tile at " + m_dockFrom + " - " + AIError.GetLastErrorString());
-				} else {
-					local slope = AITile.GetSlope(m_dockFrom);
-					assert(slope == AITile.SLOPE_NE || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW);
-					/* Check for canal and remove it */
-					local offset = 0;
-					if (slope == AITile.SLOPE_NE) offset = AIMap.GetTileIndex(1, 0);
-					if (slope == AITile.SLOPE_SE) offset = AIMap.GetTileIndex(0, -1);
-					if (slope == AITile.SLOPE_SW) offset = AIMap.GetTileIndex(-1, 0);
-					if (slope == AITile.SLOPE_NW) offset = AIMap.GetTileIndex(0, 1);
-					local tile2 = m_dockFrom + offset;
-					if (AIMarine.IsCanalTile(tile2)) {
-						local counter = 0;
-						do {
-							if (!TestRemoveCanal().TryRemove(tile2)) {
-								++counter;
-							}
-							else {
-//								AILog.Warning("m_buoyTiles == null; Removed canal tile at " + tile2);
-								break;
-							}
-							AIController.Sleep(1);
-						} while(counter < 500);
-						if (counter == 500) {
-							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
-//							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
-						}
-					}
-					local tile3 = tile2 + offset;
-					if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
-						local counter = 0;
-						do {
-							if (!TestRemoveCanal().TryRemove(tile3)) {
-								++counter;
-							}
-							else {
-//								AILog.Warning("m_buoyTiles == null; Removed canal tile at " + tile3);
-								break;
-							}
-							AIController.Sleep(1);
-						} while(counter < 500);
-						if (counter == 500) {
-							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
-//							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
-						}
-					}
-				}
-			}
-
-			if (m_dockTo != null) {
-				local counter = 0;
-				do {
-					if (!TestRemoveDock().TryRemove(m_dockTo)) {
-						++counter;
-					}
-					else {
-//						AILog.Warning("m_buoyTiles == null; Removed dock tile at " + m_dockTo);
-						break;
-					}
-					AIController.Sleep(1);
-				} while(counter < 500);
-				if (counter == 500) {
-					::scheduledRemovalsTable.Ship.rawset(m_dockTo, 0);
-//					AILog.Error("Failed to remove dock tile at " + m_dockTo + " - " + AIError.GetLastErrorString());
-				} else {
-					local slope = AITile.GetSlope(m_dockTo);
-					assert(slope == AITile.SLOPE_NE || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW);
-					/* Check for canal and remove it */
-					local offset = 0;
-					if (slope == AITile.SLOPE_NE) offset = AIMap.GetTileIndex(1, 0);
-					if (slope == AITile.SLOPE_SE) offset = AIMap.GetTileIndex(0, -1);
-					if (slope == AITile.SLOPE_SW) offset = AIMap.GetTileIndex(-1, 0);
-					if (slope == AITile.SLOPE_NW) offset = AIMap.GetTileIndex(0, 1);
-					local tile2 = m_dockTo + offset;
-					if (AIMarine.IsCanalTile(tile2)) {
-						local counter = 0;
-						do {
-							if (!TestRemoveCanal().TryRemove(tile2)) {
-								++counter;
-							}
-							else {
-//								AILog.Warning("m_buoyTiles == null; Removed canal tile at " + tile2);
-								break;
-							}
-							AIController.Sleep(1);
-						} while(counter < 500);
-						if (counter == 500) {
-							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
-//							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
-						}
-					}
-					local tile3 = tile2 + offset;
-					if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
-						local counter = 0;
-						do {
-							if (!TestRemoveCanal().TryRemove(tile3)) {
-								++counter;
-							}
-							else {
-//								AILog.Warning("m_buoyTiles == null; Removed canal tile at " + tile3);
-								break;
-							}
-							AIController.Sleep(1);
-						} while(counter < 500);
-						if (counter == 500) {
-							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
-//							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
-						}
-					}
-				}
-			}
-
-			if (m_depotTile != null) {
-				local counter = 0;
-				do {
-					if (!TestRemoveWaterDepot().TryRemove(m_depotTile)) {
-						++counter;
-					}
-					else {
-//						AILog.Warning("m_buoyTiles == null; Removed ship depot at " + m_depotTile);
-						break;
-					}
-					AIController.Sleep(1);
-				} while(counter < 500);
-				if (counter == 500) {
-					::scheduledRemovalsTable.Ship.rawset(m_depotTile, 0);
-//					AILog.Error("Failed to remove ship depot at " + m_depotTile + " - " + AIError.GetLastErrorString());
 				}
 			}
 
@@ -477,7 +316,7 @@ class ShipBuildManager {
 		}
 
 //		m_builtTiles = [];
-		return ShipRoute(m_cityFrom, m_cityTo, m_dockFrom, m_dockTo, m_depotTile, m_buoyTiles, m_cargoClass, m_sentToDepotWaterGroup);
+		return ShipRoute(m_cityFrom, m_cityTo, m_dockFrom, m_dockTo, m_depotTile, m_cargoClass, m_sentToDepotWaterGroup);
 	}
 
 	function buildTownDock(town, cargoClass, cheaperRoute, best_routes_built) {
@@ -586,7 +425,7 @@ class ShipBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 500);
+					} while (counter < 500);
 					if (counter == 500) {
 						/* Failed to build first canal. Try the next location. */
 						continue;
@@ -610,7 +449,7 @@ class ShipBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 500);
+					} while (counter < 500);
 					if (counter == 500) {
 						/* Failed to build second canal. Remove the first canal if it was built then. */
 						if (built_canal1) {
@@ -674,7 +513,7 @@ class ShipBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 1);
+					} while (counter < 1);
 					if (counter == 1) {
 						if (built_canal1) {
 							local counter = 0;
@@ -838,7 +677,7 @@ class ShipBuildManager {
 					m_pathfinderTries = 0;
 					return [null, null];
 				}
-			} while(path == false);
+			} while (path == false);
 
 //			if (!silent_mode && m_pathfinderTries != count) AILog.Info("canal pathfinder: FindPath iterated: " + count);
 			if (!silent_mode) AILog.Info("Canal path found! FindPath iterated: " + m_pathfinderTries + ". Building canal... ");
@@ -885,7 +724,7 @@ class ShipBuildManager {
 //										if (!silent_mode) AILog.Warning("Failed lock at " + path.GetTile() + ", " + next_tile + " and " + par.GetTile());
 									}
 									AIController.Sleep(1);
-								} while(counter < 500);
+								} while (counter < 500);
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build lock at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
 									m_pathfinderTries = 0;
@@ -926,7 +765,7 @@ class ShipBuildManager {
 //										if (!silent_mode) AILog.Warning("Failed aqueduct at " + par.GetTile() + " and " + path.GetTile());
 									}
 									AIController.Sleep(1);
-								} while(counter < 500);
+								} while (counter < 500);
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build aqueduct between tiles " + par.GetTile() + " and " + path.GetTile() + " - " + AIError.GetLastErrorString());
 									m_pathfinderTries = 0;
@@ -969,7 +808,7 @@ class ShipBuildManager {
 //									if (!silent_mode) AILog.Warning("Failed canal 'path' at " + path.GetTile());
 								}
 								AIController.Sleep(1);
-							} while(counter < 500);
+							} while (counter < 500);
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build canal 'path' at tile " + path.GetTile() + " - " + AIError.GetLastErrorString());
 								m_pathfinderTries = 0;
@@ -1227,7 +1066,7 @@ class ShipBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 1);
+				} while (counter < 1);
 				if (counter == 1) {
 					continue;
 				} else {
@@ -1241,72 +1080,6 @@ class ShipBuildManager {
 
 		if (depotTile == null) AILog.Warning("Couldn't built ship depot!");
 		return depotTile;
-	}
-
-	function BuildBuoysOnCanal(canalArray)
-	{
-		if (canalArray == null) {
-			return null;
-		}
-
-		local buoyArray = [];
-		local last_buoy = canalArray[0].m_tile;
-		local hops = 0;
-		for (local i = canalArray.len() - 1; i >= 0; --i) {
-			local tile = canalArray[i].m_tile;
-			local type = canalArray[i].m_type;
-
-			if (type != WaterTileTypes.CANAL) continue;
-
-			if ((AITile.IsWaterTile(tile) || AIMarine.IsBuoyTile(tile)) && !AIMarine.IsWaterDepotTile(tile) && !AIMarine.IsLockTile(tile)) {
-				if (hops >= COUNT_BETWEEN_BUOYS) {
-					local counter = 0;
-					do {
-						if (!TestBuildBuoy().TryBuild(tile)) {
-							if (AIError.GetLastErrorString() == "ERR_STATION_TOO_MANY_STATIONS") {
-								AILog.Warning("Couldn't build buoy at tile " + tile + " - " + AIError.GetLastErrorString());
-//								AIController.Break(" ");
-								foreach (buoy in buoyArray) {
-									if (AIMarine.IsBuoyTile(buoy)) {
-										do {
-											if (!TestRemoveBuoy().TryRemove(buoy)) {
-												++counter;
-											}
-											else {
-//												AILog.Warning("Removed buoy at tile " + buoy);
-												break;
-											}
-											AIController.Sleep(1);
-										} while(counter < 500);
-										if (counter == 500) {
-											::scheduledRemovalsTable.Ship.rawset(buoy, 0);
-//											AILog.Error("Failed to remove buoy at tile " + buoy + " - " + AIError.GetLastErrorString());
-										}
-									}
-								}
-								return null;
-							}
-							++counter;
-						}
-						else {
-							break;
-						}
-						AIController.Sleep(1);
-					} while(counter < 1);
-					if (counter != 1) {
-						last_buoy = tile;
-						buoyArray.append(last_buoy);
-						hops = 0;
-						continue;
-					}
-				}
-			} else if (AIMarine.IsWaterDepotTile(tile) && tile == m_depotTile) {
-				buoyArray.append(m_depotTile);
-			}
-			hops++;
-		}
-
-		return buoyArray;
 	}
 
 	function saveBuildManager() {
@@ -1341,7 +1114,6 @@ class ShipBuildManager {
 		route.append(m_dockFrom);
 		route.append(m_dockTo);
 		route.append(m_depotTile);
-		route.append(m_buoyTiles);
 		route.append(m_cargoClass);
 		route.append(m_cheaperRoute);
 		route.append(m_best_routes_built);
@@ -1368,21 +1140,14 @@ class ShipBuildManager {
 //		AILog.Info("m_dockTo == " + m_dockTo);
 		m_depotTile = data[4];
 //		AILog.Info("m_depotTile == " + m_depotTile);
-
-		m_buoyTiles = data[5];
-//		for (local i = 0; i < m_buoyTiles.len(); i++) {
-//			local tile = m_buoyTiles[i];
-//			AILog.Info("m_buoyTiles == " + tile);
-//		}
-
-		m_cargoClass = data[6];
+		m_cargoClass = data[5];
 //		AILog.Info("m_cargoClass == " + m_cargoClass);
-		m_cheaperRoute = data[7];
+		m_cheaperRoute = data[6];
 //		AILog.Info("m_cheaperRoute == " + m_cheaperRoute);
-		m_best_routes_built = data[8];
+		m_best_routes_built = data[7];
 //		AILog.Info("m_best_routes_built == " + m_best_routes_built);
 
-		local builtTiles = data[9];
+		local builtTiles = data[8];
 		for (local i = 0; i < builtTiles.len(); i++) {
 			local tile = builtTiles[i];
 //			AILog.Info("builtTiles[" + i + "] == tile " + tile[0] + "; type " + tile[1]);

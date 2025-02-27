@@ -75,13 +75,7 @@ class RoadBuildManager {
 		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
 		m_best_routes_built = best_routes_built;
 
-		local list = AIVehicleList();
-		local num_vehicles = 0;
-		for (local v = list.Begin(); !list.IsEnd(); v = list.Next()) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_ROAD) {
-				num_vehicles++;
-			}
-		}
+		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_ROAD);
 		if (num_vehicles >= AIGameSettings.GetValue("max_roadveh") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD)) {
 			/* Don't terminate the route, or it may leave already built stations behind. */
 			return 0;
@@ -114,7 +108,7 @@ class RoadBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 500);
+					} while (counter < 500);
 					if (counter == 500) {
 						::scheduledRemovalsTable.Road.rawset(m_stationFrom, 0);
 						if (drivethrough) {
@@ -155,7 +149,7 @@ class RoadBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Road.rawset(m_stationFrom, 0);
 					if (drivethrough) {
@@ -182,7 +176,7 @@ class RoadBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 				if (counter == 500) {
 					::scheduledRemovalsTable.Road.rawset(m_stationTo, 0);
 					if (drivethrough) {
@@ -358,7 +352,7 @@ class RoadBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 1);
+					} while (counter < 1);
 					if (counter == 1) {
 						continue;
 					}
@@ -405,7 +399,7 @@ class RoadBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 1);
+						} while (counter < 1);
 						if (counter == 1) {
 							/* Failed to build station, try the next location */
 							continue;
@@ -421,7 +415,7 @@ class RoadBuildManager {
 									break;
 								}
 								AIController.Sleep(1);
-							} while(counter < (stationTile == null ? 500 : 1));
+							} while (counter < (stationTile == null ? 500 : 1));
 							if (counter == (stationTile == null ? 500 : 1)) {
 								/* Failed to connect road to the station. Try to remove the station we had built then */
 								local counter = 0;
@@ -464,7 +458,7 @@ class RoadBuildManager {
 									break;
 								}
 								AIController.Sleep(1);
-							} while(counter < 1);
+							} while (counter < 1);
 							if (counter == 1) {
 								/* Failed to build station, try the next location */
 								continue;
@@ -480,7 +474,7 @@ class RoadBuildManager {
 										break;
 									}
 									AIController.Sleep(1);
-								} while(counter < (stationTile == null ? 500 : 1));
+								} while (counter < (stationTile == null ? 500 : 1));
 								if (counter == (stationTile == null ? 500 : 1)) {
 									/* Failed to connect road to the station. Try to remove the station we had built then */
 									local counter = 0;
@@ -572,7 +566,7 @@ class RoadBuildManager {
 								break;
 							}
 							AIController.Sleep(1)
-						} while(counter < 1);
+						} while (counter < 1);
 						if (counter == 1) {
 							continue;
 						}
@@ -586,7 +580,7 @@ class RoadBuildManager {
 									break;
 								}
 								AIController.Sleep(1);
-							} while(counter < (stationTile == null ? 500 : 1));
+							} while (counter < (stationTile == null ? 500 : 1));
 							if (counter == (stationTile == null ? 500 : 1)) {
 								local counter = 0;
 								local removed = false;
@@ -609,7 +603,7 @@ class RoadBuildManager {
 										break;
 									}
 									AIController.Sleep(1);
-								} while(counter < (stationTile == null ? 500 : 1));
+								} while (counter < (stationTile == null ? 500 : 1));
 								if (counter == (stationTile == null ? 500 : 1)) {
 									::scheduledRemovalsTable.Road.rawset(tile, has_road ? 0 : 1);
 //									AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
@@ -655,7 +649,7 @@ class RoadBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < 1);
+						} while (counter < 1);
 						if (counter == 1) {
 							continue;
 						}
@@ -669,7 +663,7 @@ class RoadBuildManager {
 									break;
 								}
 								AIController.Sleep(1);
-							} while(counter < (stationTile == null ? 500 : 1));
+							} while (counter < (stationTile == null ? 500 : 1));
 							if (counter == (stationTile == null ? 500 : 1)) {
 								local counter = 0;
 								do {
@@ -681,7 +675,7 @@ class RoadBuildManager {
 										break;
 									}
 									AIController.Sleep(1);
-								} while(counter < (stationTile == null ? 500 : 1));
+								} while (counter < (stationTile == null ? 500 : 1));
 								if (counter == (stationTile == null ? 500 : 1)) {
 									::scheduledRemovalsTable.Road.rawset(tile, 0);
 //									AILog.Error("Failed to remove road station tile at " + tile + " - " + AIError.GetLastErrorString());
@@ -748,7 +742,7 @@ class RoadBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 1);
+					} while (counter < 1);
 					if (counter == 1) {
 						continue;
 					}
@@ -762,7 +756,7 @@ class RoadBuildManager {
 								break;
 							}
 							AIController.Sleep(1);
-						} while(counter < (stationTile == null ? 500 : 1));
+						} while (counter < (stationTile == null ? 500 : 1));
 						if (counter == (stationTile == null ? 500 : 1)) {
 							local counter = 0;
 							do {
@@ -918,7 +912,7 @@ class RoadBuildManager {
 					m_pathfinderTries = 0;
 					return [null, null];
 				}
-			} while(path == false);
+			} while (path == false);
 
 //			if (!silent_mode && m_pathfinderTries != count) AILog.Info("road pathfinder: FindPath iterated: " + count);
 			if (!silent_mode) AILog.Info("Road path found! FindPath iterated: " + m_pathfinderTries + ". Building road... ");
@@ -935,7 +929,7 @@ class RoadBuildManager {
 							do {
 								local costs = AIAccounting();
 								if (!TestBuildRoad().TryBuild(path.GetTile(), par.GetTile())) {
-									if (AIError.GetLastErrorString() == "ERR_ALREADY_BUILT") {
+									if (AIError.GetLastErrorString() == "ERR_ALREADY_BUILT"/* || (AIError.GetLastErrorString() == "ERR_UNKNOWN" && AIBridge.IsBridgeTile(path.GetTile()))*/) {
 //										if (!silent_mode) AILog.Warning("We found a road already built at tiles " + path.GetTile() + " and " + par.GetTile());
 										break;
 									}
@@ -962,7 +956,7 @@ class RoadBuildManager {
 								}
 
 								AIController.Sleep(1);
-							} while(counter < 500);
+							} while (counter < 500);
 
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build road at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
@@ -986,9 +980,9 @@ class RoadBuildManager {
 						}
 					}
 					else {
-						// Build a bridge or tunnel. */
+						/* Build a bridge or tunnel. */
 						if (!AIBridge.IsBridgeTile(path.GetTile()) || !AITunnel.IsTunnelTile(path.GetTile())) {
-							// If it was a road tile, demolish it first. Do this to work around expended roadbits. */
+							/* If it was a road tile, demolish it first. Do this to work around expended roadbits. */
 							if (AIRoad.IsRoadTile(path.GetTile()) && !AIRoad.IsDriveThroughRoadStationTile(path.GetTile()) && AITunnel.GetOtherTunnelEnd(path.GetTile()) == par.GetTile()) {
 								local counter = 0;
 								do {
@@ -1009,7 +1003,7 @@ class RoadBuildManager {
 									}
 
 									AIController.Sleep(1);
-								} while(counter < 500);
+								} while (counter < 500);
 
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't demolish road at tile " + path.GetTile() + " - " + AIError.GetLastErrorString());
@@ -1041,7 +1035,7 @@ class RoadBuildManager {
 									}
 
 									AIController.Sleep(1);
-								} while(counter < 500);
+								} while (counter < 500);
 
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build tunnel at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
@@ -1090,7 +1084,7 @@ class RoadBuildManager {
 									}
 
 									AIController.Sleep(1);
-								} while(counter < 500);
+								} while (counter < 500);
 
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build bridge at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
@@ -1168,7 +1162,7 @@ class RoadBuildManager {
 					break;
 				}
 				AIController.Sleep(1);
-			} while(counter < 1);
+			} while (counter < 1);
 
 			if (counter == 1) {
 				return null;
@@ -1183,7 +1177,7 @@ class RoadBuildManager {
 						break;
 					}
 					AIController.Sleep(1);
-				} while(counter < 500);
+				} while (counter < 500);
 
 				if (counter == 500) {
 					local counter = 0;
@@ -1195,7 +1189,7 @@ class RoadBuildManager {
 							break;
 						}
 						AIController.Sleep(1);
-					} while(counter < 500);
+					} while (counter < 500);
 
 					if (counter == 500) {
 						::scheduledRemovalsTable.Road.rawset(depotTile, 0);

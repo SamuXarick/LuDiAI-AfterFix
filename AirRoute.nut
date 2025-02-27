@@ -12,6 +12,7 @@ class AirRoute extends AirRouteManager {
 
 	m_lastVehicleAdded = null;
 	m_lastVehicleRemoved = null;
+	m_renewVehicles = null;
 
 	m_sentToDepotAirGroup = null;
 
@@ -32,6 +33,7 @@ class AirRoute extends AirRouteManager {
 
 		m_lastVehicleAdded = 0;
 		m_lastVehicleRemoved = AIDate.GetCurrentDate();
+		m_renewVehicles = true;
 
 		m_activeRoute = true;
 
@@ -84,7 +86,7 @@ class AirRoute extends AirRouteManager {
 		for (local v = removelist.Begin(); !removelist.IsEnd(); v = removelist.Next()) {
 			local exists = AIVehicle.IsValidVehicle(v);
 			if (exists) {
-				AILog.Error("Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 //				AIController.Break(" ");
 			}
 			m_vehicleList.rawdelete(v);
@@ -135,7 +137,7 @@ class AirRoute extends AirRouteManager {
 					continue;
 				}
 				local primary_capacity = ::caches.GetBuildWithRefitCapacity(hangar, engine, cargo);
-				local secondary_capacity = AIController.GetSetting("select_town_cargo") == 2 ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
+				local secondary_capacity = (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(Utils.getCargoId(AICargo.CC_MAIL))) ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
 				local engine_income = WrightAI.GetEngineRouteIncome(engine, cargo, fakedist, primary_capacity, secondary_capacity);
 				if (engine_income <= 0) {
 					removelist.AddItem(engine, 0);
@@ -150,7 +152,7 @@ class AirRoute extends AirRouteManager {
 	}
 
 	function updateEngine() {
-		if (!m_activeRoute) return;
+		if (!m_activeRoute || !m_renewVehicles) return;
 
 		m_engine = GetAircraftEngine(m_cargoClass);
 	}
@@ -164,6 +166,10 @@ class AirRoute extends AirRouteManager {
 	function addVehicle(return_vehicle = false, skip_order = false) {
 		ValidateVehicleList();
 		if (m_vehicleList.len() >= optimalVehicleCount()) {
+			return null;
+		}
+
+		if (!m_renewVehicles) {
 			return null;
 		}
 
@@ -278,7 +284,7 @@ class AirRoute extends AirRouteManager {
 
 		local fakedist = WrightAI.DistanceRealFake(m_airportFrom, m_airportTo);
 		local infrastructure = AIGameSettings.GetValue("infrastructure_maintenance");
-		local buyVehicleCount = max(0, (infrastructure ? 7 : 2) - numvehicles);
+		local buyVehicleCount = max(0, (infrastructure ? 8 : 2) - numvehicles);
 
 		if (buyVehicleCount > optimalVehicleCount - numvehicles) {
 			buyVehicleCount = optimalVehicleCount - numvehicles;
@@ -430,6 +436,10 @@ class AirRoute extends AirRouteManager {
 			return addVehiclesToNewRoute(m_cargoClass);
 		}
 
+		if (!m_renewVehicles) {
+			return 0;
+		}
+
 		if (AIDate.GetCurrentDate() - m_lastVehicleAdded < 90) {
 			return 0;
 		}
@@ -461,7 +471,7 @@ class AirRoute extends AirRouteManager {
 		local airport1_type = AIAirport.GetAirportType(m_airportFrom);
 		local airport2_type = AIAirport.GetAirportType(m_airportTo);
 		if (best_route_profit != null && best_route_profit - infrastructure * (AIAirport.GetMonthlyMaintenanceCost(airport1_type) + AIAirport.GetMonthlyMaintenanceCost(airport2_type)) * 12 / optimalVehicleCount < 10000) {
-//			AILog.Info("This route doesn't seem to be profitable. Stop adding more aircraft " + (best_route_profit - infrastructure * (AIAirport.GetMonthlyMaintenanceCost(airport1_type) + AIAirport.GetMonthlyMaintenanceCost(airport2_type)) * 12 / optimalVehicleCount) + " youngest_route_aircraft = " + youngest_route_aircraft);
+//			AILog.Info("This route doesn't seem to be profitable. Stop adding more aircraft " + (best_route_profit - infrastructure * (AIAirport.GetMonthlyMaintenanceCost(airport1_type) + AIAirport.GetMonthlyMaintenanceCost(airport2_type)) * 12 / optimalVehicleCount) + " youngest_route_aircraft = " + youngest_route_aircraft + " numvehicles = " + numvehicles);
 
 			if (youngest_route_aircraft > 730 && numvehicles > 2) {
 				/* Send the vehicles to depot if we didn't do so yet */
@@ -501,6 +511,7 @@ class AirRoute extends AirRouteManager {
 
 		/* Do not build a new vehicle once one of the airports becomes unavailable (small airport) */
 		if (!infrastructure && (!AIAirport.IsValidAirportType(airport1_type) || !AIAirport.IsValidAirportType(airport2_type))) {
+			m_renewVehicles = false;
 			return 0;
 		}
 
@@ -508,6 +519,7 @@ class AirRoute extends AirRouteManager {
 		if (AIAirport.IsValidAirportType(AIAirport.AT_HELISTATION) || AIAirport.IsValidAirportType(AIAirport.AT_HELIDEPOT)) {
 			if (airport1_type == AIAirport.AT_HELIPORT && airport2_type != AIAirport.AT_HELISTATION && airport2_type != AIAirport.AT_HELIDEPOT ||
 					airport2_type == AIAirport.AT_HELIPORT && airport1_type != AIAirport.AT_HELISTATION && airport1_type != AIAirport.AT_HELIDEPOT) {
+				m_renewVehicles = false;
 				return 0;
 			}
 		}
@@ -531,7 +543,7 @@ class AirRoute extends AirRouteManager {
 
 		local number_to_add = max (1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
 		local fakedist = WrightAI.DistanceRealFake(m_airportFrom, m_airportTo);
-		while(number_to_add) {
+		while (number_to_add) {
 			number_to_add--;
 			local added_vehicle = addVehicle(true, cargoWaiting1 <= cargoWaiting2);
 			if (added_vehicle != null) {
@@ -543,7 +555,7 @@ class AirRoute extends AirRouteManager {
 					cargoWaiting2 -= engine_capacity;
 					skipped_order = true;
 				}
-				AILog.Info("Added " + AIEngine.GetName(m_engine) + " on existing route from " + AIBaseStation.GetName(skipped_order ? station2 : station1) + " to " + AIBaseStation.GetName(skipped_order ? station1 : station2) + "! (" + numvehicles + "/" + optimalVehicleCount + " aircraft" + (numvehicles != 1 ? "s" : "") + ", " + fakedist + " fakedist tiles)");
+				AILog.Info("Added " + AIEngine.GetName(m_engine) + " on existing route from " + AIBaseStation.GetName(skipped_order ? station2 : station1) + " to " + AIBaseStation.GetName(skipped_order ? station1 : station2) + "! (" + numvehicles + "/" + optimalVehicleCount + " aircraft, " + fakedist + " fakedist tiles)");
 				if (numvehicles >= optimalVehicleCount) {
 					number_to_add = 0;
 				}
@@ -553,6 +565,10 @@ class AirRoute extends AirRouteManager {
 	}
 
 	function renewVehicles() {
+		if (!m_renewVehicles) {
+			return;
+		}
+
 		ValidateVehicleList();
 		local engine_price = AIEngine.GetPrice(this.m_engine);
 		local count = 1 + AIGroup.GetNumVehicles(m_sentToDepotAirGroup[1], AIVehicle.VT_AIR);
@@ -627,7 +643,7 @@ class AirRoute extends AirRouteManager {
 	}
 
 	function saveRoute() {
-		return [m_cityFrom, m_cityTo, m_airportFrom, m_airportTo, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_sentToDepotAirGroup, m_group];
+		return [m_cityFrom, m_cityTo, m_airportFrom, m_airportTo, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_sentToDepotAirGroup, m_group, m_renewVehicles];
 	}
 
 	function loadRoute(data) {
@@ -646,6 +662,7 @@ class AirRoute extends AirRouteManager {
 		route.m_lastVehicleRemoved = data[6];
 		route.m_activeRoute = data[7];
 		route.m_group = data[9];
+		route.m_renewVehicles = data[10];
 
 		local vehicleList = AIVehicleList_Station(AIStation.GetStationID(route.m_airportFrom));
 		for (local v = vehicleList.Begin(); !vehicleList.IsEnd(); v = vehicleList.Next()) {

@@ -12,6 +12,7 @@ something more of its own later on.
 Main differences or improvements
 --------------------------------
 
+- Builds trains (experimental, disabled by default)
 - Builds ships
 - Adds more configuration settings
 - Randomizes most configuration settings when started as Random AI
@@ -51,8 +52,7 @@ Configuration Settings
 ----------------------
 
 Town Cargo:
-    Choses which cargo the AI will handle. If the AI started as Random AI,
-    the choice will be randomized on startup.
+    Choses which cargo the AI will handle.
 
     - Passengers:
     The AI creates Passenger only routes via road, air and/or water.
@@ -66,8 +66,7 @@ Town Cargo:
 
 
 Town choice priority:
-    Defines how the AI will pair two towns. If the AI Started as Random
-    AI, one of the following options will be picked at random on startup.
+    Defines how the AI will pair two towns.
 
     - Most cargo produced first:
     The AI choses the most productive towns first when creating a service.
@@ -87,15 +86,16 @@ Town choice priority:
 Is friendly:
     When enabled, the AI tries to avoid building its stations near
     stations of other companies. When disabled, it is allowed to do so.
-    If the AI started as Random AI, the decision will be randomized on
-    startup.
 
 
 Can station spread:
     When enabled, the AI expands its road stations by distantly joining
     new station pieces, to enlarge station coverage. It may also join road
-    stations with airports, docks and vice-versa whenever possible. If the
-    AI started as Random AI, the decision will be randomized on startup.
+    stations with airports, docks and vice-versa whenever possible.
+
+
+Rail support: (experimental)
+    Enables or disables the usage of rail routes.
 
 
 Road support:
@@ -110,6 +110,22 @@ Air support:
     Enables or disables the usage of air routes.
 
 
+Approximate number of days in transit for rail routes: (experimental)
+    Lower values may help pathfinding faster, but at the cost of lesser
+    profits. Higher values may slow pathfinding and may not necessarily
+    yield the best profits, assuming the default engines are being used. A
+    random value of up to -5/+5 is added on startup, and the limit can
+    never go below 10 or above 150.
+
+
+Rail pathfinder profile: (experimental)
+    Select the behaviour of the pathfinder when connecting two towns by
+    rails.
+
+    - Custom:
+    Tweaked for
+
+
 Approximate number of days in transit for road routes:
     Lower values may help pathfinding faster, but at the cost of lesser
     profits. Higher values may slow pathfinding and may not necessarily
@@ -120,8 +136,7 @@ Approximate number of days in transit for road routes:
 
 Road pathfinder profile:
     Select the behaviour of the pathfinder when connecting two towns by
-    roads. If the AI started as Random AI, the choice will be randomized
-    on startup.
+    roads.
 
     - Custom:
     Tweaked for low construction costs when the AI is poor, by avoiding
@@ -151,8 +166,7 @@ Road pathfinder profile:
 Road route capacity mode:
     Determines how the AI will handle the capacity of a route by managing
     the number of vehicles when there's enough cargo waiting at the
-    stations. If the AI started as Random AI, the choice will be
-    randomized on startup.
+    stations.
 
     - Maximum of 25 road vehicles:
     Depending on the cargo waiting, the AI may decide to add road vehicles
@@ -175,8 +189,7 @@ Road route capacity mode:
 
 
 Road route load orders mode:
-    Determines how road vehicles set up their orders. If the AI started as
-    Random AI, the choice will be randomized on startup.
+    Determines how road vehicles set up their orders.
 
     - Full load before departing:
     The vehicles will use 'Full load any cargo' on their go-to orders.
@@ -200,8 +213,7 @@ Approximate number of days in transit for water routes:
 Water route capacity mode:
     Determines how the AI will handle the capacity of a route by managing
     the number of vehicles when there's enough cargo waiting at the
-    stations. If the AI started as Random AI, the choice will be
-    randomized on startup.
+    stations.
 
     - Maximum of 10 ships:
     Depending on the cargo waiting, the AI may decide to add ships to the
@@ -220,8 +232,7 @@ Water route capacity mode:
 
 
 Water route load orders mode:
-    Determines how ships set up their orders. If the AI started as Random
-    AI, the choice will be randomized on startup.
+    Determines how ships set up their orders.
 
     - Load something before departing:
     A conditional order is placed between their go-to orders that Jump to
@@ -232,8 +243,7 @@ Water route load orders mode:
 
 
 Air route load orders mode:
-    Determines how aircraft set up their orders. If the AI started as
-    Random AI, the choice will be randomized on startup.
+    Determines how aircraft set up their orders.
 
     - Full load before departing:
     The vehicles will use 'Full load any cargo' on their go-to orders.
@@ -244,8 +254,7 @@ Air route load orders mode:
 
 Build company statues in towns:
     When enabled, the AI will build statues in honour of its company,
-    providing a permanent boost to station rating in those towns. If the
-    AI started as Random AI, the decision will be randomized on startup.
+    providing a permanent boost to station rating in those towns.
 
 
 Run advertising campaigns in towns:
@@ -253,28 +262,24 @@ Run advertising campaigns in towns:
     providing a temporary boost to stations with low rating and cargo
     waiting in a small, medium or large radius around the town center.
     When used with "Build company statues in towns", it will prioritize
-    the building of statues over advertising campaigns. If the AI started
-    as Random AI, the decision will be randomized on startup.
+    the building of statues over advertising campaigns.
 
 
 Fund construction of new buildings in towns:
     When enabled, the AI will fund the construction of new buildings in
     the smaller towns it services, providing a temporary boost to town
     growth. When used with "Build company statues in towns", it will
-    prioritize the building of statues over funding construction.If the AI
-    started as Random AI, the decision will be randomized on startup.
+    prioritize the building of statues over funding construction.
 
 
 Found towns:
     When enabled, the AI will sponsor the construction of new towns in the
-    map. If the AI started as Random AI, the decision will be randomized
-    on startup.
+    map.
 
 
 Build headquarters:
     When enabled, the AI will build a company headquarters randomly in the
-    map, as cost efficient as possible. If the AI started as Random AI,
-    the decision will be randomized on startup.
+    map, as cost efficient as possible.
 
 
 AI-GS communication support:

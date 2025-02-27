@@ -137,7 +137,7 @@ class TownManager {
 			for (local town = localList.Begin(); !localList.IsEnd(); town = localList.Next()) {
 				localList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
 			}
-			localList.Sort(AIList.SORT_BY_VALUE, false);
+			localList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 
 			if (!bestRoutesBuilt) {
 				local cargolimit = cargoClass == AICargo.CC_PASSENGERS ? 70 : 35;
@@ -279,7 +279,7 @@ class TownManager {
 			for (local town = localPairList.Begin(); !localPairList.IsEnd(); town = localPairList.Next()) {
 				localPairList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
 			}
-			localPairList.Sort(AIList.SORT_BY_VALUE, false);
+			localPairList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 
 			if (!bestRoutesBuilt) {
 				local templist = AIList();
