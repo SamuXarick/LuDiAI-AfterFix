@@ -241,7 +241,7 @@ class LuDiAIAfterFix extends AIInfo {
 		AddSetting({
 			name = "found_towns",
 			description = "Found towns",
-			default_value = 0,
+			default_value = 1,
 			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
