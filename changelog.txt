@@ -1,7 +1,7 @@
 LuDiAI AfterFix
 ===============
 v21 (27-03-2025)
-- OpenTTD and API requirements set to 15.0
+- OpenTTD and API requirements set to 14.0
 - Added "Train support" setting. AI can now build dual lane train routes
 - Added "Approximate number of days in transit for rail routes" setting
 - Removed "AI-GS communication support" setting and no longer imports
