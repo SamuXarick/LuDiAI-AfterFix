@@ -55,14 +55,14 @@ Town Cargo:
     Choses which cargo the AI will handle.
 
     - Passengers:
-    The AI creates Passenger only routes via road, air and/or water.
+    The AI creates Passenger only routes via road, air, water and/or rail.
 
     - Mail:
-    The AI creates Mail only routes via road, air and/or water.
+    The AI creates Mail only routes via road, air, water and/or rail.
 
     - Passengers and Mail:
-    The AI creates both Passenger and Mail routes via road, air and/or
-    canal.
+    The AI creates both Passenger and Mail routes via road, air, water
+    and/or rail.
 
 
 Town choice priority:
@@ -91,10 +91,11 @@ Is friendly:
 Can station spread:
     When enabled, the AI expands its road stations by distantly joining
     new station pieces, to enlarge station coverage. It may also join road
-    stations with airports, docks and vice-versa whenever possible.
+    stations with airports, docks, railway stations and vice-versa
+    whenever possible.
 
 
-Rail support: (experimental)
+Rail support:
     Enables or disables the usage of rail routes.
 
 
@@ -110,28 +111,31 @@ Air support:
     Enables or disables the usage of air routes.
 
 
-Approximate number of days in transit for rail routes: (experimental)
+Approximate number of days in transit for rail routes:
     Lower values may help pathfinding faster, but at the cost of lesser
     profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used. A
-    random value of up to -5/+5 is added on startup, and the limit can
-    never go below 10 or above 150.
+    yield the best profits, assuming the default engines are being used.
+    The limit can never go below 10 or above 150.
 
 
 Rail pathfinder profile: (experimental)
     Select the behaviour of the pathfinder when connecting two towns by
     rails.
 
-    - Custom:
-    Tweaked for
+    - SingleRail:
+    Tweaked for constrained terrain. Connects each of the two lanes
+    separately. Tends to succeed more often than the other method, but
+    requires pathfinding twice, one per lane.
+
+    - DoubleRail:
+    Tweaked for looks. Connects both lanes in a single instance.
 
 
 Approximate number of days in transit for road routes:
     Lower values may help pathfinding faster, but at the cost of lesser
     profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used. A
-    random value of up to -5/+5 is added on startup, and the limit can
-    never go below 10 or above 150.
+    yield the best profits, assuming the default engines are being used.
+    The limit can never go below 10 or above 150.
 
 
 Road pathfinder profile:
@@ -205,9 +209,8 @@ Road route load orders mode:
 Approximate number of days in transit for water routes:
     Lower values may help pathfinding faster, but at the cost of lesser
     profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used. A
-    random value of up to -5/+5 is added on startup, and the limit can
-    never go below 10 or above 150.
+    yield the best profits, assuming the default engines are being used.
+    The limit can never go below 10 or above 150.
 
 
 Water route capacity mode:
@@ -217,7 +220,7 @@ Water route capacity mode:
 
     - Maximum of 10 ships:
     Depending on the cargo waiting, the AI may decide to add ships to the
-    route, as long as it doesn't go over 25. It adds one at a time per
+    route, as long as it doesn't go over 10. It adds one at a time per
     management cycle.
 
     - Estimate maximum number of ships:
