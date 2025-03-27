@@ -1,7 +1,7 @@
 LuDiAI AfterFix
 ===============
 
-LuDiAI AfterFix is an AI that builds road, air and ship routes
+LuDiAI AfterFix is an AI that builds road, air, ship and rail routes
 transporting either mail or passengers.
 
 It's an AI that is built upon the original work of lukin_'s LuDiAI.
@@ -15,7 +15,6 @@ Main differences or improvements
 - Builds trains
 - Builds ships
 - Adds more configuration settings
-- Randomizes most configuration settings when started as Random AI
 - Can build more than 500 road vehicles
 - Builds more airport types
 - Builds helicopters

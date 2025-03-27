@@ -759,7 +759,7 @@ class RailBuildManager {
 		if (!AIController.GetSetting("is_friendly")) {
 			squareSize = 2;
 			/* don't care about enemy stations when is_friendly is off */
-			square.AddRectangle(Utils.getValidOffsetTile(station.GetTopTile(), (-1) * squareSize, (-1) * squareSize),
+			square.AddRectangle(Utils.getValidOffsetTile(station.GetTopTile(), -1 * squareSize, -1 * squareSize),
 					Utils.getValidOffsetTile(station.GetBottomTile(), squareSize, squareSize));
 
 			/* if another railway station of mine is nearby return true */
@@ -769,7 +769,7 @@ class RailBuildManager {
 				}
 			}
 		} else {
-			square.AddRectangle(Utils.getValidOffsetTile(station.GetTopTile(), (-1) * squareSize, (-1) * squareSize),
+			square.AddRectangle(Utils.getValidOffsetTile(station.GetTopTile(), -1 * squareSize, -1 * squareSize),
 					Utils.getValidOffsetTile(station.GetBottomTile(), squareSize, squareSize));
 
 			/* if any other station is nearby, except my own railway stations, return true */

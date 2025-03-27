@@ -1,5 +1,35 @@
 LuDiAI AfterFix
 ===============
+v21 (27-03-2025)
+- OpenTTD and API requirements set to 15.0
+- Added "Train support" setting. AI can now build dual lane train routes
+- Added "Approximate number of days in transit for rail routes" setting
+- Removed "AI-GS communication support" setting and no longer imports
+  their libraries
+- Increased the number of initial aircraft when infrastructure maintenance
+  costs are enabled, from 7 to 8
+- Fixed crash that would occur when Mail cargo didn't exist
+- Fixed incorrect sorting of airport location tile priorities when
+  gathering the highest cargo production
+- Fixed a bug which failed to prevent renewing aircraft at airport routes
+  where their airport types have expired
+- Fixed a bug in the canal pathfinder regarding aqueduct costs
+- Fixed a bug in the canal pathfinder checking freeform edges
+- Fixed a bug in the road pathfinder checking freeform edges
+- Fixed a bug that allowed modifying road pathfinder profile during
+  pathfinding cycles
+- Removed the ability to build buoys. They're no longer needed
+- Try to remove less canals than necessary when demolishing docks
+- Fixed a crash that would occur when failing to get the second ship depot
+  in the order list
+- Fixed a crash that would occur when estimating distance of a just
+  expired engine
+- Properly support infinite money game setting
+- Improve estimated route income of aircraft when mail does not exist as a
+  cargo
+- Removed support for random deviation and improved out of the box default
+  settings for competitiveness
+
 v20 (16-06-2022)
 - Fixed a crash when trying to build a lock
 

@@ -4,7 +4,7 @@ class LuDiAIAfterFix extends AIInfo {
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
 	function GetVersion()       { return 21; }
 	function MinVersionToLoad() { return 21; }
-	function GetDate()          { return "27-03-2024"; }
+	function GetDate()          { return "27-03-2025"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "14"; }
@@ -24,7 +24,7 @@ class LuDiAIAfterFix extends AIInfo {
 		AddLabels("select_town_cargo", {
 			_0 = "Passengers",
 			_1 = "Mail",
-			_2 = "Passengers and Mail"
+			_2 = "Passengers and Mail",
 		});
 
 		AddSetting({
@@ -33,56 +33,56 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 3,
 			default_value = 0,
-			flags = AIInfo.CONFIG_NONE
+			flags = AIInfo.CONFIG_NONE,
 		});
 
 		AddLabels("pick_mode", {
 			_0 = "Most cargo produced first",
 			_1 = "None, pick at random",
 			_2 = "Shorter routes first",
-			_3 = "Longer routes first"
+			_3 = "Longer routes first",
 		});
 
 		AddSetting({
 			name = "is_friendly",
 			description = "Is friendly",
 			default_value = 0,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "station_spread",
 			description = "Can station spread",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "rail_support",
 			description = "Rail support",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "road_support",
 			description = "Road support",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "water_support",
 			description = "Water support",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "air_support",
 			description = "Air support",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
@@ -91,9 +91,8 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 10,
 			max_value = 150,
 			default_value = 65,
-			random_deviation = 5,
 			step_size = 5,
-			flags = AIInfo.CONFIG_NONE
+			flags = AIInfo.CONFIG_NONE,
 		});
 
 		AddSetting({
@@ -101,8 +100,8 @@ class LuDiAIAfterFix extends AIInfo {
 			description = "Rail pathfinder profile",
 			min_value = 0,
 			max_value = 1,
-			default_value = 1,
-			flags = AIInfo.CONFIG_INGAME
+			default_value = 0,
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("rail_pf_profile", {
@@ -116,9 +115,8 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 10,
 			max_value = 150,
 			default_value = 65,
-			random_deviation = 5,
 			step_size = 5,
-			flags = AIInfo.CONFIG_NONE
+			flags = AIInfo.CONFIG_NONE,
 		});
 
 		AddSetting({
@@ -127,13 +125,13 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 2,
 			default_value = 2,
-			flags = AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("pf_profile", {
 			_0 = "Custom",
 			_1 = "Default",
-			_2 = "Fastest"
+			_2 = "Fastest",
 		});
 
 		AddSetting({
@@ -142,13 +140,13 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 2,
 			default_value = 2,
-			flags = AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("road_cap_mode", {
 			_0 = "Maximum of 25 road vehicles",
 			_1 = "Estimate maximum number of road vehicles",
-			_2 = "Adjust number of road vehicles dynamically"
+			_2 = "Adjust number of road vehicles dynamically",
 		});
 
 		AddSetting({
@@ -157,13 +155,13 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 2,
 			default_value = 1,
-			flags = AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("road_load_mode", {
 			_0 = "Full load before departing",
 			_1 = "Load something before departing",
-			_2 = "May load nothing before departing"
+			_2 = "May load nothing before departing",
 		});
 
 		AddSetting({
@@ -172,9 +170,8 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 10,
 			max_value = 150,
 			default_value = 65,
-			random_deviation = 5,
 			step_size = 5,
-			flags = AIInfo.CONFIG_NONE
+			flags = AIInfo.CONFIG_NONE,
 		});
 
 		AddSetting({
@@ -183,13 +180,13 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 2,
 			default_value = 2,
-			flags = AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("water_cap_mode", {
 			_0 = "Maximum of 10 ships",
 			_1 = "Estimate maximum number of ships",
-			_2 = "Adjust number of ships dynamically"
+			_2 = "Adjust number of ships dynamically",
 		});
 
 		AddSetting({
@@ -198,12 +195,12 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 1,
 			default_value = 0,
-			flags = AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("water_load_mode", {
 			_0 = "Load something before departing",
-			_1 = "May load nothing before departing"
+			_1 = "May load nothing before departing",
 		});
 
 		AddSetting({
@@ -212,54 +209,47 @@ class LuDiAIAfterFix extends AIInfo {
 			min_value = 0,
 			max_value = 1,
 			default_value = 1,
-			flags = AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AddLabels("air_load_mode", {
 			_0 = "Full load before departing",
-			_1 = "May load nothing before departing"
+			_1 = "May load nothing before departing",
 		});
 
 		AddSetting({
 			name = "build_statues",
 			description = "Build company statues in towns",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "advertise",
 			description = "Run advertising campaigns in towns",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "fund_buildings",
 			description = "Fund construction of new buildings in towns",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "found_towns",
 			description = "Found towns",
 			default_value = 0,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 
 		AddSetting({
 			name = "build_hq",
 			description = "Build headquarters",
 			default_value = 1,
-			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME
-		});
-
-		AddSetting({
-			name = "scp_support",
-			description = "AI-GS communication support",
-			default_value = 0,
-			flags = AIInfo.CONFIG_BOOLEAN
+			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 	}
 }

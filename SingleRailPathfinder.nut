@@ -72,7 +72,7 @@ class SingleRail
 	function InitializePath(sources, goals, ignored_tiles = []) {
 		if (this._search_range) {
 			local pair = [];
-			local max_freeform = AIMap.IsValidTile(0) ? 3 : 2;
+			local min_freeform = AIMap.IsValidTile(0) ? 0 : 1;
 
 			foreach (source in sources) {
 				foreach (goal in goals) {
@@ -84,10 +84,10 @@ class SingleRail
 					local goal_x = AIMap.GetTileX(goal[1]);
 					local goal_y = AIMap.GetTileY(goal[1]);
 
-					this._min_x = max(1, min(source_x, goal_x) - this._search_range);
-					this._min_y = max(1, min(source_y, goal_y) - this._search_range);
-					this._max_x = min(AIMap.GetMapSizeX() - max_freeform, max(source_x, goal_x) + this._search_range);
-					this._max_y = min(AIMap.GetMapSizeY() - max_freeform, max(source_y, goal_y) + this._search_range);
+					this._min_x = max(min_freeform, min(source_x, goal_x) - this._search_range);
+					this._min_y = max(min_freeform, min(source_y, goal_y) - this._search_range);
+					this._max_x = min(AIMap.GetMapSizeX() - 2, max(source_x, goal_x) + this._search_range);
+					this._max_y = min(AIMap.GetMapSizeY() - 2, max(source_y, goal_y) + this._search_range);
 				}
 			}
 
