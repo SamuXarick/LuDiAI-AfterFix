@@ -161,7 +161,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 				AILog.Error("r:" + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + " wasted!");
 			}
 
-			// cityFrom = cityTo; // use this line to look for a new town from the last town
+//			cityFrom = cityTo; // use this line to look for a new town from the last town
 			cityFrom = null;
 		}
 	}

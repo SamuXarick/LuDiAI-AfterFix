@@ -1497,7 +1497,7 @@ class RailBuildManager {
 
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + prev + " and " + cur + " - " + AIError.GetLastErrorString());
-								AIController.Break("");
+//								AIController.Break("");
 								m_pathfinderTries = 0;
 								return [null, null];
 							}
@@ -1541,7 +1541,7 @@ class RailBuildManager {
 
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + prev + " and " + cur + " - " + AIError.GetLastErrorString());
-								AIController.Break("");
+//								AIController.Break("");
 								m_pathfinderTries = 0;
 								return [null, null];
 							}
@@ -1578,7 +1578,7 @@ class RailBuildManager {
 
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + prev + ", connecting " + prevprev + " to " + cur + " - " + AIError.GetLastErrorString());
-								AIController.Break("");
+//								AIController.Break("");
 								m_pathfinderTries = 0;
 								return [null, null];
 							}
@@ -1770,7 +1770,7 @@ class RailBuildManager {
 
 									if (counter == 500) {
 										if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + next[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString());
-										AIController.Break("");
+//										AIController.Break("");
 										m_pathfinderTries = 0;
 										return [null, null];
 									}
@@ -1813,7 +1813,7 @@ class RailBuildManager {
 
 									if (counter == 500) {
 										if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + next[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString());
-										AIController.Break("");
+//										AIController.Break("");
 										m_pathfinderTries = 0;
 										return [null, null];
 									}
@@ -1845,7 +1845,7 @@ class RailBuildManager {
 
 									if (counter == 500) {
 										if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + next[j] + ", connecting " + nextnext[j] + " to " + scan_tile[j] + " - " + AIError.GetLastErrorString());
-										AIController.Break("");
+//										AIController.Break("");
 										m_pathfinderTries = 0;
 										return [null, null];
 									}

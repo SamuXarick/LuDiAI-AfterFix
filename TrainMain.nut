@@ -294,7 +294,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 				AILog.Error("t:" + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + " wasted!");
 			}
 
-			// cityFrom = cityTo; // use this line to look for a new town from the last town
+//			cityFrom = cityTo; // use this line to look for a new town from the last town
 			cityFrom = null;
 		}
 	}
