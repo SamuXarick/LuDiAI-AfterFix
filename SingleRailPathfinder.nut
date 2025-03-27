@@ -376,7 +376,7 @@ function SingleRail::_Cost(self, path, new_tile, new_direction)
 	}
 
 	/* Check if the new tile is a level crossing. */
-	if (AITile.HasTransportType(new_tile, AITile.TRANSPORT_ROAD)) {
+	if (AITile.HasTransportType(new_tile, AITile.TRANSPORT_ROAD) || AIRoad.IsRoadTile(new_tile)) {
 //		AILog.Info("Level crossing. Cost before: " + cost + "; Cost: " + (self._cost_level_crossing) + "; Cost After: " + (cost + self._cost_level_crossing));
 		cost += self._cost_level_crossing;
 	}
@@ -559,36 +559,36 @@ function SingleRail::_CheckDirection(self, is_neighbour, existing_direction, new
 //	}
 
 	/* Allowed combinations */
-	if ((existing_direction & ~131136) == 0) {
+	if (!(existing_direction & ~131136)) {
 		if (is_neighbour) {
-			if ((new_direction & ~6144) == 0) return true;
+			if (!(new_direction & ~6144)) return true;
 		} else {
-			if ((new_direction & ~17472) == 0) return true;
-			if ((new_direction & ~139776) == 0) return true;
+			if (!(new_direction & ~17472)) return true;
+			if (!(new_direction & ~139776)) return true;
 		}
 	}
-	if ((existing_direction & ~6144) == 0) {
+	if (!(existing_direction & ~6144)) {
 		if (is_neighbour) {
-			if ((new_direction & ~131136) == 0) return true;
+			if (!(new_direction & ~131136)) return true;
 		} else {
-			if ((new_direction & ~69648) == 0) return true;
-			if ((new_direction & ~526464) == 0) return true;
+			if (!(new_direction & ~69648)) return true;
+			if (!(new_direction & ~526464)) return true;
 		}
 	}
-	if ((existing_direction & ~66560) == 0) {
+	if (!(existing_direction & ~66560)) {
 		if (is_neighbour) {
-			if ((new_direction & ~8320) == 0) return true;
+			if (!(new_direction & ~8320)) return true;
 		} else {
-			if ((new_direction & ~69648) == 0) return true;
-			if ((new_direction & ~17472) == 0) return true;
+			if (!(new_direction & ~69648)) return true;
+			if (!(new_direction & ~17472)) return true;
 		}
 	}
-	if ((existing_direction & ~8320) == 0) {
+	if (!(existing_direction & ~8320)) {
 		if (is_neighbour) {
-			if ((new_direction & ~66560) == 0) return true;
+			if (!(new_direction & ~66560)) return true;
 		} else {
-			if ((new_direction & ~526464) == 0) return true;
-			if ((new_direction & ~139776) == 0) return true;
+			if (!(new_direction & ~526464)) return true;
+			if (!(new_direction & ~139776)) return true;
 		}
 	}
 
@@ -623,10 +623,10 @@ function SingleRail::_IsSlopedRail(start, middle, end)
 	local SE = middle + AIMap.GetMapSizeX();
 	local SW = middle + 1;
 
-	NW = NW == start || NW == end; //Set to true if we want to build a rail to / from the north-west
-	NE = NE == start || NE == end; //Set to true if we want to build a rail to / from the north-east
-	SE = SE == start || SE == end; //Set to true if we want to build a rail to / from the south-west
-	SW = SW == start || SW == end; //Set to true if we want to build a rail to / from the south-east
+	NW = NW == start || NW == end; // Set to true if we want to build a rail to / from the north-west
+	NE = NE == start || NE == end; // Set to true if we want to build a rail to / from the north-east
+	SE = SE == start || SE == end; // Set to true if we want to build a rail to / from the south-west
+	SW = SW == start || SW == end; // Set to true if we want to build a rail to / from the south-east
 
 	/* If there is a turn in the current tile, it can't be sloped. */
 	if ((NW || SE) && (NE || SW)) return false;

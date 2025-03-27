@@ -233,7 +233,7 @@ class TownManager {
 		local localCityList = AIList();
 		localCityList.AddList(m_townList);
 		localCityList.RemoveList(cargoClass == AICargo.CC_PASSENGERS ? Utils.TableListToAIList(m_usedCitiesPassTable) : Utils.TableListToAIList(m_usedCitiesMailTable));
-		localCityList.RemoveItem(fromCity); //remove self
+		localCityList.RemoveItem(fromCity); // remove self
 
 		local localPairList = AIList();
 
@@ -242,7 +242,7 @@ class TownManager {
 			local distance = DistanceFunction(fakedist, fromCity, AITown.GetLocation(toCity));
 			local fake = WrightAI.DistanceRealFake(AITown.GetLocation(fromCity), AITown.GetLocation(toCity));
 			if ((distance > maxDistance) || (distance < minDistance) || (fakedist != 0 && fake > fakedist)) {
-				//AILog.Warning("findNearCity:: Distance too long between " + AITown.GetName(fromCity) + " and " + AITown.GetName(toCity)) ;
+//				AILog.Warning("findNearCity:: Distance too long between " + AITown.GetName(fromCity) + " and " + AITown.GetName(toCity)) ;
 			}
 			else {
 //				AILog.Info("Added " + AITown.GetName(toCity) + " to localPairList, distance = " + distance + " tiles, " + fake + " fake tiles.");

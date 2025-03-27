@@ -24,10 +24,6 @@ class AirBuildManager {
 
 	m_cargoID = -1;
 
-	constructor() {
-
-	}
-
 	function buildAirport(airRouteManager, airTownManager, town, cargoClass, large_aircraft, small_aircraft, helicopter, best_routes_built, all_routes_built)
 	function saveBuildManager();
 	function buildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, sentToDepotAirGroup, best_routes_built, all_routes_built);
@@ -701,7 +697,7 @@ class AirBuildManager {
 				local airport_x = AIAirport.GetAirportWidth(a);
 				local airport_y = AIAirport.GetAirportHeight(a);
 				local airport_rad = AIAirport.GetAirportCoverageRadius(a);
-				
+
 				AILog.Info("a:Checking " + AITown.GetName(t) + " for an airport of type " + WrightAI.GetAirportTypeName(a));
 
 				local rectangleCoordinates = WrightAI.TownAirportRadRect(a, t);

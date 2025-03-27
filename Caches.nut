@@ -12,7 +12,7 @@ class Caches {
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine);
 	function GetCapacity(engine, cargo);
 	function GetSecondaryCapacity(engine);
-	function BuildFirstDepot(veh_type = AIVehicle.VT_RAIL);
+	function GetExistingRailDepot(railtype);
 	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID);
 	function CanAttachToEngine(wagon, engine, cargo, railtype, depot = AIMap.TILE_INVALID);
 	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID);
@@ -75,93 +75,67 @@ class Caches {
 		return this.secondary_capacities_list.rawget(engine);
 	}
 
-	function BuildFirstDepot(veh_type = AIVehicle.VT_RAIL) {
-		assert(veh_type == AIVehicle.VT_RAIL);
-
-		local num_tries = 50;
-		local tile = AIMap.TILE_INVALID;
-		while (this._depot_tile == AIMap.TILE_INVALID && --num_tries > 0) {
-			tile = AIBase.RandRange(AIMap.GetMapSize());
-			if (!AIMap.IsValidTile(tile)) continue;
-
-			local offsets = [AIMap.GetTileIndex(0, 1), AIMap.GetTileIndex(0, -1), AIMap.GetTileIndex(1, 0), AIMap.GetTileIndex(-1, 0)];
-			foreach (offset in offsets) {
-				local tile_offset = tile + offset;
-				if (AIMap.IsValidTile(tile_offset)) {
-					if (veh_type == AIVehicle.VT_RAIL) {
-						if (!AIRail.IsRailTypeAvailable(AIRail.GetCurrentRailType())) {
-							local railtypes = AIRailTypeList();
-							if (!railtypes.IsEmpty()) {
-								AIRail.SetCurrentRailType(railtype.Begin());
-							}
-						}
-						if (TestBuildRailDepot().TryBuild(tile, tile_offset)) {
-							this._depot_tile = tile;
-							break;
-						}
-					}
-				}
+	function GetExistingRailDepot(railtype) {
+		if (!AIRail.IsRailDepotTile(this._depot_tile) || !AICompany.IsMine(AITile.GetOwner(this._depot_tile)) || AIRail.GetRailType(this._depot_tile) != railtype) {
+			this._depot_tile = AIMap.TILE_INVALID;
+			local depot_list = AIDepotList(AITile.TRANSPORT_RAIL);
+			foreach (depot in depot_list) {
+				if (AIRail.GetRailType(depot) != railtype) continue;
+				this._depot_tile = depot;
+				break;
 			}
 		}
 		return this._depot_tile;
 	}
 
 	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID) {
-		local railtype = AIEngine.GetRailType(engine);
-		AIRail.SetCurrentRailType(railtype);
-		if (!this.vehicle_lengths.rawin(engine)) {
-			local veh_type = AIEngine.GetVehicleType(engine);
-			if (veh_type == AIVehicle.VT_RAIL) {
-				local remove_depot = false;
-				local length = -1;
-				if (!AIRail.IsRailDepotTile(depot)) {
-					depot = this.BuildFirstDepot();
-				}
+		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine))
+		if (AIEngine.GetVehicleType(engine) != AIVehicle.VT_RAIL) return -1;
 
-				if (AIRail.IsRailDepotTile(depot)) {
-					AIRail.ConvertRailType(depot, depot, railtype);
-					local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
-					if (AIVehicle.IsValidVehicle(v)) {
-						local vehicle_length = AIVehicle.GetLength(v);
-						this.vehicle_lengths.rawset(engine, vehicle_length);
-						AIVehicle.SellVehicle(v);
-						length = vehicle_length;
-					} else {
-						AILog.Error("Failed to build vehicle with refit to check its length");
-					}
+		local railtype = AIEngine.GetRailType(engine);
+		if (!this.vehicle_lengths.rawin(engine)) {
+			local result = false;
+			if (!AIRail.IsRailDepotTile(depot)) {
+				depot = this.GetExistingRailDepot(railtype);
+			}
+
+			if (AIRail.IsRailDepotTile(depot)) {
+				local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
+				if (AIVehicle.IsValidVehicle(v)) {
+					local vehicle_length = AIVehicle.GetLength(v);
+					this.vehicle_lengths.rawset(engine, vehicle_length);
+					AIVehicle.SellVehicle(v);
+					result = true;
+				} else {
+					AILog.Error("Failed to build vehicle with refit to check its length");
 				}
-				if (remove_depot) {
-					if (!TestDemolishTile().TryDemolish(depot)) {
-						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
-					}
-				}
-				return length;
-			} else {
-				assert(false);
+			}
+
+			if (!result) {
+				/* Assume default length of 8 */
+				return 8;
 			}
 		}
 		return this.vehicle_lengths.rawget(engine);
 	}
 
 	function CanAttachToEngine(wagon, engine, cargo, railtype, depot = AIMap.TILE_INVALID) {
-		assert(AIEngine.IsWagon(wagon));
-		assert(!AIEngine.IsWagon(engine));
-		AIRail.SetCurrentRailType(railtype);
+		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine)) return false;
+		if (!AIEngine.IsWagon(wagon) || AIEngine.IsWagon(engine)) return false;
 
+		AIRail.SetCurrentRailType(railtype);
 		local combo = [engine, wagon, cargo];
 		if (Utils.ArrayHasItem(this.attach_list, combo)) {
 			return Utils.ArrayGetValue(this.attach_list, combo);
 		}
 
 		/* it's not in the list yet */
-		local remove_depot = false;
 		local result = false;
 		if (!AIRail.IsRailDepotTile(depot)) {
-			depot = this.BuildFirstDepot();
+			depot = this.GetExistingRailDepot(railtype);
 		}
 
 		if (AIRail.IsRailDepotTile(depot)) {
-			AIRail.ConvertRailType(depot, depot, railtype);
 			local cost = AIAccounting();
 			local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 			local error_v = AIError.GetLastErrorString();
@@ -232,11 +206,9 @@ class Caches {
 				if (AIVehicle.IsValidVehicle(w)) AIVehicle.SellVehicle(w);
 				return true;
 			}
-		}
-		if (remove_depot) {
-			if (!TestDemolishTile().TryDemolish(depot)) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
-			}
+		} else {
+			/* No depot for testing. Assume that it can attach. */
+			return true;
 		}
 
 		if (result) this.attach_list.append([combo, result]);
@@ -245,20 +217,19 @@ class Caches {
 	}
 
 	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID) {
+		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine)) return -1;
+
 		local railtype = AIEngine.GetRailType(engine);
-		AIRail.SetCurrentRailType(railtype);
 		local pair = [engine, cargo];
 		if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
 			local veh_type = AIEngine.GetVehicleType(engine);
 			if (veh_type == AIVehicle.VT_RAIL) {
-				local remove_depot = false;
 				local price = -1;
 				if (!AIRail.IsRailDepotTile(depot)) {
-					depot = this.BuildFirstDepot();
+					depot = this.GetExistingRailDepot(railtype);
 				}
 
 				if (AIRail.IsRailDepotTile(depot)) {
-					AIRail.ConvertRailType(depot, depot, railtype);
 					local cost = AIAccounting();
 					local v = AITestMode() && TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 					price = cost.GetCosts();
@@ -266,11 +237,6 @@ class Caches {
 						AILog.Error("Retrieved a price of zero for a vehicle with refit");
 					} else {
 						this.costs_with_refit.append([pair, price]);
-					}
-				}
-				if (remove_depot) {
-					if (!TestDemolishTile().TryDemolish(depot)) {
-						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
 					}
 				}
 				return price;

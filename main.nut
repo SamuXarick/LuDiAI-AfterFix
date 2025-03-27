@@ -159,10 +159,6 @@ class LuDiAIAfterFix extends AIController {
 	function CheckForUnfinishedRailRoute();
 
 	function RemoveLeftovers() {
-//		if (scheduledRemovals.Count() == 0) {
-//			return;
-//		}
-
 		local clearedList = AIList();
 		local toclearList = AIList();
 		if (::scheduledRemovalsTable.Aircraft.len() > 0) {

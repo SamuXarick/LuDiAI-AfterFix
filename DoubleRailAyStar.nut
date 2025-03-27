@@ -104,8 +104,8 @@ function AyStar::FindPath(iterations)
 		/* Get the path with the best score so far */
 		local path = this._open.Pop();
 		local cur_segment = path.GetSegment();
-		local text = "Path so far: ";
-		local temp = path._prev;
+//		local text = "Path so far: ";
+//		local temp = path._prev;
 //		while (temp != null) {
 //			text += Segment.GetName(temp._segment.m_segment_dir) + ", ";
 //			temp = temp.GetParent();
@@ -137,7 +137,6 @@ function AyStar::FindPath(iterations)
 						passed_all = false;
 						break;
 					}
-
 
 					/* Scan the path for a possible collision */
 					foreach (cur_j in [0, 1]) {

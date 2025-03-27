@@ -12,7 +12,7 @@ something more of its own later on.
 Main differences or improvements
 --------------------------------
 
-- Builds trains (experimental, disabled by default)
+- Builds trains
 - Builds ships
 - Adds more configuration settings
 - Randomizes most configuration settings when started as Random AI

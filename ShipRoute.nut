@@ -255,13 +255,13 @@ class ShipRoute extends ShipRouteManager {
 					}
 					new_vehicle_order_depot2_flags = AIOrder.GetOrderFlags(new_vehicle, GetSecondDepotOrderIndex(new_vehicle));
 					if (new_vehicle_order_depot1_flags == depot_order_flags && new_vehicle_order_depot2_flags == depot_order_flags) {
-					 	if (load_mode == 0 && !HasConditionalOrders(new_vehicle)) {
-					 		if (!AddConditionalOrders(new_vehicle)) {
-					 			AILog.Error("Failed to add conditional orders to " + AIVehicle.GetName(new_vehicle));
-					 			sellVehicle(new_vehicle);
-					 			return null;
-					 		}
-					 	}
+						if (load_mode == 0 && !HasConditionalOrders(new_vehicle)) {
+							if (!AddConditionalOrders(new_vehicle)) {
+								AILog.Error("Failed to add conditional orders to " + AIVehicle.GetName(new_vehicle));
+								sellVehicle(new_vehicle);
+								return null;
+							}
+						}
 						vehicle_ready_to_start = true;
 					} else {
 						AILog.Error("Order Flags of " + AIVehicle.GetName(new_vehicle) + " mismatch! " + new_vehicle_order_depot1_flags + "/" + new_vehicle_order_depot2_flags + " != " + depot_order_flags + "/" + depot_order_flags + " ; clone_vehicle_id = " + (!AIVehicle.IsValidVehicle(clone_vehicle_id) ? "null" : AIVehicle.GetName(clone_vehicle_id)) + " ; share_orders_vid = " + (AIVehicle.IsValidVehicle(share_orders_vid) ? "null" : AIVehicle.GetName(share_orders_vid)));
@@ -801,7 +801,6 @@ class ShipRoute extends ShipRouteManager {
 				}
 			}
 		}
-//		route.m_vehicleList = data[12];
 
 		return route;
 	}

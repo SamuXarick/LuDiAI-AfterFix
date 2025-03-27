@@ -84,18 +84,18 @@ function AyStar::FindPath(iterations)
 			/* If the direction is already on the list, skip this entry */
 			if (this._closed.GetValue(cur_tile) & dir) continue;
 
-//			/* Scan the path for a possible collision */
-//			local scan_path = path.GetParent();
-//
-//			local mismatch = false;
-//			while (scan_path != null) {
-//				if (scan_path._tile == cur_tile) {
-//					mismatch = true;
-//					break;
-//				}
-//				scan_path = scan_path.GetParent();
-//			}
-//			if (mismatch) continue;
+			/* Scan the path for a possible collision */
+			local scan_path = path._prev;
+
+			local mismatch = false;
+			while (scan_path != null) {
+				if (scan_path._tile == cur_tile) {
+					mismatch = true;
+					break;
+				}
+				scan_path = scan_path._prev;
+			}
+			if (mismatch) continue;
 
 			/* Add the new direction */
 			this._closed.SetValue(cur_tile, this._closed.GetValue(cur_tile) | dir);

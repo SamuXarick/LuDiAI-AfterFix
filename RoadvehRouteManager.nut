@@ -38,7 +38,7 @@ class RoadRouteManager {
 		return 0;
 	}
 
-	//the highest last years profit out of all vehicles
+	/* the highest last years profit out of all vehicles */
 	function highestProfitLastYear() {
 		local maxAllRoutesProfit = null;
 
@@ -59,7 +59,7 @@ class RoadRouteManager {
 		return maxAllRoutesProfit;
 	}
 
-	//won't build any new stations if 1
+	/* won't build any new stations if 1 */
 	function hasMaxStationCount(cityFrom, cityTo, cargoClass) {
 //		return 0;
 

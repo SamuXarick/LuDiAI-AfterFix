@@ -308,7 +308,7 @@ class RailRoute extends RailRouteManager {
 						if (AIVehicle.IsValidVehicle(wagon_chain)) {
 							if (!AIVehicle.SellWagonChain(wagon_chain, 0)) {
 //								AILog.Info("Failed to sell wagon chain. Reason: missing wagons");
-							} else {
+//							} else {
 //								AILog.Info("Sold wagon chain. Reason: missing wagons");
 							}
 						}
@@ -324,7 +324,7 @@ class RailRoute extends RailRouteManager {
 //							AILog.Info("Failed to move wagon chain");
 							if (!AIVehicle.SellWagonChain(wagon_chain, 0)) {
 //								AILog.Info("Failed to sell wagon chain. Reason: failed to move wagons");
-							} else {
+//							} else {
 //								AILog.Info("Sold wagon chain. Reason: failed to move wagons");
 							}
 							if (!AIVehicle.SellVehicle(new_vehicle)) {
@@ -333,7 +333,7 @@ class RailRoute extends RailRouteManager {
 								new_vehicle = AIVehicle.VEHICLE_INVALID;
 //								AILog.Info("Sold train. Reason: failed to move wagons");
 							}
-						} else {
+//						} else {
 //							AILog.Info("Wagon chain moved successfully");
 //							AILog.Info("new_vehicle = " + AIVehicle.IsValidVehicle(new_vehicle) + "; wagon_chain = " + AIVehicle.IsValidVehicle(wagon_chain));
 //							AILog.Info("number of wagons in new_vehicle = " + AIVehicle.GetNumWagons(new_vehicle));

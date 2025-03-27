@@ -377,13 +377,8 @@ function DoubleRail::_CostSingleTile(pppprev_tile, ppprev_tile, pprev_tile, prev
 		}
 	}
 
-//	/* Check if the new tile is a coast tile. */
-//	if (AITile.IsCoastTile(new_tile)) {
-//		cost += self._cost_coast;
-//	}
-
 	/* Check if the new tile is a level crossing. */
-	if (AITile.HasTransportType(new_tile, AITile.TRANSPORT_ROAD)) {
+	if (AITile.HasTransportType(new_tile, AITile.TRANSPORT_ROAD) || AIRoad.IsRoadTile(new_tile)) {
 		cost += self._cost_level_crossing;
 	}
 
@@ -603,141 +598,96 @@ function DoubleRail::_Neighbours(path, cur_segment, self)
 	return neighbours;
 }
 
-function DoubleRail::_NeighboursSingleTile(pprev_tile, prev_tile, cur_tile, self)
-{
-	if (AITile.HasTransportType(cur_tile, AITile.TRANSPORT_RAIL)) return [];
-
-	local tiles = [];
-	local offsets = [AIMap.GetTileIndex(0, 1), AIMap.GetTileIndex(0, -1), AIMap.GetTileIndex(1, 0), AIMap.GetTileIndex(-1, 0)];
-
-	/* Check if the current tile is part of a bridge or tunnel. */
-	if (AIBridge.IsBridgeTile(cur_tile) || AITunnel.IsTunnelTile(cur_tile)) {
-		/* We don't use existing rails, so neither existing bridges / tunnels. */
-	} else if (prev_tile && AIMap.DistanceManhattan(prev_tile, cur_tile) > 1) {
-		local next_tile = cur_tile + (cur_tile - prev_tile) / AIMap.DistanceManhattan(prev_tile, cur_tile);
-		foreach (offset in offsets) {
-			/* Don't turn back */
-			if (next_tile + offset == cur_tile) continue;
-			if (AIRail.BuildRail(cur_tile, next_tile, next_tile + offset)) {
-//				AILog.Info("push! cur_tile = " + cur_tile + "; next_tile = " + next_tile + "; prev_tile = " + prev_tile + "; next_tile + offset = " + (next_tile + offset));
-				tiles.push([next_tile, self._GetDirection(prev_tile, cur_tile, next_tile, true), []]);
-				break;
-			}
-		}
-	} else {
-		/* Check all tiles adjacent to the current tile. */
-		foreach (offset in offsets) {
-			local next_tile = cur_tile + offset;
-			/* Don't turn back */
-			if (prev_tile && next_tile == prev_tile) continue;
-//			/* Disallow 90 degree turns */
-//			if (prev_tile && pprev_tile &&
-//				next_tile - cur_tile == pprev_tile - prev_tile) continue;
-			/* We add them to the to the neighbours-list if we can build a rail to
-			 *  them and no rail exists there. */
-			if ((!prev_tile || AIRail.BuildRail(prev_tile, cur_tile, next_tile))) {
-				if (prev_tile) {
-					tiles.push([next_tile, self._GetDirection(prev_tile, cur_tile, next_tile, false), []]);
-				} else {
-					tiles.push([next_tile, self._GetDirection(null, cur_tile, next_tile, false), []]);
-				}
-			}
-		}
-		if (prev_tile) {
-			/**
-			 * Get a list of all bridges and tunnels that can be build from the
-			 *  current tile. Tunnels will only be build if no terraforming
-			 *  is needed on both ends.
-			 */
-			local bridge_dir = self._GetDirection(null, prev_tile, cur_tile, true);
-
-			for (local i = 3; i < self._max_bridge_length; i++) {
-				local target = cur_tile + i * (cur_tile - prev_tile);
-				if (!AIMap.IsValidTile(target)) break; // don't wrap the map
-
-				local bridge_list = AIBridgeList_Length(i + 1);
-				if (!bridge_list.IsEmpty() && AIBridge.BuildBridge(AIVehicle.VT_RAIL, bridge_list.Begin(), cur_tile, target)) {
-					local used_tiles = self._GetUsedTiles(cur_tile, target, true);
-					if (!self._UsedTileListsConflict(path.GetUsedTiles(), used_tiles)) {
-//						AILog.Info("bridge at tiles cur_tile = " + cur_tile + " and target = " + target + " (pushed)");
-						tiles.push([target, bridge_dir, used_tiles]);
-					}
-				}
-			}
-
-			local slope = AITile.GetSlope(cur_tile);
-			if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE) {
-				local other_tunnel_end = AITunnel.GetOtherTunnelEnd(cur_tile);
-				if (AIMap.IsValidTile(other_tunnel_end)) {
-
-					local tunnel_length = AIMap.DistanceManhattan(cur_tile, other_tunnel_end);
-					local last_tile = cur_tile + (cur_tile - other_tunnel_end) / tunnel_length;
-					if (AITunnel.GetOtherTunnelEnd(other_tunnel_end) == cur_tile && tunnel_length >= 2 &&
-							last_tile == prev_tile && tunnel_length < self._max_tunnel_length && AITunnel.BuildTunnel(AIVehicle.VT_RAIL, cur_tile)) {
-						local used_tiles = self._GetUsedTiles(cur_tile, other_tunnel_end, false);
-						if (!self._UsedTileListsConflict(path.GetUsedTiles(), used_tiles)) {
-							tiles.push([other_tunnel_end, bridge_dir, used_tiles]);
-						}
-					}
-				}
-			}
-		}
-	}
-	return tiles;
-}
-
 function DoubleRail::_CheckDirection(is_neighbour, existing_direction, new_direction, self)
 {
-	local trackdir_left_n = 1 << 6;
-	local trackdir_left_s = 1 << 17;
-	local trackdir_lower_e = 1 << 7;
-	local trackdir_lower_w = 1 << 13;
-	local trackdir_upper_w = 1 << 10;
-	local trackdir_upper_e = 1 << 16;
-	local trackdir_right_s = 1 << 11;
-	local trackdir_right_n = 1 << 12;
+//	local trackdir_left_n = 1 << 6; // 64
+//	local trackdir_left_s = 1 << 17; // 131072
+//	local trackdir_lower_e = 1 << 7; // 128
+//	local trackdir_lower_w = 1 << 13; // 8192
+//	local trackdir_upper_w = 1 << 10; // 1024
+//	local trackdir_upper_e = 1 << 16; // 65536
+//	local trackdir_right_s = 1 << 11; // 2048
+//	local trackdir_right_n = 1 << 12; // 4096
 
-	local track_left = trackdir_left_n | trackdir_left_s;
-	local track_lower = trackdir_lower_e | trackdir_lower_w;
-	local track_upper = trackdir_upper_w | trackdir_upper_e;
-	local track_right = trackdir_right_s | trackdir_right_n;
+//	local trackdir_ne = 1 << 4; // 16
+//	local trackdir_nw = 1 << 14; // 16384
+//	local trackdir_se = 1 << 19; // 524288
+//	local trackdir_sw = 1 << 9; // 512
 
-	local trackdir_3way_ne = (1 << 4) | (1 << 12) | (1 << 16);
-	local trackdir_3way_nw = (1 << 6) | (1 << 10) | (1 << 14);
-	local trackdir_3way_se = (1 << 7) | (1 << 11) | (1 << 19);
-	local trackdir_3way_sw = (1 << 9) | (1 << 13) | (1 << 17);
+//	local track_left = trackdir_left_n | trackdir_left_s; // 131136
+//	local track_lower = trackdir_lower_e | trackdir_lower_w; // 8320
+//	local track_upper = trackdir_upper_w | trackdir_upper_e; // 66560
+//	local track_right = trackdir_right_s | trackdir_right_n; // 6144
+
+//	local trackdir_3way_ne = trackdir_ne | trackdir_right_n | trackdir_upper_e; // 69648
+//	local trackdir_3way_nw = trackdir_left_n | trackdir_upper_w | trackdir_nw; // 17472
+//	local trackdir_3way_se = trackdir_lower_e | trackdir_right_s | trackdir_se; // 526464
+//	local trackdir_3way_sw = trackdir_sw | trackdir_lower_w | trackdir_left_s; // 139776
 
 	/* Allowed combinations */
-	if ((existing_direction & ~track_left) == 0) {
+//	if ((existing_direction & ~track_left) == 0) {
+//		if (is_neighbour) {
+//			if ((new_direction & ~track_right) == 0) return true;
+//		} else {
+//			if ((new_direction & ~trackdir_3way_nw) == 0) return true;
+//			if ((new_direction & ~trackdir_3way_sw) == 0) return true;
+//		}
+//	}
+//	if ((existing_direction & ~track_right) == 0) {
+//		if (is_neighbour) {
+//			if ((new_direction & ~track_left) == 0) return true;
+//		} else {
+//			if ((new_direction & ~trackdir_3way_ne) == 0) return true;
+//			if ((new_direction & ~trackdir_3way_se) == 0) return true;
+//		}
+//	}
+//	if ((existing_direction & ~track_upper) == 0) {
+//		if (is_neighbour) {
+//			if ((new_direction & ~track_lower) == 0) return true;
+//		} else {
+//			if ((new_direction & ~trackdir_3way_ne) == 0) return true;
+//			if ((new_direction & ~trackdir_3way_nw) == 0) return true;
+//		}
+//	}
+//	if ((existing_direction & ~track_lower) == 0) {
+//		if (is_neighbour) {
+//			if ((new_direction & ~track_upper) == 0) return true;
+//		} else {
+//			if ((new_direction & ~trackdir_3way_se) == 0) return true;
+//			if ((new_direction & ~trackdir_3way_sw) == 0) return true;
+//		}
+//	}
+
+	if (!(existing_direction & ~131136)) {
 		if (is_neighbour) {
-			if ((new_direction & ~track_right) == 0) return true;
+			if (!(new_direction & ~6144)) return true;
 		} else {
-			if ((new_direction & ~trackdir_3way_nw) == 0) return true;
-			if ((new_direction & ~trackdir_3way_sw) == 0) return true;
+			if (!(new_direction & ~17472)) return true;
+			if (!(new_direction & ~139776)) return true;
 		}
 	}
-	if ((existing_direction & ~track_right) == 0) {
+	if (!(existing_direction & ~6144)) {
 		if (is_neighbour) {
-			if ((new_direction & ~track_left) == 0) return true;
+			if (!(new_direction & ~131136)) return true;
 		} else {
-			if ((new_direction & ~trackdir_3way_ne) == 0) return true;
-			if ((new_direction & ~trackdir_3way_se) == 0) return true;
+			if (!(new_direction & ~69648)) return true;
+			if (!(new_direction & ~526464)) return true;
 		}
 	}
-	if ((existing_direction & ~track_upper) == 0) {
+	if (!(existing_direction & ~66560)) {
 		if (is_neighbour) {
-			if ((new_direction & ~track_lower) == 0) return true;
+			if (!(new_direction & ~8320)) return true;
 		} else {
-			if ((new_direction & ~trackdir_3way_ne) == 0) return true;
-			if ((new_direction & ~trackdir_3way_nw) == 0) return true;
+			if (!(new_direction & ~69648)) return true;
+			if (!(new_direction & ~17472)) return true;
 		}
 	}
-	if ((existing_direction & ~track_lower) == 0) {
+	if (!(existing_direction & ~8320)) {
 		if (is_neighbour) {
-			if ((new_direction & ~track_upper) == 0) return true;
+			if (!(new_direction & ~66560)) return true;
 		} else {
-			if ((new_direction & ~trackdir_3way_se) == 0) return true;
-			if ((new_direction & ~trackdir_3way_sw) == 0) return true;
+			if (!(new_direction & ~526464)) return true;
+			if (!(new_direction & ~139776)) return true;
 		}
 	}
 
@@ -1068,8 +1018,8 @@ function DoubleRail::_GetMatchingSegmentDir(from, to)
 		to2 = to[1];
 	}
 	if (typeof(from[0]) == "array") {
-		from1 = from[0].top;
-		from2 = from[1].top;
+		from1 = from[0].top();
+		from2 = from[1].top();
 	} else {
 		from1 = from[0];
 		from2 = from[1];
@@ -1487,31 +1437,30 @@ class Segment extends DoubleRail {
 
 		foreach (j in [0, 1]) {
 			assert(prev_tiles[j].len() > 1);
-			assert(prev_tiles[j].len() > 1);
 			local prev_tile = prev_tiles[j][prev_tiles[j].len() - (is_goal_segment ? 1 : 2)];
-//			AILog.Info("line = " + (j + 1) + "; prev_tile = " + prev_tile);
+//			if (is_goal_segment) AILog.Info("line = " + (j + 1) + "; prev_tile = " + prev_tile);
 
 			local pre_from;
 			if (prev_tiles[j].len() > 2) {
 				pre_from = prev_tiles[j][prev_tiles[j].len() - (is_goal_segment ? 2 : 3)];
 			} else {
-				pre_from = null;
+				pre_from = is_goal_segment ? prev_tile - Segment.GetDirToOffset(segment_dir) : null;
 			}
 
 			foreach (i, _ in offsets[j]) {
 				local tile = prev_tile;
 				local to = (i < --offsets[j].len() ? prev_tile + offsets[j][i + 1] : tile + Segment.GetDirToOffset(segment_dir));
-//				AILog.Info("line = " + (j + 1) + "; pre_from = " + pre_from + "; tile = " + tile + "; to = " + to);
+//				if (is_goal_segment) AILog.Info("line = " + (j + 1) + "; pre_from = " + pre_from + "; tile = " + tile + "; to = " + to);
 				nodes[j].append([to, pre_from == null ? 0 : this._GetDirection(pre_from, tile, to, false), [], tile, this._GetSegmentDirection(this, j), this._GetNodeID(this, j, i)]);
 				pre_from = tile;
 			}
 		}
 
-		foreach (j, line in nodes) {
-			foreach (i, val in line) {
-//				AILog.Info("line = " + (j + 1) + "; node = " + i + "; to = " + val[0] + "; dir = " + val[1] + "; used_tiles.len() = " + val[2].len() + "; tile = " + val[3] + "; segment_dir = " + val[4] + "; node_id = " + val[5]);
-			}
-		}
+//		foreach (j, line in nodes) {
+//			foreach (i, val in line) {
+//				if (is_goal_segment) AILog.Info("line = " + (j + 1) + "; node = " + i + "; to = " + val[0] + "; dir = " + val[1] + "; used_tiles.len() = " + val[2].len() + "; tile = " + val[3] + "; segment_dir = " + val[4] + "; node_id = " + val[5]);
+//			}
+//		}
 
 		return nodes;
 	}
@@ -1537,11 +1486,11 @@ class Segment extends DoubleRail {
 			}
 		}
 
-		foreach (j, line in nodes) {
-			foreach (i, val in line) {
+//		foreach (j, line in nodes) {
+//			foreach (i, val in line) {
 //				AILog.Info("line = " + (j + 1) + "; node = " + i + "; to = " + val[0] + "; dir = " + val[1] + "; used_tiles.len() = " + val[2].len() + "; tile = " + val[3] + "; segment_dir = " + val[4] + "; node_id = " + val[5]);
-			}
-		}
+//			}
+//		}
 
 		return nodes;
 	}
@@ -1554,5 +1503,3 @@ class Segment extends DoubleRail {
 		return segment_dir >= SegmentDir.SW_NE_CUSTOM;
 	}
 }
-
-

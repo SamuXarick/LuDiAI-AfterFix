@@ -388,10 +388,10 @@ function Road::_IsSlopedRoadEfficient(start, middle, end,
 	local SE = middle + map_size_x;
 	local SW = middle + 1;
 
-	NW = NW == start || NW == end; //Set to true if we want to build a road to / from the north-west
-	NE = NE == start || NE == end; //Set to true if we want to build a road to / from the north-east
-	SE = SE == start || SE == end; //Set to true if we want to build a road to / from the south-west
-	SW = SW == start || SW == end; //Set to true if we want to build a road to / from the south-east
+	NW = NW == start || NW == end; // Set to true if we want to build a road to / from the north-west
+	NE = NE == start || NE == end; // Set to true if we want to build a road to / from the north-east
+	SE = SE == start || SE == end; // Set to true if we want to build a road to / from the south-west
+	SW = SW == start || SW == end; // Set to true if we want to build a road to / from the south-east
 
 	/* If there is a turn in the current tile, it can't be sloped. */
 	if ((NW || SE) && (NE || SW)) return false;

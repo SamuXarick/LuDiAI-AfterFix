@@ -109,11 +109,12 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 	return converted_speed + unit_str;
 }
 
-/// getNthItem
-///
-/// @param list - The list to get the item from.
-/// @param n - The order of the item.
-/// @return - The n-th item of the list, null if not found.
+/**
+ * getNthItem
+ * @param list - The list to get the item from.
+ * @param n - The order of the item.
+ * @return - The n-th item of the list, null if not found.
+ */
 function Utils::getNthItem(list, n) {
 	if (list.Count() == 0) {
 		AILog.Warning("getNthItem: list is empty!");
@@ -127,7 +128,7 @@ function Utils::getNthItem(list, n) {
 
 	for (local item = list.Begin(); !list.IsEnd(); item = list.Next()) {
 		if (n == 0) {
-			//AILog.Info("getNthItem: Found: " + item + " " + list.GetValue(item));
+//			AILog.Info("getNthItem: Found: " + item + " " + list.GetValue(item));
 			return item;
 		}
 		n--;
@@ -178,12 +179,13 @@ function Utils::getValidOffsetTile(tile, offsetX, offsetY) {
 	return AIMap.GetTileIndex(newX, newY);
 }
 
-/// getOffsetTile
-///
-/// @param tile - The starting tile.
-/// @param offsetX - The x-axis offset.
-/// @param offsetY - The y-axis offset.
-/// @return - The offset tile.
+/**
+ * getOffsetTile
+ * @param tile - The starting tile.
+ * @param offsetX - The x-axis offset.
+ * @param offsetY - The y-axis offset.
+ * @return - The offset tile.
+ */
 function Utils::getOffsetTile(tile, offsetX, offsetY) {
 	local oldX = AIMap.GetTileX(tile);
 	local oldY = AIMap.GetTileY(tile);
@@ -200,10 +202,11 @@ function Utils::getOffsetTile(tile, offsetX, offsetY) {
 	return AIMap.GetTileIndex(newX, newY);
 }
 
-/// getAdjacentTiles
-///
-/// @param tile - The starting tile.
-/// @return - The AITileList of adjacent tiles.
+/**
+ * getAdjacentTiles
+ * @param tile - The starting tile.
+ * @return - The AITileList of adjacent tiles.
+ */
 function Utils::getAdjacentTiles(tile) {
 	local adjTiles = AITileList();
 
@@ -265,7 +268,7 @@ function Utils::IsDockBuildableTile(tile, cheaper_route) {
 function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 	local stationType = cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
 
-	//check if there are other stations squareSize squares nearby
+	/* check if there are other stations squareSize squares nearby */
 	local squareSize = AIStation.GetCoverageRadius(stationType);
 	if (stationId == AIStation.STATION_NEW) {
 		squareSize = squareSize * 2;
@@ -273,21 +276,21 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 
 	local square = AITileList();
 	if (!AIController.GetSetting("is_friendly")) {
-		//don't care about enemy stations when is_friendly is off
-		square.AddRectangle(Utils.getValidOffsetTile(tile, (-1) * squareSize, (-1) * squareSize),
+		/* don't care about enemy stations when is_friendly is off */
+		square.AddRectangle(Utils.getValidOffsetTile(tile, -1 * squareSize, -1 * squareSize),
 			Utils.getValidOffsetTile(tile, squareSize, squareSize));
 
-		//if another road station of mine is nearby return true
+		/* if another road station of mine is nearby return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-			if (Utils.isTileMyRoadStation(tile, cargoClass)) { //negate second expression to merge your stations
+			if (Utils.isTileMyRoadStation(tile, cargoClass)) { // negate second expression to merge your stations
 				return true;
 			}
 		}
 	} else {
-		square.AddRectangle(Utils.getValidOffsetTile(tile, (-1) * squareSize, (-1) * squareSize),
+		square.AddRectangle(Utils.getValidOffsetTile(tile, -1 * squareSize, -1 * squareSize),
 			Utils.getValidOffsetTile(tile, squareSize, squareSize));
 
-		//if any other station is nearby, except my own airports, return true
+		/* if any other station is nearby, except my own airports, return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 			if (AITile.IsStationTile(tile)) {
 				if (AITile.GetOwner(tile) != Utils.MyCID()) {
@@ -306,27 +309,27 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 }
 
 function Utils::AreOtherDocksNearby(tile_north, tile_south) {
-	//check if there are other docks squareSize squares nearby
+	/* check if there are other docks squareSize squares nearby */
 	local squareSize = AIStation.GetCoverageRadius(AIStation.STATION_DOCK) * 2;
 
 	local square = AITileList();
 	if (!AIController.GetSetting("is_friendly")) {
 		squareSize = 2;
-		//don't care about enemy stations when is_friendly is off
-		square.AddRectangle(Utils.getValidOffsetTile(tile_north, (-1) * squareSize, (-1) * squareSize),
+		/* don't care about enemy stations when is_friendly is off */
+		square.AddRectangle(Utils.getValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize),
 			Utils.getValidOffsetTile(tile_south, squareSize, squareSize));
 
-		//if another dock of mine is nearby return true
+		/* if another dock of mine is nearby return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-			if (Utils.isTileMyDock(tile)) { //negate second expression to merge your stations
+			if (Utils.isTileMyDock(tile)) { // negate second expression to merge your stations
 				return true;
 			}
 		}
 	} else {
-		square.AddRectangle(Utils.getValidOffsetTile(tile_north, (-1) * squareSize, (-1) * squareSize),
+		square.AddRectangle(Utils.getValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize),
 			Utils.getValidOffsetTile(tile_south, squareSize, squareSize));
 
-		//if any other station is nearby, except my own airports, return true
+		/* if any other station is nearby, except my own airports, return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 			if (AITile.IsStationTile(tile)) {
 				if (AITile.GetOwner(tile) != Utils.MyCID()) {
@@ -407,10 +410,11 @@ function Utils::isTileMyStationWithoutRailwayStation(tile) {
 	return false;
 }
 
-/// getCargoId - Returns either mail cargo id, or passenger cargo id.
-///
-/// @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
-/// @return - Cargo list.
+/**
+ * getCargoId - Returns either mail cargo id, or passenger cargo id.
+ * @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
+ * @return - Cargo list.
+ */
 function Utils::getCargoId(cargoClass) {
 	local cargoList = AICargoList();
 	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
@@ -1445,43 +1449,43 @@ class TestBuildLock extends MoneyTest {
 	}
 }
 
-class TestBuildBuoy extends MoneyTest {
-	l = null;
+// class TestBuildBuoy extends MoneyTest {
+// 	l = null;
 
-	function DoAction() {
-		return AIExecMode() && AIMarine.BuildBuoy(l);
-	}
+// 	function DoAction() {
+// 		return AIExecMode() && AIMarine.BuildBuoy(l);
+// 	}
 
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIMarine.BuildBuoy(l);
-		return cost.GetCosts();
-	}
+// 	function GetPrice() {
+// 		local cost = AIAccounting();
+// 		AITestMode() && AIMarine.BuildBuoy(l);
+// 		return cost.GetCosts();
+// 	}
 
-	function TryBuild(location) {
-		l = location;
-		return DoMoneyTest();
-	}
-}
+// 	function TryBuild(location) {
+// 		l = location;
+// 		return DoMoneyTest();
+// 	}
+// }
 
-class TestRemoveBuoy extends MoneyTest {
-	l = null;
+// class TestRemoveBuoy extends MoneyTest {
+// 	l = null;
 
-	function DoAction() {
-		return AIExecMode() && AIMarine.RemoveBuoy(l);
-	}
+// 	function DoAction() {
+// 		return AIExecMode() && AIMarine.RemoveBuoy(l);
+// 	}
 
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIMarine.RemoveBuoy(l);
-		return cost.GetCosts();
-	}
+// 	function GetPrice() {
+// 		local cost = AIAccounting();
+// 		AITestMode() && AIMarine.RemoveBuoy(l);
+// 		return cost.GetCosts();
+// 	}
 
-	function TryRemove(location) {
-		l = location;
-		return DoMoneyTest();
-	}
-}
+// 	function TryRemove(location) {
+// 		l = location;
+// 		return DoMoneyTest();
+// 	}
+// }
 
 class TestRemoveDock extends MoneyTest {
 	l = null;
@@ -1569,26 +1573,26 @@ class TestBuildRailStation extends MoneyTest {
 	}
 }
 
-class TestBuildRailTrack extends MoneyTest {
-	l = null;
-	t = null;
+// class TestBuildRailTrack extends MoneyTest {
+// 	l = null;
+// 	t = null;
 
-	function DoAction() {
-		return AIExecMode() && AIRail.BuildRailTrack(l, t);
-	}
+// 	function DoAction() {
+// 		return AIExecMode() && AIRail.BuildRailTrack(l, t);
+// 	}
 
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIRail.BuildRailTrack(l, t);
-		return cost.GetCosts();
-	}
+// 	function GetPrice() {
+// 		local cost = AIAccounting();
+// 		AITestMode() && AIRail.BuildRailTrack(l, t);
+// 		return cost.GetCosts();
+// 	}
 
-	function TryBuild(location, track) {
-		l = location;
-		t = track;
-		return DoMoneyTest();
-	}
-}
+// 	function TryBuild(location, track) {
+// 		l = location;
+// 		t = track;
+// 		return DoMoneyTest();
+// 	}
+// }
 
 class TestBuildRail extends MoneyTest {
 	f = null;
@@ -1613,28 +1617,28 @@ class TestBuildRail extends MoneyTest {
 	}
 }
 
-class TestConvertRailType extends MoneyTest {
-	s = null;
-	e = null;
-	c = null;
+// class TestConvertRailType extends MoneyTest {
+// 	s = null;
+// 	e = null;
+// 	c = null;
 
-	function DoAction() {
-		return AIExecMode() && AIRail.ConvertRailType(s, e, c);
-	}
+// 	function DoAction() {
+// 		return AIExecMode() && AIRail.ConvertRailType(s, e, c);
+// 	}
 
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIRail.ConvertRailType(s, e, c);
-		return cost.GetCosts();
-	}
+// 	function GetPrice() {
+// 		local cost = AIAccounting();
+// 		AITestMode() && AIRail.ConvertRailType(s, e, c);
+// 		return cost.GetCosts();
+// 	}
 
-	function TryConvert(start_tile, end_tile, convert_to) {
-		s = start_tile;
-		e = end_tile;
-		c = convert_to;
-		return DoMoneyTest();
-	}
-}
+// 	function TryConvert(start_tile, end_tile, convert_to) {
+// 		s = start_tile;
+// 		e = end_tile;
+// 		c = convert_to;
+// 		return DoMoneyTest();
+// 	}
+// }
 
 class TestBuildRailDepot extends MoneyTest {
 	t = null;
@@ -1680,26 +1684,26 @@ class TestRemoveRailStationTileRectangle extends MoneyTest {
 	}
 }
 
-class TestRemoveRailTrack extends MoneyTest {
-	l = null;
-	t = null;
+// class TestRemoveRailTrack extends MoneyTest {
+// 	l = null;
+// 	t = null;
 
-	function DoAction() {
-		return AIExecMode() && AIRail.RemoveRailTrack(l, t);
-	}
+// 	function DoAction() {
+// 		return AIExecMode() && AIRail.RemoveRailTrack(l, t);
+// 	}
 
-	function GetPrice() {
-		local cost = AIAccounting();
-		AITestMode() && AIRail.RemoveRailTrack(l, t);
-		return cost.GetCosts();
-	}
+// 	function GetPrice() {
+// 		local cost = AIAccounting();
+// 		AITestMode() && AIRail.RemoveRailTrack(l, t);
+// 		return cost.GetCosts();
+// 	}
 
-	function TryRemove(location, track) {
-		l = location;
-		t = track;
-		return DoMoneyTest();
-	}
-}
+// 	function TryRemove(location, track) {
+// 		l = location;
+// 		t = track;
+// 		return DoMoneyTest();
+// 	}
+// }
 
 class TestRemoveRail extends MoneyTest {
 	f = null;
