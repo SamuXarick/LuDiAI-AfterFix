@@ -117,7 +117,7 @@ Approximate number of days in transit for rail routes:
     The limit can never go below 10 or above 150.
 
 
-Rail pathfinder profile: (experimental)
+Rail pathfinder profile:
     Select the behaviour of the pathfinder when connecting two towns by
     rails.
 
@@ -282,10 +282,3 @@ Found towns:
 Build headquarters:
     When enabled, the AI will build a company headquarters randomly in the
     map, as cost efficient as possible.
-
-
-AI-GS communication support:
-    Allow communication between AI and Game Script SCP libraries.
-    Currently supports Company Value GS, where the AI will think twice
-    before spending money in town actions, just to maintain the lead or
-    to maintain catch-up against the company ranked first.
