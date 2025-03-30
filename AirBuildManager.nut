@@ -24,11 +24,11 @@ class AirBuildManager {
 
 	m_cargoID = -1;
 
-	function buildAirport(airRouteManager, airTownManager, town, cargoClass, large_aircraft, small_aircraft, helicopter, best_routes_built, all_routes_built)
-	function saveBuildManager();
-	function buildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, sentToDepotAirGroup, best_routes_built, all_routes_built);
+	function BuildTownAirport(airRouteManager, airTownManager, town, cargoClass, large_aircraft, small_aircraft, helicopter, best_routes_built, all_routes_built)
+	function SaveBuildManager();
+	function BuildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, sentToDepotAirGroup, best_routes_built, all_routes_built);
 
-	function hasUnfinishedRoute() {
+	function HasUnfinishedRoute() {
 		if (m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
 			return 1;
 		}
@@ -36,7 +36,7 @@ class AirBuildManager {
 		return 0;
 	}
 
-	function setRouteFinish() {
+	function SetRouteFinished() {
 		m_cityFrom = -1;
 		m_cityTo = -1;
 		m_airportFrom = -1;
@@ -55,13 +55,13 @@ class AirBuildManager {
 		m_airport_types = AIList();
 	}
 
-	function buildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, sentToDepotAirGroup, best_routes_built, all_routes_built) {
+	function BuildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, sentToDepotAirGroup, best_routes_built, all_routes_built) {
 		m_cityFrom = cityFrom;
 		m_cityTo = cityTo;
 		m_cargoClass = cargoClass;
 		m_sentToDepotAirGroup = sentToDepotAirGroup;
 		m_best_routes_built = best_routes_built;
-		m_cargoID = Utils.getCargoId(cargoClass);
+		m_cargoID = Utils.GetCargoID(cargoClass);
 
 		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_AIR);
 		if (num_vehicles >= AIGameSettings.GetValue("max_aircraft") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_AIR)) {
@@ -164,7 +164,7 @@ class AirBuildManager {
 
 		/* No airports available. Abort */
 		if (m_airport_types.Count() == 0) {
-			setRouteFinish();
+			SetRouteFinished();
 			return null;
 		}
 
@@ -220,7 +220,7 @@ class AirBuildManager {
 
 		/* There are no engines available */
 		if (!available_engines) {
-			setRouteFinish();
+			SetRouteFinished();
 			return null;
 		}
 
@@ -228,14 +228,14 @@ class AirBuildManager {
 		local estimated_costs = m_airport_types.GetValue(m_airport_types.Begin()) + engine_costs + 12500 * engine_count;
 //		AILog.Info("estimated_costs = " + estimated_costs + "; airport = " + WrightAI.GetAirportTypeName(m_airport_types.Begin()) + ", " + m_airport_types.GetValue(m_airport_types.Begin()) + "; engine_costs = " + engine_costs + " + 12500 * " + engine_count);
 		if (!Utils.HasMoney(estimated_costs)) {
-//			setRouteFinish();
+//			SetRouteFinished();
 			return 0;
 		}
 
 		if (m_airportFrom == -1) {
-			m_airportFrom = buildAirport(airRouteManager, airTownManager, m_cityFrom, m_cargoClass, m_large_aircraft_route, m_small_aircraft_route, m_helicopter_route, m_best_routes_built, all_routes_built);
+			m_airportFrom = BuildTownAirport(airRouteManager, airTownManager, m_cityFrom, m_cargoClass, m_large_aircraft_route, m_small_aircraft_route, m_helicopter_route, m_best_routes_built, all_routes_built);
 			if (m_airportFrom == null) {
-				setRouteFinish();
+				SetRouteFinished();
 				return null;
 			}
 
@@ -262,9 +262,9 @@ class AirBuildManager {
 		}
 
 		if (m_airportTo == -1) {
-			m_airportTo = buildAirport(airRouteManager, airTownManager, m_cityTo, m_cargoClass, m_large_aircraft_route, m_small_aircraft_route, m_helicopter_route, m_best_routes_built, all_routes_built);
+			m_airportTo = BuildTownAirport(airRouteManager, airTownManager, m_cityTo, m_cargoClass, m_large_aircraft_route, m_small_aircraft_route, m_helicopter_route, m_best_routes_built, all_routes_built);
 			if (m_airportTo == null) {
-				setRouteFinish();
+				SetRouteFinished();
 				return null;
 			}
 		}
@@ -273,7 +273,7 @@ class AirBuildManager {
 			/* Build the airports for real */
 			if (!(TestBuildAirport().TryBuild(m_airportFrom, m_fromType, m_fromStationID))) {
 				AILog.Error("a:Although the testing told us we could build 2 airports, it still failed on the first airport at tile " + m_airportFrom + ".");
-				setRouteFinish();
+				SetRouteFinished();
 				return null;
 			}
 
@@ -295,7 +295,7 @@ class AirBuildManager {
 					::scheduledRemovalsTable.Aircraft.rawset(m_airportFrom, 0);
 //					AILog.Error("Failed to remove airport at tile " + m_airportFrom + " - " + AIError.GetLastErrorString());
 				}
-				setRouteFinish();
+				SetRouteFinished();
 				return null;
 			}
 		}
@@ -303,7 +303,7 @@ class AirBuildManager {
 		return AirRoute(m_cityFrom, m_cityTo, m_airportFrom, m_airportTo, m_cargoClass, m_sentToDepotAirGroup);
 	}
 
-	function buildAirport(airRouteManager, airTownManager, town, cargoClass, large_aircraft, small_aircraft, helicopter, best_routes_built, all_routes_built) {
+	function BuildTownAirport(airRouteManager, airTownManager, town, cargoClass, large_aircraft, small_aircraft, helicopter, best_routes_built, all_routes_built) {
 		local infrastructure = AIGameSettings.GetValue("infrastructure_maintenance");
 		local pick_mode = AIController.GetSetting("pick_mode");
 
@@ -374,7 +374,7 @@ class AirBuildManager {
 				local large_min_order_dist = (large_fakedist / 2) * (large_fakedist / 2);
 				large_min_dist = large_min_order_dist > large_max_dist * 3 / 4 ? !infrastructure && large_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : large_max_dist * 3 / 4 : large_min_order_dist;
 
-				airTownManager.findNearCities(m_cityFrom, large_min_dist, large_max_dist, best_routes_built, cargoClass, large_fakedist);
+				airTownManager.FindNearCities(m_cityFrom, large_min_dist, large_max_dist, best_routes_built, cargoClass, large_fakedist);
 				if (!airTownManager.HasArrayCargoClassPairs(cargoClass)) {
 					large_available = false;
 				}
@@ -383,15 +383,15 @@ class AirBuildManager {
 			if (large_available) {
 				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
 					if (m_cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cargoClass == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-						if (!airRouteManager.townRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
+						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
 							large_cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
 
-							if (pick_mode != 1 && all_routes_built && airRouteManager.hasMaxStationCount(m_cityFrom, large_cityTo, cargoClass)) {
-//								AILog.Info("airRouteManager.hasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(large_cityTo) + ", " + cargoClass + ") == " + airRouteManager.hasMaxStationCount(m_cityFrom, large_cityTo, cargoClass));
+							if (pick_mode != 1 && all_routes_built && airRouteManager.HasMaxStationCount(m_cityFrom, large_cityTo, cargoClass)) {
+//								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(large_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, large_cityTo, cargoClass));
 								large_cityTo = null;
 								continue;
 							} else {
-//								AILog.Info("airRouteManager.hasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(large_cityTo) + ", " + cargoClass + ") == " + airRouteManager.hasMaxStationCount(m_cityFrom, large_cityTo, cargoClass));
+//								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(large_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, large_cityTo, cargoClass));
 								break;
 							}
 						}
@@ -454,7 +454,7 @@ class AirBuildManager {
 				local small_min_order_dist = (small_fakedist / 2) * (small_fakedist / 2);
 				small_min_dist = small_min_order_dist > small_max_dist * 3 / 4 ? !infrastructure && small_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : small_max_dist * 3 / 4 : small_min_order_dist;
 
-				airTownManager.findNearCities(m_cityFrom, small_min_dist, small_max_dist, best_routes_built, cargoClass, small_fakedist);
+				airTownManager.FindNearCities(m_cityFrom, small_min_dist, small_max_dist, best_routes_built, cargoClass, small_fakedist);
 				if (!airTownManager.HasArrayCargoClassPairs(cargoClass)) {
 					small_available = false;
 				}
@@ -463,15 +463,15 @@ class AirBuildManager {
 			if (small_available) {
 				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
 					if (m_cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cargoClass == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-						if (!airRouteManager.townRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
+						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
 							small_cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
 
-							if (pick_mode != 1 && all_routes_built && airRouteManager.hasMaxStationCount(m_cityFrom, small_cityTo, cargoClass)) {
-//								AILog.Info("airRouteManager.hasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(small_cityTo) + ", " + cargoClass + ") == " + airRouteManager.hasMaxStationCount(m_cityFrom, small_cityTo, cargoClass));
+							if (pick_mode != 1 && all_routes_built && airRouteManager.HasMaxStationCount(m_cityFrom, small_cityTo, cargoClass)) {
+//								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(small_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, small_cityTo, cargoClass));
 								small_cityTo = null;
 								continue;
 							} else {
-//								AILog.Info("airRouteManager.hasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(small_cityTo) + ", " + cargoClass + ") == " + airRouteManager.hasMaxStationCount(m_cityFrom, small_cityTo, cargoClass));
+//								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(small_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, small_cityTo, cargoClass));
 								break;
 							}
 						}
@@ -533,7 +533,7 @@ class AirBuildManager {
 				local heli_min_order_dist = (heli_fakedist / 2) * (heli_fakedist / 2);
 				heli_min_dist = heli_min_order_dist > heli_max_dist * 3 / 4 ? !infrastructure && heli_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : heli_max_dist * 3 / 4 : heli_min_order_dist;
 
-				airTownManager.findNearCities(m_cityFrom, heli_min_dist, heli_max_dist, best_routes_built, cargoClass, heli_fakedist);
+				airTownManager.FindNearCities(m_cityFrom, heli_min_dist, heli_max_dist, best_routes_built, cargoClass, heli_fakedist);
 				if (!airTownManager.HasArrayCargoClassPairs(cargoClass)) {
 					heli_available = false;
 				}
@@ -542,15 +542,15 @@ class AirBuildManager {
 			if (heli_available) {
 				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
 					if (m_cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cargoClass == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-						if (!airRouteManager.townRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
+						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
 							heli_cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
 
-							if (pick_mode != 1 && all_routes_built && airRouteManager.hasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass)) {
-//								AILog.Info("airRouteManager.hasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(heli_cityTo) + ", " + cargoClass + ") == " + airRouteManager.hasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass));
+							if (pick_mode != 1 && all_routes_built && airRouteManager.HasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass)) {
+//								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(heli_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass));
 								heli_cityTo = null;
 								continue;
 							} else {
-//								AILog.Info("airRouteManager.hasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(heli_cityTo) + ", " + cargoClass + ") == " + airRouteManager.hasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass));
+//								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(heli_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass));
 								break;
 							}
 						}
@@ -735,7 +735,7 @@ class AirBuildManager {
 						continue;
 					}
 
-					local secondary_cargo = Utils.getCargoId(AICargo.CC_MAIL);
+					local secondary_cargo = Utils.GetCargoID(AICargo.CC_MAIL);
 					if (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(secondary_cargo) && secondary_cargo != m_cargoID) {
 						if (AITile.GetCargoAcceptance(tile, secondary_cargo, airport_x, airport_y, airport_rad) < 10) {
 							tempList.RemoveItem(tile);
@@ -768,7 +768,7 @@ class AirBuildManager {
 					if (noise > allowed_noise) continue;
 //					AISign.BuildSign(tile, ("" + noise + " <= " + allowed_noise + ""));
 
-					local adjacentStationId = WrightAI.checkAdjacentNonAirport(tile, a);
+					local adjacentStationId = WrightAI.CheckAdjacentNonAirport(tile, a);
 					local nearest_town;
 					if (adjacentStationId == AIStation.STATION_NEW) {
 						nearest_town = AITile.GetClosestTown(tile);
@@ -900,40 +900,22 @@ class AirBuildManager {
 		}
 	}
 
-	function saveBuildManager() {
-		if (m_cityFrom == null) {
-			m_cityFrom = -1;
-		}
+	function SaveBuildManager() {
+		if (m_cityFrom == null) m_cityFrom = -1;
+		if (m_cityTo == null) m_cityTo = -1;
+		if (m_airportFrom == null) m_airportFrom = -1;
+		if (m_airportTo == null) m_airportTo = -1;
 
-		if (m_cityTo == null) {
-			m_cityTo = -1;
-		}
-
-		if (m_airportFrom == null) {
-			m_airportFrom = -1;
-		}
-
-		if (m_airportTo == null) {
-			m_airportTo = -1;
-		}
 		return [m_cityFrom, m_cityTo, m_airportFrom, m_airportTo, m_cargoClass, m_best_routes_built, m_fromType, m_toType, m_fromStationID, m_toStationID, m_large_aircraft_route, m_small_aircraft_route, m_helicopter_route];
 	}
 
-	function loadBuildManager(data) {
+	function LoadBuildManager(data) {
 		m_cityFrom = data[0];
-//		AILog.Info("m_cityFrom == " + m_cityFrom);
 		m_cityTo = data[1];
-//		AILog.Info("m_cityTo == " + m_cityTo);
 		m_airportFrom = data[2];
-//		AILog.Info("m_airportFrom == " + m_airportFrom);
 		m_airportTo = data[3];
-//		AILog.Info("m_airportTo == " + m_airportTo);
-
 		m_cargoClass = data[4];
-//		AILog.Info("m_cargoClass == " + m_cargoClass);
 		m_best_routes_built = data[5];
-//		AILog.Info("m_best_routes_built == " + m_best_routes_built);
-
 		m_fromType = data[6];
 		m_toType = data[7];
 		m_fromStationID = data[8];
@@ -941,7 +923,5 @@ class AirBuildManager {
 		m_large_aircraft_route = data[10];
 		m_small_aircraft_route = data[11];
 		m_helicopter_route = data[12];
-
-		return;
 	}
 }

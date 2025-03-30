@@ -1,5 +1,8 @@
 LuDiAI AfterFix
 ===============
+v22 (29-03-2025)
+- Fixed a bug that allowed road depots to be part of multiple routes
+
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0
 - Added "Train support" setting. AI can now build dual lane train routes

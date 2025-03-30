@@ -110,25 +110,25 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 }
 
 /**
- * getNthItem
+ * GetNthItem
  * @param list - The list to get the item from.
  * @param n - The order of the item.
  * @return - The n-th item of the list, null if not found.
  */
-function Utils::getNthItem(list, n) {
+function Utils::GetNthItem(list, n) {
 	if (list.Count() == 0) {
-		AILog.Warning("getNthItem: list is empty!");
+		AILog.Warning("GetNthItem: list is empty!");
 		return null;
 	}
 
 	if (n + 1 > list.Count()) {
-		AILog.Warning("getNthItem: list is too short!");
+		AILog.Warning("GetNthItem: list is too short!");
 		return null;
 	}
 
 	for (local item = list.Begin(); !list.IsEnd(); item = list.Next()) {
 		if (n == 0) {
-//			AILog.Info("getNthItem: Found: " + item + " " + list.GetValue(item));
+//			AILog.Info("GetNthItem: Found: " + item + " " + list.GetValue(item));
 			return item;
 		}
 		n--;
@@ -141,7 +141,7 @@ function Utils::MyCID() {
 	return AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
 }
 
-function Utils::getValidOffsetTile(tile, offsetX, offsetY) {
+function Utils::GetValidOffsetTile(tile, offsetX, offsetY) {
 	local oldX = AIMap.GetTileX(tile);
 	local oldY = AIMap.GetTileY(tile);
 
@@ -180,13 +180,13 @@ function Utils::getValidOffsetTile(tile, offsetX, offsetY) {
 }
 
 /**
- * getOffsetTile
+ * GetOffsetTile
  * @param tile - The starting tile.
  * @param offsetX - The x-axis offset.
  * @param offsetY - The y-axis offset.
  * @return - The offset tile.
  */
-function Utils::getOffsetTile(tile, offsetX, offsetY) {
+function Utils::GetOffsetTile(tile, offsetX, offsetY) {
 	local oldX = AIMap.GetTileX(tile);
 	local oldY = AIMap.GetTileY(tile);
 
@@ -203,29 +203,29 @@ function Utils::getOffsetTile(tile, offsetX, offsetY) {
 }
 
 /**
- * getAdjacentTiles
+ * GetAdjacentTiles
  * @param tile - The starting tile.
  * @return - The AITileList of adjacent tiles.
  */
-function Utils::getAdjacentTiles(tile) {
+function Utils::GetAdjacentTiles(tile) {
 	local adjTiles = AITileList();
 
-	local offsetTile = Utils.getOffsetTile(tile, 0, -1)
+	local offsetTile = Utils.GetOffsetTile(tile, 0, -1)
 	if (offsetTile != AIMap.TILE_INVALID) {
 		adjTiles.AddTile(offsetTile);
 	}
 
-	offsetTile = Utils.getOffsetTile(tile, 1, 0)
+	offsetTile = Utils.GetOffsetTile(tile, 1, 0)
 	if (offsetTile != AIMap.TILE_INVALID) {
 		adjTiles.AddTile(offsetTile);
 	}
 
-	offsetTile = Utils.getOffsetTile(tile, 0, 1)
+	offsetTile = Utils.GetOffsetTile(tile, 0, 1)
 	if (offsetTile != AIMap.TILE_INVALID) {
 		adjTiles.AddTile(offsetTile);
 	}
 
-	offsetTile = Utils.getOffsetTile(tile, -1, 0)
+	offsetTile = Utils.GetOffsetTile(tile, -1, 0)
 	if (offsetTile != AIMap.TILE_INVALID) {
 		adjTiles.AddTile(offsetTile);
 	}
@@ -277,18 +277,18 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 	local square = AITileList();
 	if (!AIController.GetSetting("is_friendly")) {
 		/* don't care about enemy stations when is_friendly is off */
-		square.AddRectangle(Utils.getValidOffsetTile(tile, -1 * squareSize, -1 * squareSize),
-			Utils.getValidOffsetTile(tile, squareSize, squareSize));
+		square.AddRectangle(Utils.GetValidOffsetTile(tile, -1 * squareSize, -1 * squareSize),
+			Utils.GetValidOffsetTile(tile, squareSize, squareSize));
 
 		/* if another road station of mine is nearby return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-			if (Utils.isTileMyRoadStation(tile, cargoClass)) { // negate second expression to merge your stations
+			if (Utils.IsTileMyRoadStation(tile, cargoClass)) { // negate second expression to merge your stations
 				return true;
 			}
 		}
 	} else {
-		square.AddRectangle(Utils.getValidOffsetTile(tile, -1 * squareSize, -1 * squareSize),
-			Utils.getValidOffsetTile(tile, squareSize, squareSize));
+		square.AddRectangle(Utils.GetValidOffsetTile(tile, -1 * squareSize, -1 * squareSize),
+			Utils.GetValidOffsetTile(tile, squareSize, squareSize));
 
 		/* if any other station is nearby, except my own airports, return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
@@ -316,18 +316,18 @@ function Utils::AreOtherDocksNearby(tile_north, tile_south) {
 	if (!AIController.GetSetting("is_friendly")) {
 		squareSize = 2;
 		/* don't care about enemy stations when is_friendly is off */
-		square.AddRectangle(Utils.getValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize),
-			Utils.getValidOffsetTile(tile_south, squareSize, squareSize));
+		square.AddRectangle(Utils.GetValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize),
+			Utils.GetValidOffsetTile(tile_south, squareSize, squareSize));
 
 		/* if another dock of mine is nearby return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-			if (Utils.isTileMyDock(tile)) { // negate second expression to merge your stations
+			if (Utils.IsTileMyDock(tile)) { // negate second expression to merge your stations
 				return true;
 			}
 		}
 	} else {
-		square.AddRectangle(Utils.getValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize),
-			Utils.getValidOffsetTile(tile_south, squareSize, squareSize));
+		square.AddRectangle(Utils.GetValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize),
+			Utils.GetValidOffsetTile(tile_south, squareSize, squareSize));
 
 		/* if any other station is nearby, except my own airports, return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
@@ -347,7 +347,7 @@ function Utils::AreOtherDocksNearby(tile_north, tile_south) {
 	return false;
 }
 
-function Utils::isTileMyRoadStation(tile, cargoClass) {
+function Utils::IsTileMyRoadStation(tile, cargoClass) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return true;
@@ -356,7 +356,7 @@ function Utils::isTileMyRoadStation(tile, cargoClass) {
 	return false;
 }
 
-function Utils::isTileMyDock(tile) {
+function Utils::IsTileMyDock(tile) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
 		return true;
 	}
@@ -364,7 +364,7 @@ function Utils::isTileMyDock(tile) {
 	return false;
 }
 
-function Utils::isTileMyStationWithoutAirport(tile) { // Checks RoadStation
+function Utils::IsTileMyStationWithoutAirport(tile) { // Checks RoadStation
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_AIRPORT)) {
 		return true;
@@ -373,7 +373,7 @@ function Utils::isTileMyStationWithoutAirport(tile) { // Checks RoadStation
 	return false;
 }
 
-function Utils::isTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks Airport
+function Utils::IsTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks Airport
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return true;
@@ -382,7 +382,7 @@ function Utils::isTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks 
 	return false;
 }
 
-function Utils::isTileMyStationWithoutRoadStationOfAnyType(tile) {
+function Utils::IsTileMyStationWithoutRoadStationOfAnyType(tile) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_BUS_STOP) &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP)) {
@@ -392,7 +392,7 @@ function Utils::isTileMyStationWithoutRoadStationOfAnyType(tile) {
 	return false;
 }
 
-function Utils::isTileMyStationWithoutDock(tile) {
+function Utils::IsTileMyStationWithoutDock(tile) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
 		return true;
@@ -401,7 +401,7 @@ function Utils::isTileMyStationWithoutDock(tile) {
 	return false;
 }
 
-function Utils::isTileMyStationWithoutRailwayStation(tile) {
+function Utils::IsTileMyStationWithoutRailwayStation(tile) {
 	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
 		return true;
@@ -411,11 +411,11 @@ function Utils::isTileMyStationWithoutRailwayStation(tile) {
 }
 
 /**
- * getCargoId - Returns either mail cargo id, or passenger cargo id.
+ * GetCargoID - Returns either mail cargo id, or passenger cargo id.
  * @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
  * @return - Cargo list.
  */
-function Utils::getCargoId(cargoClass) {
+function Utils::GetCargoID(cargoClass) {
 	local cargoList = AICargoList();
 	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
 
@@ -492,7 +492,7 @@ function Utils::IsTownGrowing(town, cargo) {
 	return result;
 }
 
-function Utils::checkAdjacentNonRoadStation(stationTile, stationId)
+function Utils::CheckAdjacentNonRoadStation(stationTile, stationId)
 {
 	if (stationId != AIStation.STATION_NEW) {
 		return stationId;
@@ -505,12 +505,12 @@ function Utils::checkAdjacentNonRoadStation(stationTile, stationId)
 	local spread_rad = AIGameSettings.GetValue("station_spread") - 1;
 
 	local tileList = AITileList();
-	local spreadrectangle = [Utils.getValidOffsetTile(stationTile, (-1) * spread_rad, (-1) * spread_rad), Utils.getValidOffsetTile(stationTile, spread_rad, spread_rad)];
+	local spreadrectangle = [Utils.GetValidOffsetTile(stationTile, -1 * spread_rad, -1 * spread_rad), Utils.GetValidOffsetTile(stationTile, spread_rad, spread_rad)];
 	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
 
 	local templist = AITileList();
 	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-		if (Utils.isTileMyStationWithoutRoadStationOfAnyType(tile)) {
+		if (Utils.IsTileMyStationWithoutRoadStationOfAnyType(tile)) {
 			tileList.SetValue(tile, AIStation.GetStationID(tile));
 		} else {
 			templist.AddTile(tile);
@@ -572,19 +572,19 @@ function Utils::checkAdjacentNonRoadStation(stationTile, stationId)
 	return adjacentStation;
 }
 
-function Utils::checkAdjacentNonDock(stationTile)
+function Utils::CheckAdjacentNonDock(stationTile)
 {
 	if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
 		return AIStation.STATION_NEW;
 	}
 
 	local tileList = AITileList();
-	local spreadrectangle = Utils.expandAdjacentDockRect(stationTile);
+	local spreadrectangle = Utils.ExpandAdjacentDockRect(stationTile);
 	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
 
 	local templist = AITileList();
 	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-		if (Utils.isTileMyStationWithoutDock(tile)) {
+		if (Utils.IsTileMyStationWithoutDock(tile)) {
 			tileList.SetValue(tile, AIStation.GetStationID(tile));
 		} else {
 			templist.AddTile(tile);
@@ -646,7 +646,7 @@ function Utils::checkAdjacentNonDock(stationTile)
 	return adjacentStation;
 }
 
-function Utils::expandAdjacentDockRect(dockTile) {
+function Utils::ExpandAdjacentDockRect(dockTile) {
 	local slope = AITile.GetSlope(dockTile);
 	if (slope != AITile.SLOPE_SW && slope != AITile.SLOPE_NW && slope != AITile.SLOPE_SE && slope != AITile.SLOPE_NE) return [dockTile, dockTile]; // shouldn't happen
 
@@ -938,7 +938,7 @@ function Utils::CheckAqueductSlopes(tile_a, tile_b)
 	return tile_a + offset == tile_b;
 }
 
-function Utils::estimateTownRectangle(town)
+function Utils::EstimateTownRectangle(town)
 {
 	local townLocation = AITown.GetLocation(town);
 	local rectangleIncreaseKoeficient = 1;
@@ -952,7 +952,7 @@ function Utils::estimateTownRectangle(town)
 		for (local i = 0; i < 4; ++i) {
 			switch(i) {
 				case 0:
-					local offsetTile = Utils.getOffsetTile(topCornerTile, (-1) * rectangleIncreaseKoeficient, 0);
+					local offsetTile = Utils.GetOffsetTile(topCornerTile, (-1) * rectangleIncreaseKoeficient, 0);
 
 					if (offsetTile == AIMap.TILE_INVALID) {
 						++maxExpandedCounter;
@@ -969,7 +969,7 @@ function Utils::estimateTownRectangle(town)
 					break;
 
 				case 1:
-					local offsetTile = Utils.getOffsetTile(bottomCornerTile, 0, rectangleIncreaseKoeficient);
+					local offsetTile = Utils.GetOffsetTile(bottomCornerTile, 0, rectangleIncreaseKoeficient);
 
 					if (offsetTile == AIMap.TILE_INVALID) {
 						++maxExpandedCounter;
@@ -986,7 +986,7 @@ function Utils::estimateTownRectangle(town)
 					break;
 
 				case 2:
-					local offsetTile = Utils.getOffsetTile(bottomCornerTile, rectangleIncreaseKoeficient, 0);
+					local offsetTile = Utils.GetOffsetTile(bottomCornerTile, rectangleIncreaseKoeficient, 0);
 
 					if (offsetTile == AIMap.TILE_INVALID) {
 						++maxExpandedCounter;
@@ -1003,7 +1003,7 @@ function Utils::estimateTownRectangle(town)
 					break;
 
 				case 3:
-					local offsetTile = Utils.getOffsetTile(topCornerTile, 0, (-1) * rectangleIncreaseKoeficient);
+					local offsetTile = Utils.GetOffsetTile(topCornerTile, 0, (-1) * rectangleIncreaseKoeficient);
 
 					if (offsetTile == AIMap.TILE_INVALID) {
 						++maxExpandedCounter;

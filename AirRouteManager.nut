@@ -11,11 +11,11 @@ class AirRouteManager {
 		m_best_routes_built = best_routes_built;
 	}
 
-	function buildRoute(airRouteManager, airBuildManager, airTownManager, cityFrom, cityTo, cargoClass, best_routes_built, all_routes_built) {
-		local route = airBuildManager.buildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, m_sentToDepotAirGroup, best_routes_built, all_routes_built);
+	function BuildRoute(airRouteManager, airBuildManager, airTownManager, cityFrom, cityTo, cargoClass, best_routes_built, all_routes_built) {
+		local route = airBuildManager.BuildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, m_sentToDepotAirGroup, best_routes_built, all_routes_built);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
-			airBuildManager.setRouteFinish();
+			airBuildManager.SetRouteFinished();
 			return [1, route.m_airportFrom, route.m_airportTo];
 		}
 
@@ -23,14 +23,14 @@ class AirRouteManager {
 	}
 
 
-	function getAircraftCount() {
+	function GetAircraftCount() {
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_AIR);
 	}
 
-	function townRouteExists(cityFrom, cityTo, cargoClass) {
+	function TownRouteExists(cityFrom, cityTo, cargoClass) {
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			if (TownPair(cityFrom, cityTo, cargoClass).isEqual(m_townRouteArray[i].m_cityFrom, m_townRouteArray[i].m_cityTo, m_townRouteArray[i].m_cargoClass)) {
-//				AILog.Info("townRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
+			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(m_townRouteArray[i].m_cityFrom, m_townRouteArray[i].m_cityTo, m_townRouteArray[i].m_cargoClass)) {
+//				AILog.Info("TownRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
 				return 1;
 			}
 		}
@@ -39,7 +39,7 @@ class AirRouteManager {
 	}
 
 	/* the highest last years profit out of all vehicles */
-	function highestProfitLastYear() {
+	function HighestProfitLastYear() {
 		local maxAllRoutesProfit = null;
 
 		for (local i = 0; i < this.m_townRouteArray.len(); ++i) {
@@ -60,7 +60,7 @@ class AirRouteManager {
 	}
 
 	/* won't build any new stations if 1 */
-	function hasMaxStationCount(cityFrom, cityTo, cargoClass) {
+	function HasMaxStationCount(cityFrom, cityTo, cargoClass) {
 //		return 0;
 
 		local maxTownStationFrom = (1 + AITown.GetPopulation(cityFrom) / 1000).tointeger();
@@ -87,16 +87,16 @@ class AirRouteManager {
 		return 0;
 	}
 
-	function saveRouteManager() {
+	function SaveRouteManager() {
 		local array = [];
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			array.append(m_townRouteArray[i].saveRoute());
+			array.append(m_townRouteArray[i].SaveRoute());
 		}
 
 		return [array, m_sentToDepotAirGroup, m_best_routes_built];
 	}
 
-	function loadRouteManager(data) {
+	function LoadRouteManager(data) {
 		if (m_townRouteArray == null) {
 			m_townRouteArray = [];
 		}
@@ -104,7 +104,7 @@ class AirRouteManager {
 		local routearray = data[0];
 
 		for (local i = 0; i < routearray.len(); i++) {
-			local route = AirRoute.loadRoute(routearray[i]);
+			local route = AirRoute.LoadRoute(routearray[i]);
 			m_townRouteArray.append(route);
 		}
 		AILog.Info("Loaded " + m_townRouteArray.len() + " air routes.");

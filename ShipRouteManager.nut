@@ -11,11 +11,11 @@ class ShipRouteManager {
 		m_best_routes_built = best_routes_built;
 	}
 
-	function buildRoute(shipBuildManager, cityFrom, cityTo, cargoClass, cheaperRoute, best_routes_built) {
-		local route = shipBuildManager.buildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, m_sentToDepotWaterGroup, best_routes_built);
+	function BuildRoute(shipBuildManager, cityFrom, cityTo, cargoClass, cheaperRoute, best_routes_built) {
+		local route = shipBuildManager.BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, m_sentToDepotWaterGroup, best_routes_built);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
-			shipBuildManager.setRouteFinish();
+			shipBuildManager.SetRouteFinished();
 			return [1, route.m_dockFrom, route.m_dockTo];
 		}
 
@@ -23,14 +23,14 @@ class ShipRouteManager {
 	}
 
 
-	function getShipCount() {
+	function GetShipCount() {
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_WATER);
 	}
 
-	function townRouteExists(cityFrom, cityTo, cargoClass) {
+	function TownRouteExists(cityFrom, cityTo, cargoClass) {
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			if (TownPair(cityFrom, cityTo, cargoClass).isEqual(m_townRouteArray[i].m_cityFrom, m_townRouteArray[i].m_cityTo, m_townRouteArray[i].m_cargoClass)) {
-//				AILog.Info("townRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
+			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(m_townRouteArray[i].m_cityFrom, m_townRouteArray[i].m_cityTo, m_townRouteArray[i].m_cargoClass)) {
+//				AILog.Info("TownRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
 				return 1;
 			}
 		}
@@ -39,7 +39,7 @@ class ShipRouteManager {
 	}
 
 	/* the highest last years profit out of all vehicles */
-	function highestProfitLastYear() {
+	function HighestProfitLastYear() {
 		local maxAllRoutesProfit = null;
 
 		for (local i = 0; i < this.m_townRouteArray.len(); ++i) {
@@ -60,7 +60,7 @@ class ShipRouteManager {
 	}
 
 	/* won't build any new stations if 1 */
-	function hasMaxStationCount(cityFrom, cityTo, cargoClass) {
+	function HasMaxStationCount(cityFrom, cityTo, cargoClass) {
 //		return 0;
 
 		local maxTownStationFrom = (1 + AITown.GetPopulation(cityFrom) / 1000).tointeger();
@@ -87,16 +87,16 @@ class ShipRouteManager {
 		return 0;
 	}
 
-	function saveRouteManager() {
+	function SaveRouteManager() {
 		local array = [];
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			array.append(m_townRouteArray[i].saveRoute());
+			array.append(m_townRouteArray[i].SaveRoute());
 		}
 
 		return [array, m_sentToDepotWaterGroup, m_best_routes_built];
 	}
 
-	function loadRouteManager(data) {
+	function LoadRouteManager(data) {
 		if (m_townRouteArray == null) {
 			m_townRouteArray = [];
 		}
@@ -104,7 +104,7 @@ class ShipRouteManager {
 		local routearray = data[0];
 
 		for (local i = 0; i < routearray.len(); i++) {
-			local route = ShipRoute.loadRoute(routearray[i]);
+			local route = ShipRoute.LoadRoute(routearray[i]);
 			m_townRouteArray.append(route);
 		}
 		AILog.Info("Loaded " + m_townRouteArray.len() + " water routes.");

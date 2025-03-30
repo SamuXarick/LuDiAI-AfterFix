@@ -1,5 +1,5 @@
 function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
-	if (unfinished || (roadRouteManager.getRoadVehicleCount() < max(MAX_ROAD_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 0) & 3) != 3) {
+	if (unfinished || (roadRouteManager.GetRoadVehicleCount() < max(MAX_ROAD_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 0) & 3) != 3) {
 
 		local cityTo = null;
 		local articulated;
@@ -7,7 +7,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 		if (!unfinished) {
 			cargoClassRoad = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.getCargoId(cC);
+			local cargo = Utils.GetCargoID(cC);
 			local tempList = AIEngineList(AIVehicle.VT_ROAD);
 			local engineList = AIList();
 			for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
@@ -59,7 +59,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 			articulated = engineList.Count() == articulatedList.Count();
 
 			if (cityFrom == null) {
-				cityFrom = roadTownManager.getUnusedCity(((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
+				cityFrom = roadTownManager.GetUnusedCity(((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
 						if (cC == AICargo.CC_PASSENGERS) {
@@ -91,7 +91,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 			if (cityFrom != null) {
 //				AILog.Info("New city found: " + AITown.GetName(cityFrom));
 
-				roadTownManager.findNearCities(cityFrom, min_dist, max_dist, ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
+				roadTownManager.FindNearCities(cityFrom, min_dist, max_dist, ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 
 				if (!roadTownManager.HasArrayCargoClassPairs(cC)) {
 					AILog.Info("No near city available");
@@ -102,15 +102,15 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 			if (cityFrom != null) {
 				for (local i = 0; i < roadTownManager.m_nearCityPairArray.len(); ++i) {
 					if (cityFrom == roadTownManager.m_cityFrom(roadTownManager.m_nearCityPairArray[i]) && cC == roadTownManager.m_cargoClass(roadTownManager.m_nearCityPairArray[i])) {
-						if (!roadRouteManager.townRouteExists(cityFrom, roadTownManager.m_cityTo(roadTownManager.m_nearCityPairArray[i]), cC)) {
+						if (!roadRouteManager.TownRouteExists(cityFrom, roadTownManager.m_cityTo(roadTownManager.m_nearCityPairArray[i]), cC)) {
 							cityTo = roadTownManager.m_cityTo(roadTownManager.m_nearCityPairArray[i]);
 
-							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && roadRouteManager.hasMaxStationCount(cityFrom, cityTo, cC)) {
-//								AILog.Info("roadRouteManager.hasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + roadRouteManager.hasMaxStationCount(cityFrom, cityTo, cC));
+							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
+//								AILog.Info("roadRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
 								cityTo = null;
 								continue;
 							} else {
-//								AILog.Info("roadRouteManager.hasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + roadRouteManager.hasMaxStationCount(cityFrom, cityTo, cC));
+//								AILog.Info("roadRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
 								break;
 							}
 						}
@@ -146,18 +146,18 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 			local best_routes = unfinished ? roadBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 
 			local start_date = AIDate.GetCurrentDate();
-			local routeResult = roadRouteManager.buildRoute(roadBuildManager, from, to, cargoC, artic, best_routes);
+			local routeResult = roadRouteManager.BuildRoute(roadBuildManager, from, to, cargoC, artic, best_routes);
 			buildTimerRoad += AIDate.GetCurrentDate() - start_date;
 			if (routeResult[0] != null) {
 				if (routeResult[0] != 0) {
 					reservedMoney -= reservedMoneyRoad;
 					reservedMoneyRoad = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.getCargoId(cargoC)) + " road route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + ".");
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoC)) + " road route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + ".");
 				}
 			} else {
 				reservedMoney -= reservedMoneyRoad;
 				reservedMoneyRoad = 0;
-				roadTownManager.removeUsedCityPair(from, to, cC, false);
+				roadTownManager.RemoveUsedCityPair(from, to, cC, false);
 				AILog.Error("r:" + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + " wasted!");
 			}
 
@@ -180,7 +180,7 @@ function LuDiAIAfterFix::InterruptRoadManagement(cur_date) {
 	return false;
 }
 
-function LuDiAIAfterFix::updateRoadVehicles() {
+function LuDiAIAfterFix::ManageRoadvehRoutes() {
 	local max_roadveh = AIGameSettings.GetValue("max_roadveh");
 	if (max_roadveh != MAX_ROAD_VEHICLES) {
 		MAX_ROAD_VEHICLES = max_roadveh;
@@ -203,8 +203,8 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 8) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". renewVehicles");
-		roadRouteManager.m_townRouteArray[i].renewVehicles();
+//		AILog.Info("managing route " + i + ". RenewVehicles");
+		roadRouteManager.m_townRouteArray[i].RenewVehicles();
 		if (InterruptRoadManagement(cur_date)) return;
 	}
 	ResetRoadManagementVariables();
@@ -216,8 +216,8 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 7) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". sendNegativeProfitVehiclesToDepot");
-		roadRouteManager.m_townRouteArray[i].sendNegativeProfitVehiclesToDepot();
+//		AILog.Info("managing route " + i + ". SendNegativeProfitVehiclesToDepot");
+		roadRouteManager.m_townRouteArray[i].SendNegativeProfitVehiclesToDepot();
 		if (InterruptRoadManagement(cur_date)) return;
 	}
 	ResetRoadManagementVariables();
@@ -226,14 +226,14 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 //	AILog.Info("Managed " + roadRouteManager.m_townRouteArray.len() + " road route" + (roadRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	local num_vehs = roadRouteManager.getRoadVehicleCount();
-	local maxAllRoutesProfit = roadRouteManager.highestProfitLastYear();
+	local num_vehs = roadRouteManager.GetRoadVehicleCount();
+	local maxAllRoutesProfit = roadRouteManager.HighestProfitLastYear();
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 6) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". sendLowProfitVehiclesToDepot");
+//		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
 		if (MAX_ROAD_VEHICLES * 0.95 < num_vehs) {
-			roadRouteManager.m_townRouteArray[i].sendLowProfitVehiclesToDepot(maxAllRoutesProfit);
+			roadRouteManager.m_townRouteArray[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
 		}
 		if (InterruptRoadManagement(cur_date)) return;
 	}
@@ -246,8 +246,8 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 5) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". updateEngine");
-		roadRouteManager.m_townRouteArray[i].updateEngine();
+//		AILog.Info("managing route " + i + ". UpgradeEngine");
+		roadRouteManager.m_townRouteArray[i].UpgradeEngine();
 		if (InterruptRoadManagement(cur_date)) return;
 	}
 	ResetRoadManagementVariables();
@@ -259,8 +259,8 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 4) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". sellVehiclesInDepot");
-		roadRouteManager.m_townRouteArray[i].sellVehiclesInDepot();
+//		AILog.Info("managing route " + i + ". SellVehiclesInDepot");
+		roadRouteManager.m_townRouteArray[i].SellVehiclesInDepot();
 		if (InterruptRoadManagement(cur_date)) return;
 	}
 	ResetRoadManagementVariables();
@@ -272,8 +272,8 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 3) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". updateBridges")
-		roadRouteManager.m_townRouteArray[i].updateBridges();
+//		AILog.Info("managing route " + i + ". UpgradeBridges")
+		roadRouteManager.m_townRouteArray[i].UpgradeBridges();
 		if (InterruptRoadManagement(cur_date)) return;
 	}
 	ResetRoadManagementVariables();
@@ -282,13 +282,13 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 //	AILog.Info("Managed " + roadRouteManager.m_townRouteArray.len() + " road route" + (roadRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	num_vehs = roadRouteManager.getRoadVehicleCount();
+	num_vehs = roadRouteManager.GetRoadVehicleCount();
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 2) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". addremoveVehicleToRoute");
+//		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
 		if (num_vehs < MAX_ROAD_VEHICLES) {
-			num_vehs += roadRouteManager.m_townRouteArray[i].addremoveVehicleToRoute(num_vehs < MAX_ROAD_VEHICLES);
+			num_vehs += roadRouteManager.m_townRouteArray[i].AddRemoveVehicleToRoute(num_vehs < MAX_ROAD_VEHICLES);
 		}
 		if (InterruptRoadManagement(cur_date)) return;
 	}
@@ -298,14 +298,14 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 //	AILog.Info("Managed " + roadRouteManager.m_townRouteArray.len() + " road route" + (roadRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	num_vehs = roadRouteManager.getRoadVehicleCount();
+	num_vehs = roadRouteManager.GetRoadVehicleCount();
 	if (AIController.GetSetting("station_spread") && AIGameSettings.GetValue("distant_join_stations")) {
 		for (local i = lastRoadManagedArray; i >= 0; --i) {
 			if (lastRoadManagedManagement != 1) break;
 			lastRoadManagedArray--;
-//			AILog.Info("managing route " + i + ". expandStations");
+//			AILog.Info("managing route " + i + ". ExpandRoadStation");
 			if (MAX_ROAD_VEHICLES > num_vehs) {
-				roadRouteManager.m_townRouteArray[i].expandStations();
+				roadRouteManager.m_townRouteArray[i].ExpandRoadStation();
 			}
 			if (InterruptRoadManagement(cur_date)) return;
 		}
@@ -319,13 +319,13 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 	for (local i = lastRoadManagedArray; i >= 0; --i) {
 		if (lastRoadManagedManagement != 0) break;
 		lastRoadManagedArray--;
-//		AILog.Info("managing route " + i + ". removeIfUnserviced");
+//		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
 		local cityFrom = roadRouteManager.m_townRouteArray[i].m_cityFrom;
 		local cityTo = roadRouteManager.m_townRouteArray[i].m_cityTo;
 		local cargoC = roadRouteManager.m_townRouteArray[i].m_cargoClass;
-		if (roadRouteManager.m_townRouteArray[i].removeIfUnserviced()) {
+		if (roadRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			roadRouteManager.m_townRouteArray.remove(i);
-			roadTownManager.removeUsedCityPair(cityFrom, cityTo, cargoC, true);
+			roadTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);
 		}
 		if (InterruptRoadManagement(cur_date)) return;
 	}
@@ -336,7 +336,7 @@ function LuDiAIAfterFix::updateRoadVehicles() {
 }
 
 function LuDiAIAfterFix::CheckForUnfinishedRoadRoute() {
-	if (roadBuildManager.hasUnfinishedRoute()) {
+	if (roadBuildManager.HasUnfinishedRoute()) {
 		/* Look for potentially unregistered road station or depot tiles during save */
 		local stationFrom = roadBuildManager.m_stationFrom;
 		local stationTo = roadBuildManager.m_stationTo;

@@ -92,7 +92,7 @@ class LuDiAIAfterFix extends AIController {
 		airTownManager = TownManager();
 		railTownManager = TownManager();
 
-		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.getCargoId(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
+		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoID(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
 		cargoClassWater = cargoClassRoad;
 		cargoClassAir = cargoClassRoad;
 		cargoClassRail = cargoClassRoad;
@@ -134,19 +134,19 @@ class LuDiAIAfterFix extends AIController {
 
 	function ResetRoadManagementVariables();
 	function InterruptRoadManagement(cur_date);
-	function updateRoadVehicles();
+	function ManageRoadvehRoutes();
 
 	function ResetWaterManagementVariables();
 	function InterruptWaterManagement(cur_date);
-	function updateShipVehicles();
+	function ManageShipRoutes();
 
 	function ResetAirManagementVariables();
 	function InterruptAirManagement(cur_date);
-	function updateAirVehicles();
+	function ManageAircraftRoutes();
 
 	function ResetRailManagementVariables();
 	function InterruptRailManagement(cur_date);
-	function updateRailVehicles();
+	function ManageTrainRoutes();
 
 	function CheckForUnfinishedRoadRoute();
 	function CheckForUnfinishedWaterRoute();
@@ -352,8 +352,8 @@ class LuDiAIAfterFix extends AIController {
 		local myCID = Utils.MyCID();
 		if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) return;
 
-		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.getCargoId(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
-		local cargoId = Utils.getCargoId(cC);
+		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.GetCargoID(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
+		local cargoId = Utils.GetCargoID(cC);
 
 		local stationList = AIStationList(AIStation.STATION_ANY);
 		local stationTowns = AIList();
@@ -533,21 +533,21 @@ class LuDiAIAfterFix extends AIController {
 //		AILog.Warning("Saving...");
 
 		local table = {};
-		table.rawset("road_town_manager", roadTownManager.saveTownManager());
-		table.rawset("road_route_manager", roadRouteManager.saveRouteManager());
-		table.rawset("road_build_manager", roadBuildManager.saveBuildManager());
+		table.rawset("road_town_manager", roadTownManager.SaveTownManager());
+		table.rawset("road_route_manager", roadRouteManager.SaveRouteManager());
+		table.rawset("road_build_manager", roadBuildManager.SaveBuildManager());
 
-		table.rawset("ship_town_manager", shipTownManager.saveTownManager());
-		table.rawset("ship_route_manager", shipRouteManager.saveRouteManager());
-		table.rawset("ship_build_manager", shipBuildManager.saveBuildManager());
+		table.rawset("ship_town_manager", shipTownManager.SaveTownManager());
+		table.rawset("ship_route_manager", shipRouteManager.SaveRouteManager());
+		table.rawset("ship_build_manager", shipBuildManager.SaveBuildManager());
 
-		table.rawset("air_town_manager", airTownManager.saveTownManager());
-		table.rawset("air_route_manager", airRouteManager.saveRouteManager());
-		table.rawset("air_build_manager", airBuildManager.saveBuildManager());
+		table.rawset("air_town_manager", airTownManager.SaveTownManager());
+		table.rawset("air_route_manager", airRouteManager.SaveRouteManager());
+		table.rawset("air_build_manager", airBuildManager.SaveBuildManager());
 
-		table.rawset("rail_town_manager", railTownManager.saveTownManager());
-		table.rawset("rail_route_manager", railRouteManager.saveRouteManager());
-		table.rawset("rail_build_manager", railBuildManager.saveBuildManager());
+		table.rawset("rail_town_manager", railTownManager.SaveTownManager());
+		table.rawset("rail_route_manager", railRouteManager.SaveRouteManager());
+		table.rawset("rail_build_manager", railBuildManager.SaveBuildManager());
 
 		table.rawset("scheduled_removals_table", ::scheduledRemovalsTable);
 
@@ -641,51 +641,51 @@ function LuDiAIAfterFix::Start() {
 
 		if (loadData != null) {
 			if (loadData[1].rawin("road_town_manager")) {
-				roadTownManager.loadTownManager(loadData[1].rawget("road_town_manager"));
+				roadTownManager.LoadTownManager(loadData[1].rawget("road_town_manager"));
 			}
 
 			if (loadData[1].rawin("road_route_manager")) {
-				roadRouteManager.loadRouteManager(loadData[1].rawget("road_route_manager"));
+				roadRouteManager.LoadRouteManager(loadData[1].rawget("road_route_manager"));
 			}
 
 			if (loadData[1].rawin("road_build_manager")) {
-				roadBuildManager.loadBuildManager(loadData[1].rawget("road_build_manager"));
+				roadBuildManager.LoadBuildManager(loadData[1].rawget("road_build_manager"));
 			}
 
 			if (loadData[1].rawin("ship_town_manager")) {
-				shipTownManager.loadTownManager(loadData[1].rawget("ship_town_manager"));
+				shipTownManager.LoadTownManager(loadData[1].rawget("ship_town_manager"));
 			}
 
 			if (loadData[1].rawin("ship_route_manager")) {
-				shipRouteManager.loadRouteManager(loadData[1].rawget("ship_route_manager"));
+				shipRouteManager.LoadRouteManager(loadData[1].rawget("ship_route_manager"));
 			}
 
 			if (loadData[1].rawin("ship_build_manager")) {
-				shipBuildManager.loadBuildManager(loadData[1].rawget("ship_build_manager"));
+				shipBuildManager.LoadBuildManager(loadData[1].rawget("ship_build_manager"));
 			}
 
 			if (loadData[1].rawin("air_town_manager")) {
-				airTownManager.loadTownManager(loadData[1].rawget("air_town_manager"));
+				airTownManager.LoadTownManager(loadData[1].rawget("air_town_manager"));
 			}
 
 			if (loadData[1].rawin("air_route_manager")) {
-				airRouteManager.loadRouteManager(loadData[1].rawget("air_route_manager"));
+				airRouteManager.LoadRouteManager(loadData[1].rawget("air_route_manager"));
 			}
 
 			if (loadData[1].rawin("air_build_manager")) {
-				airBuildManager.loadBuildManager(loadData[1].rawget("air_build_manager"));
+				airBuildManager.LoadBuildManager(loadData[1].rawget("air_build_manager"));
 			}
 
 			if (loadData[1].rawin("rail_town_manager")) {
-				railTownManager.loadTownManager(loadData[1].rawget("rail_town_manager"));
+				railTownManager.LoadTownManager(loadData[1].rawget("rail_town_manager"));
 			}
 
 			if (loadData[1].rawin("rail_route_manager")) {
-				railRouteManager.loadRouteManager(loadData[1].rawget("rail_route_manager"));
+				railRouteManager.LoadRouteManager(loadData[1].rawget("rail_route_manager"));
 			}
 
 			if (loadData[1].rawin("rail_build_manager")) {
-				railBuildManager.loadBuildManager(loadData[1].rawget("rail_build_manager"));
+				railBuildManager.LoadBuildManager(loadData[1].rawget("rail_build_manager"));
 			}
 
 			if (loadData[1].rawin("scheduled_removals_table")) {
@@ -799,7 +799,7 @@ function LuDiAIAfterFix::Start() {
 			/* Name company */
 			local cargostr = "";
 			if (AIController.GetSetting("select_town_cargo") != 2) {
-				cargostr += " " + AICargo.GetCargoLabel(Utils.getCargoId(cargoClassRoad));
+				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoClassRoad));
 			}
 			if (!AICompany.SetName("LuDiAI AfterFix" + cargostr)) {
 				local i = 2;
@@ -825,59 +825,59 @@ function LuDiAIAfterFix::Start() {
 //		AILog.Info("RemoveLeftovers " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
-//		AILog.Info("main loop . updateRoadVehicles");
-		updateRoadVehicles();
+//		AILog.Info("main loop . ManageRoadvehRoutes");
+		ManageRoadvehRoutes();
 //		local management_ticks = AIController.GetTick() - start_tick;
-//		AILog.Info("updateRoadVehicles " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//		AILog.Info("ManageRoadvehRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 		if (AIController.GetSetting("road_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildRoadRoute");
-			BuildRoadRoute(cityFrom, roadBuildManager.hasUnfinishedRoute() ? true : false);
+			BuildRoadRoute(cityFrom, roadBuildManager.HasUnfinishedRoute() ? true : false);
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildRoadRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
 
 //		local start_tick = AIController.GetTick();
-//		AILog.Info("main loop . updateAirVehicles");
-		updateAirVehicles();
+//		AILog.Info("main loop . ManageAircraftRoutes");
+		ManageAircraftRoutes();
 //		local management_ticks = AIController.GetTick() - start_tick;
-//		AILog.Info("updateAirVehicles " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//		AILog.Info("ManageAircraftRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 		if (AIController.GetSetting("air_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildAirRoute");
-			BuildAirRoute(cityFrom, airBuildManager.hasUnfinishedRoute() ? true : false);
+			BuildAirRoute(cityFrom, airBuildManager.HasUnfinishedRoute() ? true : false);
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildAirRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
 
 //		AILog.Info("available_ticks = " + (available_ticks - used_ticks));
 //		local start_tick = AIController.GetTick();
-//		AILog.Info("main loop . updateShipVehicles");
-		updateShipVehicles();
+//		AILog.Info("main loop . ManageShipRoutes");
+		ManageShipRoutes();
 //		local management_ticks = AIController.GetTick() - start_tick;
-//		AILog.Info("updateShipVehicles " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//		AILog.Info("ManageShipRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 		if (AIController.GetSetting("water_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildWaterRoute");
-			BuildWaterRoute(cityFrom, shipBuildManager.hasUnfinishedRoute() ? true : false);
+			BuildWaterRoute(cityFrom, shipBuildManager.HasUnfinishedRoute() ? true : false);
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildWaterRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
 
 //		AILog.Info("available_ticks = " + (available_ticks - used_ticks));
 //		local start_tick = AIController.GetTick();
-//		AILog.Info("main loop . updateRailVehicles");
-		updateRailVehicles();
+//		AILog.Info("main loop . ManageTrainRoutes");
+		ManageTrainRoutes();
 //		local management_ticks = AIController.GetTick() - start_tick;
-//		AILog.Info("updateRailVehicles " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//		AILog.Info("ManageTrainRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 		if (AIController.GetSetting("rail_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildRailRoute");
-			BuildRailRoute(cityFrom, railBuildManager.hasUnfinishedRoute() ? true : false);
+			BuildRailRoute(cityFrom, railBuildManager.HasUnfinishedRoute() ? true : false);
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildRailRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
