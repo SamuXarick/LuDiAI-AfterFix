@@ -43,11 +43,7 @@ class RoadBuildManager {
 	function BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built);
 
 	function HasUnfinishedRoute() {
-		if (m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
-			return 1;
-		}
-
-		return 0;
+		return m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1;
 	}
 
 	function SetRouteFinished() {

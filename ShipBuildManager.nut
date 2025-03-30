@@ -47,11 +47,7 @@ class ShipBuildManager {
 	function BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built);
 
 	function HasUnfinishedRoute() {
-		if (m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
-			return 1;
-		}
-
-		return 0;
+		return m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1;
 	}
 
 	function SetRouteFinished() {

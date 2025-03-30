@@ -428,11 +428,7 @@ class RailBuildManager {
 	function BuildSignals(tileFrom, stationFromDir, tileTo, stationToDir);
 
 	function HasUnfinishedRoute() {
-		if (m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1) {
-			return 1;
-		}
-
-		return 0;
+		return m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1;
 	}
 
 	function SetRouteFinished() {

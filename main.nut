@@ -833,7 +833,7 @@ function LuDiAIAfterFix::Start() {
 		if (AIController.GetSetting("road_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildRoadRoute");
-			BuildRoadRoute(cityFrom, roadBuildManager.HasUnfinishedRoute() ? true : false);
+			BuildRoadRoute(cityFrom, roadBuildManager.HasUnfinishedRoute());
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildRoadRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
@@ -847,7 +847,7 @@ function LuDiAIAfterFix::Start() {
 		if (AIController.GetSetting("air_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildAirRoute");
-			BuildAirRoute(cityFrom, airBuildManager.HasUnfinishedRoute() ? true : false);
+			BuildAirRoute(cityFrom, airBuildManager.HasUnfinishedRoute());
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildAirRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
@@ -862,7 +862,7 @@ function LuDiAIAfterFix::Start() {
 		if (AIController.GetSetting("water_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildWaterRoute");
-			BuildWaterRoute(cityFrom, shipBuildManager.HasUnfinishedRoute() ? true : false);
+			BuildWaterRoute(cityFrom, shipBuildManager.HasUnfinishedRoute());
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildWaterRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
@@ -877,7 +877,7 @@ function LuDiAIAfterFix::Start() {
 		if (AIController.GetSetting("rail_support")) {
 //			local start_tick = AIController.GetTick();
 //			AILog.Info("main loop . BuildRailRoute");
-			BuildRailRoute(cityFrom, railBuildManager.HasUnfinishedRoute() ? true : false);
+			BuildRailRoute(cityFrom, railBuildManager.HasUnfinishedRoute());
 //			local management_ticks = AIController.GetTick() - start_tick;
 //			AILog.Info("BuildRailRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 		}
