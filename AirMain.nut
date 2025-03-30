@@ -78,9 +78,9 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished) {
 
 //			if (cityFrom != null) {
 //				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
-//					if (cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cC == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-//						if (!airRouteManager.TownRouteExists(cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cC)) {
-//							cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
+//					if (cityFrom == airTownManager.m_nearCityPairArray[i][0] && cC == airTownManager.m_nearCityPairArray[i][2]) {
+//						if (!airRouteManager.TownRouteExists(cityFrom, airTownManager.m_nearCityPairArray[i][1], cC)) {
+//							cityTo = airTownManager.m_nearCityPairArray[i][1];
 
 //							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 4) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && airRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
 //								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + airRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));

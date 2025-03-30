@@ -100,9 +100,9 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 
 			if (cityFrom != null) {
 				for (local i = 0; i < shipTownManager.m_nearCityPairArray.len(); ++i) {
-					if (cityFrom == shipTownManager.m_cityFrom(shipTownManager.m_nearCityPairArray[i]) && cC == shipTownManager.m_cargoClass(shipTownManager.m_nearCityPairArray[i])) {
-						if (!shipRouteManager.TownRouteExists(cityFrom, shipTownManager.m_cityTo(shipTownManager.m_nearCityPairArray[i]), cC)) {
-							cityTo = shipTownManager.m_cityTo(shipTownManager.m_nearCityPairArray[i]);
+					if (cityFrom == shipTownManager.m_nearCityPairArray[i][0] && cC == shipTownManager.m_nearCityPairArray[i][2]) {
+						if (!shipRouteManager.TownRouteExists(cityFrom, shipTownManager.m_nearCityPairArray[i][1], cC)) {
+							cityTo = shipTownManager.m_nearCityPairArray[i][1];
 
 							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && shipRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
 //								AILog.Info("shipRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + shipRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));

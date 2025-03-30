@@ -382,9 +382,9 @@ class AirBuildManager {
 
 			if (large_available) {
 				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
-					if (m_cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cargoClass == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
-							large_cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
+					if (m_cityFrom == airTownManager.m_nearCityPairArray[i][0] && cargoClass == airTownManager.m_nearCityPairArray[i][2]) {
+						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_nearCityPairArray[i][1], cargoClass)) {
+							large_cityTo = airTownManager.m_nearCityPairArray[i][1];
 
 							if (pick_mode != 1 && all_routes_built && airRouteManager.HasMaxStationCount(m_cityFrom, large_cityTo, cargoClass)) {
 //								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(large_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, large_cityTo, cargoClass));
@@ -462,9 +462,9 @@ class AirBuildManager {
 
 			if (small_available) {
 				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
-					if (m_cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cargoClass == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
-							small_cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
+					if (m_cityFrom == airTownManager.m_nearCityPairArray[i][0] && cargoClass == airTownManager.m_nearCityPairArray[i][2]) {
+						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_nearCityPairArray[i][1], cargoClass)) {
+							small_cityTo = airTownManager.m_nearCityPairArray[i][1];
 
 							if (pick_mode != 1 && all_routes_built && airRouteManager.HasMaxStationCount(m_cityFrom, small_cityTo, cargoClass)) {
 //								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(small_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, small_cityTo, cargoClass));
@@ -541,9 +541,9 @@ class AirBuildManager {
 
 			if (heli_available) {
 				for (local i = 0; i < airTownManager.m_nearCityPairArray.len(); ++i) {
-					if (m_cityFrom == airTownManager.m_cityFrom(airTownManager.m_nearCityPairArray[i]) && cargoClass == airTownManager.m_cargoClass(airTownManager.m_nearCityPairArray[i])) {
-						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]), cargoClass)) {
-							heli_cityTo = airTownManager.m_cityTo(airTownManager.m_nearCityPairArray[i]);
+					if (m_cityFrom == airTownManager.m_nearCityPairArray[i][0] && cargoClass == airTownManager.m_nearCityPairArray[i][2]) {
+						if (!airRouteManager.TownRouteExists(m_cityFrom, airTownManager.m_nearCityPairArray[i][1], cargoClass)) {
+							heli_cityTo = airTownManager.m_nearCityPairArray[i][1];
 
 							if (pick_mode != 1 && all_routes_built && airRouteManager.HasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass)) {
 //								AILog.Info("airRouteManager.HasMaxStationCount(" + AITown.GetName(m_cityFrom) + ", " + AITown.GetName(heli_cityTo) + ", " + cargoClass + ") == " + airRouteManager.HasMaxStationCount(m_cityFrom, heli_cityTo, cargoClass));

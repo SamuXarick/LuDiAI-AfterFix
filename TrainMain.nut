@@ -234,9 +234,9 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 
 			if (cityFrom != null) {
 				for (local i = 0; i < railTownManager.m_nearCityPairArray.len(); ++i) {
-					if (cityFrom == railTownManager.m_cityFrom(railTownManager.m_nearCityPairArray[i]) && cC == railTownManager.m_cargoClass(railTownManager.m_nearCityPairArray[i])) {
-						if (!railRouteManager.TownRouteExists(cityFrom, railTownManager.m_cityTo(railTownManager.m_nearCityPairArray[i]), cC)) {
-							cityTo = railTownManager.m_cityTo(railTownManager.m_nearCityPairArray[i]);
+					if (cityFrom == railTownManager.m_nearCityPairArray[i][0] && cC == railTownManager.m_nearCityPairArray[i][2]) {
+						if (!railRouteManager.TownRouteExists(cityFrom, railTownManager.m_nearCityPairArray[i][1], cC)) {
+							cityTo = railTownManager.m_nearCityPairArray[i][1];
 
 							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && railRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
 //								AILog.Info("railRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + railRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
