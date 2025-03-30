@@ -1,7 +1,8 @@
 LuDiAI AfterFix
 ===============
-v22 (29-03-2025)
+v22 (30-03-2025)
 - Fixed a bug that allowed road depots to be part of multiple routes
+- Silence cache related errors about train engines and wagons
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0

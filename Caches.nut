@@ -106,8 +106,8 @@ class Caches {
 					this.vehicle_lengths.rawset(engine, vehicle_length);
 					AIVehicle.SellVehicle(v);
 					result = true;
-				} else {
-					AILog.Error("Failed to build vehicle with refit to check its length");
+//				} else {
+//					AILog.Error("Failed to build vehicle with refit to check its length");
 				}
 			}
 
@@ -200,8 +200,8 @@ class Caches {
 				AIVehicle.SellVehicle(v);
 				if (!res1) AIVehicle.SellVehicle(w);
 			} else {
-				if (!AIVehicle.IsValidVehicle(v)) AILog.Error("Failed to build engine with refit to check if it can attach to wagon. " + error_v);
-				if (!AIVehicle.IsValidVehicle(w)) AILog.Error("Failed to build wagon with refit to check if it can attach to engine. " + error_w);
+//				if (!AIVehicle.IsValidVehicle(v)) AILog.Error("Failed to build engine with refit to check if it can attach to wagon. " + error_v);
+//				if (!AIVehicle.IsValidVehicle(w)) AILog.Error("Failed to build wagon with refit to check if it can attach to engine. " + error_w);
 				if (AIVehicle.IsValidVehicle(v)) AIVehicle.SellVehicle(v);
 				if (AIVehicle.IsValidVehicle(w)) AIVehicle.SellVehicle(w);
 				return true;
@@ -234,7 +234,7 @@ class Caches {
 					local v = AITestMode() && TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 					price = cost.GetCosts();
 					if (price <= 0) {
-						AILog.Error("Retrieved a price of zero for a vehicle with refit");
+//						AILog.Error("Retrieved a price of zero for a vehicle with refit");
 					} else {
 						this.costs_with_refit.append([pair, price]);
 					}
