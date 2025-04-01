@@ -632,7 +632,7 @@ class ShipBuildManager {
 /*400*/			pathfinder.cost.aqueduct_per_tile;
 /*925*/			pathfinder.cost.lock;
 /*150*/			pathfinder.cost.depot;
-/*6*/			pathfinder.cost.max_aqueduct_length;
+/*6*/			pathfinder.cost.max_aqueduct_length = AIGameSettings.GetValue("infinite_money") ? AIGameSettings.GetValue("max_bridge_length") + 2 : pathfinder.cost.max_aqueduct_length;
 /*1*/			pathfinder.cost.estimate_multiplier = 1.0 + route_dist / 333.3;
 /*0*/			pathfinder.cost.search_range = max(33, route_dist / 10);
 
