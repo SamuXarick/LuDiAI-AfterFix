@@ -482,7 +482,7 @@ function DoubleRail::_Neighbours(path, cur_segment, self)
 //			local cur_tile_1 = parent_tiles[1][4];
 			if (prev_tile_0 && prev_tile_1) {
 				local wrap_map = false;
-				for (local i = 3; i < self._max_bridge_length; i++) {
+				for (local i = 2; i < self._max_bridge_length; i++) {
 					local nodes = [[], []];
 					pushed_all = true;
 					foreach (j in [0, 1]) {
