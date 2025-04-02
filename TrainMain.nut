@@ -121,7 +121,6 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 							} else {
 								local railtypes = Utils.ArrayGetValue(engineWagonPairs, pair);
 								railtypes.append(railtype);
-								Utils.ArraySetValue(engineWagonPairs, pair, railtypes);
 							}
 						}
 					}

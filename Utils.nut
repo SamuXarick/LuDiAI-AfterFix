@@ -21,7 +21,7 @@ function Utils::ArrayHasItem(array, item) {
 }
 
 function Utils::ArrayGetValue(array, item) {
-	assert(Utils.ArrayHasItem(array, item));
+//	assert(Utils.ArrayHasItem(array, item));
 
 	foreach (_, it in array) {
 		local i = 0;
@@ -39,25 +39,25 @@ function Utils::ArrayGetValue(array, item) {
 	assert(false);
 }
 
-function Utils::ArraySetValue(array, item, value) {
-	assert(Utils.ArrayHasItem(array, item));
+// function Utils::ArraySetValue(array, item, value) {
+///	assert(Utils.ArrayHasItem(array, item));
 
-	foreach (_, it in array) {
-		local i = 0;
-		do {
-			if (item[i] == it[0][i]) {
-				i++;
-			} else {
-				break;
-			}
-		} while (i < item.len());
-		if (i == item.len()) {
-			it[1] = value;
-			return;
-		}
-	}
-	assert(false);
-}
+// 	foreach (_, it in array) {
+// 		local i = 0;
+// 		do {
+// 			if (item[i] == it[0][i]) {
+// 				i++;
+// 			} else {
+// 				break;
+// 			}
+// 		} while (i < item.len());
+// 		if (i == item.len()) {
+// 			it[1] = value;
+// 			return;
+// 		}
+// 	}
+// 	assert(false);
+// }
 
 function Utils::CountBits(value) {
 	assert(typeof(value) == "integer");

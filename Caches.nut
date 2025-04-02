@@ -138,7 +138,7 @@ class Caches {
 		if (AIRail.IsRailDepotTile(depot)) {
 			local cost = AIAccounting();
 			local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
-			local error_v = AIError.GetLastErrorString();
+//			local error_v = AIError.GetLastErrorString();
 			local price = cost.GetCosts();
 			local pair = [engine, cargo];
 			if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
@@ -164,7 +164,7 @@ class Caches {
 				}
 			}
 			local w = TestBuildVehicleWithRefit().TryBuild(depot, wagon, cargo);
-			local error_w = AIError.GetLastErrorString();
+//			local error_w = AIError.GetLastErrorString();
 			price = cost.GetCosts();
 			pair = [wagon, cargo];
 			if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
