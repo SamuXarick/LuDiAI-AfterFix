@@ -356,7 +356,7 @@ class AyStar.Path
 		local used_tiles = [];
 		local path = this;
 		do {
-			foreach(line in path._segment.m_nodes) {
+			foreach (line in path._segment.m_nodes) {
 				foreach (node in line) {
 					used_tiles.extend(node[2]);
 				}

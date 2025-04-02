@@ -208,7 +208,7 @@ class RoadRoute extends RoadRouteManager {
 
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
 //		for (local i = m_bridgeTiles.Begin(); !m_bridgeTiles.IsEnd(); i = m_bridgeTiles.Next()) {
-		foreach (_, tile in m_bridgeTiles) {
+		foreach (tile in m_bridgeTiles) {
 			local north_tile = tile[0];
 			local south_tile = tile[1];
 

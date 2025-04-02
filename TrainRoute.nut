@@ -170,7 +170,7 @@ class RailRoute extends RailRouteManager {
 
 		local best_income = null;
 		local best_pair = null;
-		foreach (_, pair in engineWagonPairList) {
+		foreach (pair in engineWagonPairList) {
 			local engine = pair[0];
 			local wagon = pair[1];
 			local reliability = AIEngine.GetReliability(engine);
@@ -227,7 +227,7 @@ class RailRoute extends RailRouteManager {
 		if (!m_activeRoute) return;
 
 		AIRail.SetCurrentRailType(m_railtype);
-		foreach (_, tile in m_bridgeTiles) {
+		foreach (tile in m_bridgeTiles) {
 			local north_tile = tile[0];
 			local south_tile = tile[1];
 

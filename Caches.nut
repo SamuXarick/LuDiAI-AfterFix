@@ -130,7 +130,7 @@ class Caches {
 		}
 
 		/* it's not in the list yet */
-		local result = false;
+		local result = null;
 		if (!AIRail.IsRailDepotTile(depot)) {
 			depot = this.GetExistingRailDepot(railtype);
 		}
@@ -194,9 +194,7 @@ class Caches {
 				if (res1) {
 					res2 = AITestMode() && AIVehicle.StartStopVehicle(v);
 				}
-				if (res1 && res2) {
-					result = true;
-				}
+				result = res1 && res2;
 				AIVehicle.SellVehicle(v);
 				if (!res1) AIVehicle.SellVehicle(w);
 			} else {
@@ -204,6 +202,7 @@ class Caches {
 //				if (!AIVehicle.IsValidVehicle(w)) AILog.Error("Failed to build wagon with refit to check if it can attach to engine. " + error_w);
 				if (AIVehicle.IsValidVehicle(v)) AIVehicle.SellVehicle(v);
 				if (AIVehicle.IsValidVehicle(w)) AIVehicle.SellVehicle(w);
+				/* Failed to build one of the vehicles. Assume that it can attach. */
 				return true;
 			}
 		} else {
@@ -211,9 +210,9 @@ class Caches {
 			return true;
 		}
 
-		if (result) this.attach_list.append([combo, result]);
+		if (result != null) this.attach_list.append([combo, result]);
 //		AILog.Info(AIEngine.GetName(engine) + " -- " + AIEngine.GetName(wagon) + " ? " + result);
-		return result;
+		return result == true;
 	}
 
 	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID) {

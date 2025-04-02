@@ -4,7 +4,7 @@ class Utils {
 function Utils::ArrayHasItem(array, item) {
 	assert(typeof(item) == "array");
 
-	foreach (_, it in array) {
+	foreach (it in array) {
 		local i = 0;
 		do {
 			if (item[i] == it[0][i]) {
@@ -23,7 +23,7 @@ function Utils::ArrayHasItem(array, item) {
 function Utils::ArrayGetValue(array, item) {
 //	assert(Utils.ArrayHasItem(array, item));
 
-	foreach (_, it in array) {
+	foreach (it in array) {
 		local i = 0;
 		do {
 			if (item[i] == it[0][i]) {
@@ -42,7 +42,7 @@ function Utils::ArrayGetValue(array, item) {
 // function Utils::ArraySetValue(array, item, value) {
 ///	assert(Utils.ArrayHasItem(array, item));
 
-// 	foreach (_, it in array) {
+// 	foreach (it in array) {
 // 		local i = 0;
 // 		do {
 // 			if (item[i] == it[0][i]) {
@@ -78,7 +78,7 @@ function Utils::Clamp(a, min, max) {
 
 function Utils::TableListToAIList(table) {
 	local list = AIList();
-	foreach(x, y in table) {
+	foreach (x, y in table) {
 		list.AddItem(x, y);
 	}
 	return list;
