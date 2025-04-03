@@ -31,20 +31,19 @@ class TownManager {
 	m_townCount = null;
 
 	m_nearCityPairArray = null;
-	m_usedCitiesPassList = null;
-	m_usedCitiesMailList = null;
+	m_usedCitiesList = null;
 
 	constructor() {
 		m_townList = AIList();
 		m_townCount = 0;
 
 		m_nearCityPairArray = [];
-		m_usedCitiesPassList = AIList();
-		m_usedCitiesMailList = AIList();
+		m_usedCitiesList = {};
+		m_usedCitiesList.rawset(AICargo.CC_PASSENGERS, AIList());
+		m_usedCitiesList.rawset(AICargo.CC_MAIL, AIList());
 	}
 
 	function GetUnusedCity(bestRoutesBuilt, cargoClass);
-	function RemoveUsedCityPair(fromCity, toCity, usedCities);
 	function FindNearCities(fromCity, minDistance, maxDistance, bestRoutesBuilt, cargoClass, fakedist);
 	function BuildTownList();
 	function HasArrayCargoClassPairs(cargoClass);
@@ -83,24 +82,20 @@ class TownManager {
 	function GetUnusedCity(bestRoutesBuilt, cargoClass) {
 		BuildTownList();
 
-		if (m_townList.Count() == (cargoClass == AICargo.CC_PASSENGERS ? m_usedCitiesPassList.Count() : m_usedCitiesMailList.Count())) {
+		if (m_townList.Count() == m_usedCitiesList[cargoClass].Count()) {
 			return null;
 		}
 
 		local localList = AIList();
 		localList.AddList(m_townList);
-		localList.RemoveList(cargoClass == AICargo.CC_PASSENGERS ? m_usedCitiesPassList : m_usedCitiesMailList);
+		localList.RemoveList(m_usedCitiesList[cargoClass]);
 
 		local unusedTown = null;
 		local pick_mode = AIController.GetSetting("pick_mode");
 		if (pick_mode == 1) {
 			local randomLocalListItemIndex = AIBase.RandRange(localList.Count());
 			unusedTown = Utils.GetNthItem(localList, randomLocalListItemIndex);
-			if (cargoClass == AICargo.CC_PASSENGERS) {
-				m_usedCitiesPassList.AddItem(unusedTown, 0);
-			} else {
-				m_usedCitiesMailList.AddItem(unusedTown, 0);
-			}
+			m_usedCitiesList[cargoClass].AddItem(unusedTown, 0);
 		} else {
 			local cargo = Utils.GetCargoType(cargoClass);
 			for (local town = localList.Begin(); !localList.IsEnd(); town = localList.Next()) {
@@ -128,11 +123,7 @@ class TownManager {
 
 			if (localList.Count()) {
 				unusedTown = localList.Begin();
-				if (cargoClass == AICargo.CC_PASSENGERS) {
-					m_usedCitiesPassList.AddItem(unusedTown, 0);
-				} else {
-					m_usedCitiesMailList.AddItem(unusedTown, 0);
-				}
+				m_usedCitiesList[cargoClass].AddItem(unusedTown, 0);
 			}
 		}
 
@@ -152,41 +143,22 @@ class TownManager {
 
 		/* The following code is too slow */
 //		if (usedCities) {
-//			if (cargoClass == AICargo.CC_PASSENGERS) {
-//				AILog.Info(m_usedCitiesPassList.Count() + " found in m_usedCitiesPassList");
-//				local removeList = AIList();
-//				foreach (u, v in m_usedCitiesPassList) {
-//					local removeTown = true;
-//					for (local i = 0; i < m_nearCityPairArray.len(); ++i) {
-//						if ((u == m_nearCityPairArray[i][0] || u == m_nearCityPairArray[i][1]) && m_nearCityPairArray[i][2] == cargoClass) {
-//							removeTown = false;
-//						}
-//					}
-//					if (removeTown) {
-//						AILog.Info("Town " + AITown.GetName(u) + " is being removed (RemoveUsedCityPair)");
-//						removeList.AddItem(u, 0);
+//			AILog.Info(m_usedCitiesList[cargoClass].Count() + " found in m_usedCitiesList[" + cargoClass + "]");
+//			local removeList = AIList();
+//			foreach (u, v in m_usedCitiesList[cargoClass]) {
+//				local removeTown = true;
+//				for (local i = 0; i < m_nearCityPairArray.len(); ++i) {
+//					if ((u == m_nearCityPairArray[i][0] || u == m_nearCityPairArray[i][1]) && m_nearCityPairArray[i][2] == cargoClass) {
+//						removeTown = false;
 //					}
 //				}
-//
-//				m_usedCitiesPassList.RemoveList(removeList);
-//			} else {
-//				AILog.Info(m_usedCitiesMailList.Count() + " found in m_usedCitiesMailList");
-//				local removeList = AIList();
-//				foreach (u, v in m_usedCitiesMailList) {
-//					local removeTown = true;
-//					for (local i = 0; i < m_nearCityPairArray.len(); ++i) {
-//						if ((u == m_nearCityPairArray[i][0] || u == m_nearCityPairArray[i][1]) && m_nearCityPairArray[i][2] == cargoClass) {
-//							removeTown = false;
-//						}
-//					}
-//					if (removeTown) {
-//						AILog.Info("Town " + AITown.GetName(u) + " is being removed (RemoveUsedCityPair)");
-//						removeList.AddItem(u, 0);
-//					}
+//				if (removeTown) {
+//					AILog.Info("Town " + AITown.GetName(u) + " is being removed (RemoveUsedCityPair)");
+//					removeList.AddItem(u, 0);
 //				}
-//
-//				m_usedCitiesMailList.RemoveList(removeList);
 //			}
+//
+//			m_usedCitiesList[cargoClass].RemoveList(removeList);
 //		}
 	}
 
@@ -201,7 +173,7 @@ class TownManager {
 
 		local localCityList = AIList();
 		localCityList.AddList(m_townList);
-		localCityList.RemoveList(cargoClass == AICargo.CC_PASSENGERS ? m_usedCitiesPassList : m_usedCitiesMailList);
+		localCityList.RemoveList(m_usedCitiesList[cargoClass]);
 		localCityList.RemoveItem(fromCity); // remove self
 
 		local localPairList = AIList();
@@ -322,18 +294,15 @@ class TownManager {
 	}
 
 	function SaveTownManager() {
-		return [m_nearCityPairArray, m_usedCitiesPassList, m_usedCitiesMailList];
+		return [m_nearCityPairArray, m_usedCitiesList];
 	}
 
 	function LoadTownManager(data) {
 		m_nearCityPairArray = data[0];
 		AILog.Info("Loaded " + m_nearCityPairArray.len() + " near city pairs.");
 
-		m_usedCitiesPassList = data[1];
-		AILog.Info("Loaded " + m_usedCitiesPassList.Count() + " used cities Pass.");
-
-		m_usedCitiesMailList = data[2];
-		AILog.Info("Loaded " + m_usedCitiesMailList.Count() + " used cities Mail.");
+		m_usedCitiesList = data[1];
+		AILog.Info("Loaded " + m_usedCitiesList[AICargo.CC_PASSENGERS].Count() + " used cities Pass.");
+		AILog.Info("Loaded " + m_usedCitiesList[AICargo.CC_MAIL].Count() + " used cities Mail.");
 	}
-
 }

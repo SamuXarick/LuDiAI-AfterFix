@@ -39,19 +39,11 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished) {
 				cityFrom = airTownManager.GetUnusedCity(((((bestRoutesBuilt >> 4) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						if (cC == AICargo.CC_PASSENGERS) {
-							airTownManager.m_usedCitiesPassList.Clear();
-						} else {
-							airTownManager.m_usedCitiesMailList.Clear();
-						}
+						airTownManager.m_usedCitiesList[cC].Clear();
 					} else {
 						if ((((bestRoutesBuilt >> 4) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (4 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
-							if (cC == AICargo.CC_PASSENGERS) {
-								airTownManager.m_usedCitiesPassList.Clear();
-							} else {
-								airTownManager.m_usedCitiesMailList.Clear();
-							}
+							airTownManager.m_usedCitiesList[cC].Clear();
 //							airTownManager.ClearCargoClassArray(cC);
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " air routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 						} else {

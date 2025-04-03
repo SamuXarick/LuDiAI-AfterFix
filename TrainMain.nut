@@ -188,19 +188,11 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 				cityFrom = railTownManager.GetUnusedCity(((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						if (cC == AICargo.CC_PASSENGERS) {
-							railTownManager.m_usedCitiesPassList.Clear();
-						} else {
-							railTownManager.m_usedCitiesMailList.Clear();
-						}
+						railTownManager.m_usedCitiesList[cC].Clear();
 					} else {
 						if ((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (6 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
-							if (cC == AICargo.CC_PASSENGERS) {
-								railTownManager.m_usedCitiesPassList.Clear();
-							} else {
-								railTownManager.m_usedCitiesMailList.Clear();
-							}
+							railTownManager.m_usedCitiesList[cC].Clear();
 //							railTownManager.ClearCargoClassArray(cC);
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " rail routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 						} else {

@@ -507,17 +507,17 @@ class LuDiAIAfterFix extends AIController {
 				if (allRoutesBuilt != 0) {
 					allRoutesBuilt = 0;
 //					roadTownManager.m_nearCityPairArray = [];
-					roadTownManager.m_usedCitiesPassList.Clear();
-					roadTownManager.m_usedCitiesMailList.Clear();
+					roadTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
+					roadTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
 //					shipTownManager.m_nearCityPairArray = [];
-					shipTownManager.m_usedCitiesPassList.Clear();
-					shipTownManager.m_usedCitiesMailList.Clear();
+					shipTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
+					shipTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
 //					airTownManager.m_nearCityPairArray = [];
-					airTownManager.m_usedCitiesPassList.Clear();
-					airTownManager.m_usedCitiesMailList.Clear();
+					airTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
+					airTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
 //					railTownManager.m_nearCityPairArray = [];
-					railTownManager.m_usedCitiesPassList.Clear();
-					railTownManager.m_usedCitiesMailList.Clear();
+					railTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
+					railTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
 					AILog.Warning("Not all routes have been used at this time.");
 				}
 			}
