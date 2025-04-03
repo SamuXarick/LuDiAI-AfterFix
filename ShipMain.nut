@@ -7,7 +7,7 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 		if (!unfinished) {
 			cargoClassWater = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassWater : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.GetCargoID(cC);
+			local cargo = Utils.GetCargoType(cC);
 			local tempList = AIEngineList(AIVehicle.VT_WATER);
 			local engineList = AIList();
 			for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
@@ -151,7 +151,7 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 				if (routeResult[0] != 0) {
 					reservedMoney -= reservedMoneyWater;
 					reservedMoneyWater = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoC)) + " water route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerWater + " day" + (buildTimerWater != 1 ? "s" : "") + ".");
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoC)) + " water route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerWater + " day" + (buildTimerWater != 1 ? "s" : "") + ".");
 				}
 			} else {
 				reservedMoney -= reservedMoneyWater;

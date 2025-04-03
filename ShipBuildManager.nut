@@ -318,7 +318,7 @@ class ShipBuildManager {
 	}
 
 	function BuildTownDock(town, cargoClass, cheaperRoute, best_routes_built) {
-		local cargoType = Utils.GetCargoID(cargoClass);
+		local cargoType = Utils.GetCargoType(cargoClass);
 		local radius = AIStation.GetCoverageRadius(AIStation.STATION_DOCK);
 
 		local tileList = AITileList();

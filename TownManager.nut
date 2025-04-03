@@ -102,7 +102,7 @@ class TownManager {
 				m_usedCitiesMailList.AddItem(unusedTown, 0);
 			}
 		} else {
-			local cargo = Utils.GetCargoID(cargoClass);
+			local cargo = Utils.GetCargoType(cargoClass);
 			for (local town = localList.Begin(); !localList.IsEnd(); town = localList.Next()) {
 				localList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
 			}
@@ -141,10 +141,10 @@ class TownManager {
 
 	function RemoveUsedCityPair(fromCity, toCity, cargoClass, usedCities) {
 //		AILog.Info(m_nearCityPairArray.len() + " found in the m_nearCityPairArray");
-//		AILog.Info("Town pair " + AITown.GetName(fromCity) + " and " + AITown.GetName(toCity) + " (" + AICargo.GetCargoLabel(Utils.GetCargoID(cargoClass)) + ") are being removed...");
+//		AILog.Info("Town pair " + AITown.GetName(fromCity) + " and " + AITown.GetName(toCity) + " (" + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClass)) + ") are being removed...");
 		for (local i = m_nearCityPairArray.len() - 1; i >= 0; --i) {
 			if (TownPair(fromCity, toCity, cargoClass).IsTownPairDataEqual(m_nearCityPairArray[i])) {
-//				AILog.Info("Found pair " + AITown.GetName(m_nearCityPairArray[i][0]) + " and " + AITown.GetName(m_nearCityPairArray[i][1]) + "( " + AICargo.GetCargoLabel(Utils.GetCargoID(m_nearCityPairArray[i][2])) + ") in m_nearCityPairArray[" + i + "]");
+//				AILog.Info("Found pair " + AITown.GetName(m_nearCityPairArray[i][0]) + " and " + AITown.GetName(m_nearCityPairArray[i][1]) + "( " + AICargo.GetCargoLabel(Utils.GetCargoType(m_nearCityPairArray[i][2])) + ") in m_nearCityPairArray[" + i + "]");
 				m_nearCityPairArray.remove(i);
 				break;
 			}
@@ -243,7 +243,7 @@ class TownManager {
 		}
 		else {
 			local fromCity_tile = AITown.GetLocation(fromCity);
-			local cargo = Utils.GetCargoID(cargoClass);
+			local cargo = Utils.GetCargoType(cargoClass);
 			local cargolimit = cargoClass == AICargo.CC_PASSENGERS ? 70 : 35;
 			for (local town = localPairList.Begin(); !localPairList.IsEnd(); town = localPairList.Next()) {
 				localPairList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));

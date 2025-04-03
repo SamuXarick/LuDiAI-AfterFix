@@ -339,25 +339,25 @@ function Utils::IsTileMyStationWithoutRailwayStation(tile) {
 }
 
 /**
- * GetCargoID - Returns either mail cargo id, or passenger cargo id.
+ * GetCargoType - Returns either mail cargo id, or passenger cargo id.
  * @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
  * @return - Cargo list.
  */
-function Utils::GetCargoID(cargoClass) {
+function Utils::GetCargoType(cargoClass) {
 	local cargoList = AICargoList();
 	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
 
-	local cargoId = 0xFF;
+	local cargo_type = 0xFF;
 	for (local cargo = cargoList.Begin(); !cargoList.IsEnd(); cargo = cargoList.Next()) {
 		if (AICargo.HasCargoClass(cargo, cargoClass)) {
-			cargoId = cargo;
+			cargo_type = cargo;
 			break;
 		}
 	}
-//	assert(AICargo.IsValidCargo(cargoId));
+//	assert(AICargo.IsValidCargo(cargo_type));
 
 	/* both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should return the first available cargo */
-	return cargoId;
+	return cargo_type;
 }
 
 function Utils::IsTownGrowing(town, cargo) {

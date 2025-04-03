@@ -22,7 +22,7 @@ class AirBuildManager {
 	m_large_aircraft_route = false;
 	m_helicopter_route = false;
 
-	m_cargoID = -1;
+	m_cargoType = -1;
 
 	function BuildTownAirport(airRouteManager, airTownManager, town, cargoClass, large_aircraft, small_aircraft, helicopter, best_routes_built, all_routes_built)
 	function SaveBuildManager();
@@ -47,7 +47,7 @@ class AirBuildManager {
 		m_small_aircraft_route = false;
 		m_large_aircraft_route = false;
 		m_helicopter_route = false;
-		m_cargoID = -1;
+		m_cargoType = -1;
 		m_airport_types = AIList();
 	}
 
@@ -57,7 +57,7 @@ class AirBuildManager {
 		m_cargoClass = cargoClass;
 		m_sentToDepotAirGroup = sentToDepotAirGroup;
 		m_best_routes_built = best_routes_built;
-		m_cargoID = Utils.GetCargoID(cargoClass);
+		m_cargoType = Utils.GetCargoType(cargoClass);
 
 		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_AIR);
 		if (num_vehicles >= AIGameSettings.GetValue("max_aircraft") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_AIR)) {
@@ -175,7 +175,7 @@ class AirBuildManager {
 				local engine_id = GetBestAirportEngine(m_fromType);
 				local default_count = 8;
 				if (engine_id != null) {
-					local count = WrightAI.GetEngineOptimalDaysInTransit(engine_id, m_cargoID, DAYS_INTERVAL, true, m_airportFrom, m_fromType);
+					local count = WrightAI.GetEngineOptimalDaysInTransit(engine_id, m_cargoType, DAYS_INTERVAL, true, m_airportFrom, m_fromType);
 					default_count = count[2] > 0 && count[2] != 1000 ? count[2] : default_count;
 				}
 				engine_count = default_count;
@@ -346,7 +346,7 @@ class AirBuildManager {
 
 			local large_engine;
 			if (large_available) {
-				large_engine = WrightAI.GetBestEngineIncome(large_engine_list, m_cargoID, DAYS_INTERVAL);
+				large_engine = WrightAI.GetBestEngineIncome(large_engine_list, m_cargoType, DAYS_INTERVAL);
 				if (large_engine[0] == null) {
 //					AILog.Info("large_available = false [3]");
 					large_available = false;
@@ -426,7 +426,7 @@ class AirBuildManager {
 
 			local small_engine;
 			if (small_available) {
-				small_engine = WrightAI.GetBestEngineIncome(small_engine_list, m_cargoID, DAYS_INTERVAL);
+				small_engine = WrightAI.GetBestEngineIncome(small_engine_list, m_cargoType, DAYS_INTERVAL);
 				if (small_engine[0] == null) {
 //					AILog.Info("small_available = false [3]");
 					small_available = false;
@@ -505,7 +505,7 @@ class AirBuildManager {
 
 			local heli_engine;
 			if (heli_available) {
-				heli_engine = WrightAI.GetBestEngineIncome(heli_engine_list, m_cargoID, DAYS_INTERVAL);
+				heli_engine = WrightAI.GetBestEngineIncome(heli_engine_list, m_cargoType, DAYS_INTERVAL);
 				if (heli_engine[0] == null) {
 //					AILog.Info("heli_available = false [3]");
 					heli_available = false;
@@ -726,20 +726,20 @@ class AirBuildManager {
 					}
 
 					/* Sort on acceptance, remove places that don't have acceptance */
-					if (AITile.GetCargoAcceptance(tile, m_cargoID, airport_x, airport_y, airport_rad) < 10) {
+					if (AITile.GetCargoAcceptance(tile, m_cargoType, airport_x, airport_y, airport_rad) < 10) {
 						tempList.RemoveItem(tile);
 						continue;
 					}
 
-					local secondary_cargo = Utils.GetCargoID(AICargo.CC_MAIL);
-					if (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(secondary_cargo) && secondary_cargo != m_cargoID) {
+					local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
+					if (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(secondary_cargo) && secondary_cargo != m_cargoType) {
 						if (AITile.GetCargoAcceptance(tile, secondary_cargo, airport_x, airport_y, airport_rad) < 10) {
 							tempList.RemoveItem(tile);
 							continue;
 						}
 					}
 
-					local cargo_production = AITile.GetCargoProduction(tile, m_cargoID, airport_x, airport_y, airport_rad);
+					local cargo_production = AITile.GetCargoProduction(tile, m_cargoType, airport_x, airport_y, airport_rad);
 					if (pick_mode != 1 && (!best_routes_built || infrastructure) && cargo_production < 18) {
 						tempList.RemoveItem(tile);
 						continue;
@@ -835,8 +835,8 @@ class AirBuildManager {
 
 		local all_engines = AIEngineList(AIVehicle.VT_AIR);
 		for (local engine = all_engines.Begin(); !all_engines.IsEnd(); engine = all_engines.Next()) {
-			if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, m_cargoID)) {
-				local income = WrightAI.GetEngineOptimalDaysInTransit(engine, m_cargoID, DAYS_INTERVAL, true, from_location, from_type);
+			if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, m_cargoType)) {
+				local income = WrightAI.GetEngineOptimalDaysInTransit(engine, m_cargoType, DAYS_INTERVAL, true, from_location, from_type);
 				switch (AIEngine.GetPlaneType(engine)) {
 					case AIAirport.PT_BIG_PLANE:
 						m_big_engine_list.AddItem(engine, income[0]);

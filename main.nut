@@ -92,7 +92,7 @@ class LuDiAIAfterFix extends AIController {
 		airTownManager = TownManager();
 		railTownManager = TownManager();
 
-		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoID(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
+		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
 		cargoClassWater = cargoClassRoad;
 		cargoClassAir = cargoClassRoad;
 		cargoClassRail = cargoClassRoad;
@@ -119,8 +119,8 @@ class LuDiAIAfterFix extends AIController {
 		railRouteManager = RailRouteManager(this.sentToDepotRailGroup, false);
 		railBuildManager = RailBuildManager();
 
-		::caches <- Caches();
 		::scheduledRemovalsTable <- { Train = [], Road = {}, Ship = {}, Aircraft = {} };
+		::caches <- Caches();
 
 		loading = true;
 	}
@@ -352,15 +352,15 @@ class LuDiAIAfterFix extends AIController {
 		local myCID = Utils.MyCID();
 		if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) return;
 
-		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.GetCargoID(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
-		local cargoId = Utils.GetCargoID(cC);
+		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
+		local cargo_type = Utils.GetCargoType(cC);
 
 		local stationList = AIStationList(AIStation.STATION_ANY);
 		local stationTowns = AIList();
 		local townList = AIList();
 		local statuecount = 0;
 		for (local st = stationList.Begin(); !stationList.IsEnd(); st = stationList.Next()) {
-			if (AIStation.HasCargoRating(st, cargoId)/* && AIVehicleList_Station(st).Count() > 0*/) { // too slow
+			if (AIStation.HasCargoRating(st, cargo_type)/* && AIVehicleList_Station(st).Count() > 0*/) { // too slow
 				local neartown = AIStation.GetNearestTown(st);
 				if (!townList.HasItem(neartown)) {
 					townList.AddItem(neartown, 0);
@@ -368,7 +368,7 @@ class LuDiAIAfterFix extends AIController {
 						statuecount++;
 					}
 				}
-				if (AIStation.GetCargoRating(st, cargoId) < 50 && AIStation.GetCargoWaiting(st, cargoId) <= 100) {
+				if (AIStation.GetCargoRating(st, cargo_type) < 50 && AIStation.GetCargoWaiting(st, cargo_type) <= 100) {
 					if (!stationTowns.HasItem(neartown)) {
 						stationTowns.AddItem(neartown, st);
 					} else {
@@ -394,7 +394,7 @@ class LuDiAIAfterFix extends AIController {
 					}
 					if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
 						statuecount++;
-						AILog.Warning("Built a statue in " + AITown.GetName(town) + " (" + statuecount + "/" + towncount + " " + AICargo.GetCargoLabel(cargoId) + ")");
+						AILog.Warning("Built a statue in " + AITown.GetName(town) + " (" + statuecount + "/" + towncount + " " + AICargo.GetCargoLabel(cargo_type) + ")");
 					}
 				}
 			}
@@ -442,7 +442,7 @@ class LuDiAIAfterFix extends AIController {
 					}
 				}
 
-				if (AIController.GetSetting("fund_buildings") && AITown.GetLastMonthProduction(town, cargoId) <= (cC == AICargo.CC_PASSENGERS ? 70 : 35)) {
+				if (AIController.GetSetting("fund_buildings") && AITown.GetLastMonthProduction(town, cargo_type) <= (cC == AICargo.CC_PASSENGERS ? 70 : 35)) {
 					local action = AITown.TOWN_ACTION_FUND_BUILDINGS;
 					if (AITown.IsActionAvailable(town, action) && AITown.GetFundBuildingsDuration(town) == 0) {
 						local perform_action = true;
@@ -799,7 +799,7 @@ function LuDiAIAfterFix::Start() {
 			/* Name company */
 			local cargostr = "";
 			if (AIController.GetSetting("select_town_cargo") != 2) {
-				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoClassRoad));
+				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClassRoad));
 			}
 			if (!AICompany.SetName("LuDiAI AfterFix" + cargostr)) {
 				local i = 2;

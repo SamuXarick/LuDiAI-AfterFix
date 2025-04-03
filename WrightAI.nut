@@ -139,7 +139,7 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 			max_count = (count_interval > 0 ? (fakedist / count_interval) : max_count) + WrightAI.GetNumTerminals(aircraft_type, type_from) + WrightAI.GetNumTerminals(aircraft_type, type_from);
 		}
 		local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo, distance_max_speed * days / 1000, days);
-		local secondary_cargo = Utils.GetCargoID(AICargo.CC_MAIL);
+		local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
 		local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
 		local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_max_speed * days / 1000, days) : 0;
 		local income_max_speed = (income_primary + income_secondary - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count)/* * multiplier / 100*/;
@@ -179,7 +179,7 @@ function WrightAI::GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, air
 function WrightAI::GetEngineRouteIncome(engine_id, cargo, fakedist, primary_capacity = 0, secondary_capacity = 0) {
 	local running_cost = AIEngine.GetRunningCost(engine_id);
 	primary_capacity = primary_capacity == 0 ? ::caches.GetCapacity(engine_id, cargo) : primary_capacity;
-	local secondary_cargo = Utils.GetCargoID(AICargo.CC_MAIL);
+	local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
 	local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
 	secondary_capacity = AIController.GetSetting("select_town_cargo") != 2 ? 0 : secondary_capacity == 0 ? is_valid_secondary_cargo ? ::caches.GetSecondaryCapacity(engine_id) : 0 : secondary_capacity;
 	local days_in_transit = WrightAI.GetEngineDaysInTransit(engine_id, fakedist);

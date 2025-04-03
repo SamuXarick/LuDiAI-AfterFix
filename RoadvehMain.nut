@@ -7,7 +7,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 		if (!unfinished) {
 			cargoClassRoad = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.GetCargoID(cC);
+			local cargo = Utils.GetCargoType(cC);
 			local tempList = AIEngineList(AIVehicle.VT_ROAD);
 			local engineList = AIList();
 			for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
@@ -152,7 +152,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 				if (routeResult[0] != 0) {
 					reservedMoney -= reservedMoneyRoad;
 					reservedMoneyRoad = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoC)) + " road route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + ".");
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoC)) + " road route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + ".");
 				}
 			} else {
 				reservedMoney -= reservedMoneyRoad;

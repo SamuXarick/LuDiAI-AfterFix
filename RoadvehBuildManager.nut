@@ -195,7 +195,7 @@ class RoadBuildManager {
 		local vehicleType = (cargoClass == AICargo.CC_MAIL) ? AIRoad.ROADVEHTYPE_TRUCK : AIRoad.ROADVEHTYPE_BUS;
 //		local max_spread = AIController.GetSetting("station_spread") && AIGameSettings.GetValue("distant_join_stations");
 
-		local cargoType = Utils.GetCargoID(cargoClass);
+		local cargoType = Utils.GetCargoType(cargoClass);
 		local radius = cargoClass == AICargo.CC_PASSENGERS ? AIStation.GetCoverageRadius(AIStation.STATION_BUS_STOP) : AIStation.GetCoverageRadius(AIStation.STATION_TRUCK_STOP);
 
 		local tileList = AITileList();

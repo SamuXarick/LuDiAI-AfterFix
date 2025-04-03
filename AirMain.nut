@@ -6,7 +6,7 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished) {
 		if (!unfinished) {
 			cargoClassAir = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassAir : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.GetCargoID(cC);
+			local cargo = Utils.GetCargoType(cC);
 
 			local tempList = AIEngineList(AIVehicle.VT_AIR);
 			local engineList = AIList();
@@ -129,7 +129,7 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished) {
 				if (routeResult[0] != 0) {
 					reservedMoney -= reservedMoneyAir;
 					reservedMoneyAir = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoC)) + " air route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerAir + " day" + (buildTimerAir != 1 ? "s" : "") + ".");
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoC)) + " air route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerAir + " day" + (buildTimerAir != 1 ? "s" : "") + ".");
 				}
 			} else {
 				reservedMoney -= reservedMoneyAir;

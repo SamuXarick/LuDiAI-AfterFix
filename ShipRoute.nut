@@ -109,7 +109,7 @@ class ShipRoute extends ShipRouteManager {
 	}
 
 	function GetEngineList(cargoClass) {
-		local cargo = Utils.GetCargoID(cargoClass);
+		local cargo = Utils.GetCargoType(cargoClass);
 
 		local tempList = AIEngineList(AIVehicle.VT_WATER);
 		local engineList = AIList();
@@ -127,7 +127,7 @@ class ShipRoute extends ShipRouteManager {
 		if (engineList.Count() == 0) return m_engine == null ? -1 : m_engine;
 
 		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
-		local cargo = Utils.GetCargoID(cargoClass);
+		local cargo = Utils.GetCargoType(cargoClass);
 
 		local distance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 		local best_income = null;
@@ -196,7 +196,7 @@ class ShipRoute extends ShipRouteManager {
 
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
-			new_vehicle = TestBuildVehicleWithRefit().TryBuild(this.m_depotTile, this.m_engine, Utils.GetCargoID(m_cargoClass));
+			new_vehicle = TestBuildVehicleWithRefit().TryBuild(this.m_depotTile, this.m_engine, Utils.GetCargoType(m_cargoClass));
 		} else {
 			new_vehicle = TestCloneVehicle().TryClone(this.m_depotTile, clone_vehicle_id, (AIVehicle.IsValidVehicle(share_orders_vid) && share_orders_vid == clone_vehicle_id) ? true : false);
 		}
@@ -549,14 +549,14 @@ class ShipRoute extends ShipRouteManager {
 		}
 		if (vehicleList.Count() == 0) return;
 
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_dockFrom);
 		local station2 = AIStation.GetStationID(m_dockTo);
-		local cargoWaiting1via2 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargoId);
-		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting1via2 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargo_type);
+		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting1 = cargoWaiting1via2 + cargoWaiting1any;
-		local cargoWaiting2via1 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargoId);
-		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting2via1 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargo_type);
+		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
 //		AILog.Info("cargoWaiting = " + (cargoWaiting1 + cargoWaiting2));
@@ -607,11 +607,11 @@ class ShipRoute extends ShipRouteManager {
 	function GetGroupUsage() {
 		local max_capacity = 0;
 		local used_capacity = 0;
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		foreach (v, _ in m_vehicleList) {
 			if (AIVehicle.GetGroupID(v) == m_group) {
-				max_capacity += AIVehicle.GetCapacity(v, cargoId);
-				used_capacity += AIVehicle.GetCargoLoad(v, cargoId);
+				max_capacity += AIVehicle.GetCapacity(v, cargo_type);
+				used_capacity += AIVehicle.GetCargoLoad(v, cargo_type);
 			}
 		}
 		if (max_capacity == 0) return 0;
@@ -645,17 +645,17 @@ class ShipRoute extends ShipRouteManager {
 			return 0;
 		}
 
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_dockFrom);
 		local station2 = AIStation.GetStationID(m_dockTo);
-		local cargoWaiting1via2 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargoId);
-		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting1via2 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargo_type);
+		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting1 = cargoWaiting1via2 + cargoWaiting1any;
-		local cargoWaiting2via1 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargoId);
-		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting2via1 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargo_type);
+		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
-		local engine_capacity = ::caches.GetCapacity(this.m_engine, cargoId);
+		local engine_capacity = ::caches.GetCapacity(this.m_engine, cargo_type);
 		local group_usage = GetGroupUsage();
 //		AILog.Info(AIGroup.GetName(this.m_group) + ": usage = " + group_usage + "; engine_capacity = " + engine_capacity + "; cargoWaiting1 = " + cargoWaiting1 + "; cargoWaiting2 = " + cargoWaiting2);
 

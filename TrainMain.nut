@@ -7,7 +7,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 		if (!unfinished) {
 			cargoClassRail = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRail : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.GetCargoID(cC);
+			local cargo = Utils.GetCargoType(cC);
 
 			local railtypes = AIRailTypeList();
 //			for (local railtype = railtypes.Begin(); !railtypes.IsEnd(); railtype = railtypes.Next()) {
@@ -278,7 +278,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 				if (routeResult[0] != 0) {
 					reservedMoney -= reservedMoneyRail;
 					reservedMoneyRail = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoID(cargoC)) + " rail route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + ".");
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoC)) + " rail route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + ".");
 				}
 			} else {
 				reservedMoney -= reservedMoneyRail;

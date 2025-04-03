@@ -118,7 +118,7 @@ class AirRoute extends AirRouteManager {
 		local squaredist = AIMap.DistanceSquare(m_airportFrom, m_airportTo);
 		local fakedist = WrightAI.DistanceRealFake(m_airportFrom, m_airportTo);
 
-		local cargo = Utils.GetCargoID(cargoClass);
+		local cargo = Utils.GetCargoType(cargoClass);
 
 		local engine_list = AIEngineList(AIVehicle.VT_AIR);
 		local removelist = AIList();
@@ -137,7 +137,7 @@ class AirRoute extends AirRouteManager {
 					continue;
 				}
 				local primary_capacity = ::caches.GetBuildWithRefitCapacity(hangar, engine, cargo);
-				local secondary_capacity = (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(Utils.GetCargoID(AICargo.CC_MAIL))) ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
+				local secondary_capacity = (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
 				local engine_income = WrightAI.GetEngineRouteIncome(engine, cargo, fakedist, primary_capacity, secondary_capacity);
 				if (engine_income <= 0) {
 					removelist.AddItem(engine, 0);
@@ -195,7 +195,7 @@ class AirRoute extends AirRouteManager {
 
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
-			new_vehicle = TestBuildVehicleWithRefit().TryBuild(best_hangar, this.m_engine, Utils.GetCargoID(m_cargoClass));
+			new_vehicle = TestBuildVehicleWithRefit().TryBuild(best_hangar, this.m_engine, Utils.GetCargoType(m_cargoClass));
 		} else {
 			new_vehicle = TestCloneVehicle().TryClone(best_hangar, clone_vehicle_id, (AIVehicle.IsValidVehicle(share_orders_vid) && share_orders_vid == clone_vehicle_id) ? true : false);
 		}
@@ -374,14 +374,14 @@ class AirRoute extends AirRouteManager {
 		}
 		if (vehicleList.Count() == 0) return;
 
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_airportFrom);
 		local station2 = AIStation.GetStationID(m_airportTo);
-		local cargoWaiting1via2 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargoId);
-		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting1via2 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargo_type);
+		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting1 = cargoWaiting1via2 + cargoWaiting1any;
-		local cargoWaiting2via1 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargoId);
-		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting2via1 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargo_type);
+		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
 //		AILog.Info("cargoWaiting = " + (cargoWaiting1 + cargoWaiting2));
@@ -524,17 +524,17 @@ class AirRoute extends AirRouteManager {
 			}
 		}
 
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_airportFrom);
 		local station2 = AIStation.GetStationID(m_airportTo);
-		local cargoWaiting1via2 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargoId);
-		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting1via2 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargo_type);
+		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting1 = cargoWaiting1via2 + cargoWaiting1any;
-		local cargoWaiting2via1 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargoId);
-		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting2via1 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargo_type);
+		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
-		local engine_capacity = ::caches.GetCapacity(m_engine, cargoId);
+		local engine_capacity = ::caches.GetCapacity(m_engine, cargo_type);
 		local capacity_check = infrastructure ? min(engine_capacity, 100) : engine_capacity;
 
 		if (cargoWaiting1 < capacity_check && cargoWaiting2 < capacity_check) {

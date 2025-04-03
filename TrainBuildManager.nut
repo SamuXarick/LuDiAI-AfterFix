@@ -968,7 +968,7 @@ class RailBuildManager {
 
 	function BuildTownRailStation(town, cargoClass, otherTown, best_routes_built, railtype) {
 		AIRail.SetCurrentRailType(railtype);
-		local cargoType = Utils.GetCargoID(cargoClass);
+		local cargoType = Utils.GetCargoType(cargoClass);
 		local radius = AIStation.GetCoverageRadius(AIStation.STATION_TRAIN);
 		local pick_mode = AIController.GetSetting("pick_mode");
 		local max_station_spread = AIGameSettings.GetValue("station_spread");

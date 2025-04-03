@@ -22,13 +22,13 @@ class Caches {
 		if (AICargo.HasCargoClass(cargo, AICargo.CC_PASSENGERS)) {
 			if (!this.pass_capacities_list.rawin(engine)) {
 				this.pass_capacities_list.rawset(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
-//				AILog.Info("Added engine " + AIEngine.GetName(engine) + ": " + AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo) + " " + AICargo.GetCargoLabel(Utils.GetCargoID(AICargo.CC_PASSENGERS)));
+//				AILog.Info("Added engine " + AIEngine.GetName(engine) + ": " + AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo) + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_PASSENGERS)));
 			}
 			return this.pass_capacities_list.rawget(engine);
 		} else if (AICargo.HasCargoClass(cargo, AICargo.CC_MAIL)) {
 			if (!this.mail_capacities_list.rawin(engine)) {
 				this.mail_capacities_list.rawset(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo));
-//				AILog.Info("Added engine " + AIEngine.GetName(engine) + ": " + AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo) + " " + AICargo.GetCargoLabel(Utils.GetCargoID(AICargo.CC_MAIL)));
+//				AILog.Info("Added engine " + AIEngine.GetName(engine) + ": " + AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo) + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_MAIL)));
 			}
 			return this.mail_capacities_list.rawget(engine);
 		}
@@ -38,13 +38,13 @@ class Caches {
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
 //		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
-		if (!AICargo.IsValidCargo(Utils.GetCargoID(AICargo.CC_MAIL))) return 0;
+		if (!AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) return 0;
 
 		if (!this.secondary_capacities_list.rawin(engine)) {
-			local pass_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.GetCargoID(AICargo.CC_PASSENGERS));
-			local mail_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.GetCargoID(AICargo.CC_MAIL));
+			local pass_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.GetCargoType(AICargo.CC_PASSENGERS));
+			local mail_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.GetCargoType(AICargo.CC_MAIL));
 			this.secondary_capacities_list.rawset(engine, mail_capacity - pass_capacity);
-//			AILog.Info("Capacity for " + AIEngine.GetName(engine) + ": " + pass_capacity + " " + AICargo.GetCargoLabel(Utils.GetCargoID(AICargo.CC_PASSENGERS)) + ", " + (mail_capacity - pass_capacity) + " " + AICargo.GetCargoLabel(Utils.GetCargoID(AICargo.CC_MAIL)));
+//			AILog.Info("Capacity for " + AIEngine.GetName(engine) + ": " + pass_capacity + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_PASSENGERS)) + ", " + (mail_capacity - pass_capacity) + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_MAIL)));
 		}
 		return this.secondary_capacities_list.rawget(engine);
 	}

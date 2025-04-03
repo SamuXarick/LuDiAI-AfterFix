@@ -124,7 +124,7 @@ class RailRoute extends RailRouteManager {
 	}
 
 	function GetEngineWagonPairs(cargoClass) {
-		local cargo = Utils.GetCargoID(cargoClass);
+		local cargo = Utils.GetCargoType(cargoClass);
 
 		local tempList = AIEngineList(AIVehicle.VT_RAIL);
 		local engineList = AIList();
@@ -166,7 +166,7 @@ class RailRoute extends RailRouteManager {
 		if (engineWagonPairList.len() == 0) return m_engineWagonPair == null ? [-1, -1, -1, -1, -1] : m_engineWagonPair;
 
 		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
-		local cargo = Utils.GetCargoID(cargoClass);
+		local cargo = Utils.GetCargoType(cargoClass);
 
 		local best_income = null;
 		local best_pair = null;
@@ -278,7 +278,7 @@ class RailRoute extends RailRouteManager {
 		local depot = skip_order ? m_depotTo : m_depotFrom;
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
-			local cargo = Utils.GetCargoID(m_cargoClass);
+			local cargo = Utils.GetCargoType(m_cargoClass);
 			/* Check if we have money first to buy entire parts */
 			local cost = AIAccounting();
 			AITestMode() && AIVehicle.BuildVehicleWithRefit(depot, this.m_engineWagonPair[0], cargo);
@@ -510,14 +510,14 @@ class RailRoute extends RailRouteManager {
 		}
 		if (vehicleList.Count() == 0) return;
 
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_stationFrom);
 		local station2 = AIStation.GetStationID(m_stationTo);
-		local cargoWaiting1via2 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargoId);
-		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting1via2 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargo_type);
+		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting1 = cargoWaiting1via2 + cargoWaiting1any;
-		local cargoWaiting2via1 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargoId);
-		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting2via1 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargo_type);
+		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
 //		AILog.Info("cargoWaiting = " + (cargoWaiting1 + cargoWaiting2));
@@ -621,14 +621,14 @@ class RailRoute extends RailRouteManager {
 			return 0;
 		}
 
-		local cargoId = Utils.GetCargoID(m_cargoClass);
+		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_stationFrom);
 		local station2 = AIStation.GetStationID(m_stationTo);
-		local cargoWaiting1via2 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargoId);
-		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting1via2 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station1, station2, cargo_type);
+		local cargoWaiting1any = AIStation.GetCargoWaitingVia(station1, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting1 = cargoWaiting1via2 + cargoWaiting1any;
-		local cargoWaiting2via1 = AICargo.GetDistributionType(cargoId) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargoId);
-		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargoId);
+		local cargoWaiting2via1 = AICargo.GetDistributionType(cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(station2, station1, cargo_type);
+		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
 		local train_capacity = this.m_engineWagonPair[4];
