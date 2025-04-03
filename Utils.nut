@@ -360,66 +360,6 @@ function Utils::GetCargoType(cargoClass) {
 	return cargo_type;
 }
 
-function Utils::IsTownGrowing(town, cargo) {
-//	return true;
-	if (!AIGameSettings.GetValue("town_growth_rate")) return true; // no town grows, just work with it
-
-	local cargoList = AICargoList();
-	cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
-	local cargoRequired = AIList();
-	for (local cargo_type = cargoList.Begin(); !cargoList.IsEnd(); cargo_type = cargoList.Next()) {
-		local town_effect = AICargo.GetTownEffect(cargo_type);
-//		local class_name = "";
-//		for (local cc = 0; cc <= 15; cc++) {
-//			local cargo_class = 1 << cc;
-//			if (AICargo.HasCargoClass(cargo_type, cargo_class)) {
-//				if (class_name != "") class_name += ", ";
-//				switch(cargo_class) {
-//					case AICargo.CC_PASSENGERS: class_name += "CC_PASSENGERS"; break;
-//					case AICargo.CC_MAIL: class_name += "CC_MAIL"; break;
-//					case AICargo.CC_EXPRESS: class_name += "CC_EXPRESS"; break;
-//					case AICargo.CC_ARMOURED: class_name += "CC_ARMOURED"; break;
-//					case AICargo.CC_BULK: class_name += "CC_BULK"; break;
-//					case AICargo.CC_PIECE_GOODS: class_name += "CC_PIECE_GOODS"; break;
-//					case AICargo.CC_LIQUID: class_name += "CC_LIQUID"; break;
-//					case AICargo.CC_REFRIGERATED: class_name += "CC_REFRIGERATED"; break;
-//					case AICargo.CC_HAZARDOUS: class_name += "CC_HAZARDOUS"; break;
-//					case AICargo.CC_COVERED: class_name += "CC_COVERED"; break;
-//					case 1 << 15: class_name += "CC_SPECIAL"; break;
-//					default: class_name += "CC_NOAVAILABLE (" + cargo_class + ")"; break;
-//				}
-//			}
-//		}
-//		AILog.Info("Cargo " + cargo_type + ": " + AICargo.GetCargoLabel(cargo_type) + (class_name == "" ? "" : "; CargoClass = " + class_name));
-		if (town_effect != AICargo.TE_NONE) {
-//			local effect_name;
-//			switch(town_effect) {
-//				case AICargo.TE_PASSENGERS: effect_name = "TE_PASSENGERS"; break;
-//				case AICargo.TE_MAIL: effect_name = "TE_MAIL"; break;
-//				case AICargo.TE_GOODS: effect_name = "TE_GOODS"; break;
-//				case AICargo.TE_WATER: effect_name = "TE_WATER"; break;
-//				case AICargo.TE_FOOD: effect_name = "TE_FOOD"; break;
-//			}
-//			AILog.Info(" - Effect of " + AICargo.GetCargoLabel(cargo_type) + " in " + AITown.GetName(town) + " is " + effect_name);
-			local cargo_goal = AITown.GetCargoGoal(town, town_effect);
-			if (cargo_goal != 0) {
-//				AILog.Info(" - An amount of " + cargo_goal + " " + AICargo.GetCargoLabel(cargo_type) + " is required to grow " + AITown.GetName(town));
-				cargoRequired.AddItem(cargo_type, cargo_goal);
-			}
-		}
-	}
-//	AILog.Info(" ");
-	local num_cargo_types_required = cargoRequired.Count();
-	local result = null;
-	if (num_cargo_types_required == 0 || cargoRequired.HasItem(cargo) && num_cargo_types_required == 1) {
-		result = true;
-	} else {
-		result = false;
-	}
-//	AILog.Info("-- Result for town " + AITown.GetName(town) + ": " + result + " - " + num_cargo_types_required + " --");
-	return result;
-}
-
 function Utils::CheckAdjacentNonRoadStation(stationTile, stationId)
 {
 	if (stationId != AIStation.STATION_NEW) {

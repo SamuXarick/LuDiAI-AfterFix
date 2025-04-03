@@ -70,6 +70,41 @@ class TownManager {
 		return (AITown.GetLastMonthProduction(town, cargo) - AITown.GetLastMonthSupplied(town, cargo)) * (100 - AITown.GetLastMonthTransportedPercentage(town, cargo)) / 100;
 	}
 
+	function IsTownGrowing(town, cargo) {
+//		return true;
+		if (!AIGameSettings.GetValue("town_growth_rate")) return true; // no town grows, just work with it
+
+		local cargoList = AICargoList();
+		cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
+		local cargoRequired = AIList();
+		for (local cargo_type = cargoList.Begin(); !cargoList.IsEnd(); cargo_type = cargoList.Next()) {
+			local town_effect = AICargo.GetTownEffect(cargo_type);
+
+			if (town_effect != AICargo.TE_NONE) {
+//				local effect_name;
+//				switch(town_effect) {
+//					case AICargo.TE_PASSENGERS: effect_name = "TE_PASSENGERS"; break;
+//					case AICargo.TE_MAIL: effect_name = "TE_MAIL"; break;
+//					case AICargo.TE_GOODS: effect_name = "TE_GOODS"; break;
+//					case AICargo.TE_WATER: effect_name = "TE_WATER"; break;
+//					case AICargo.TE_FOOD: effect_name = "TE_FOOD"; break;
+//				}
+//				AILog.Info(" - Effect of " + AICargo.GetCargoLabel(cargo_type) + " in " + AITown.GetName(town) + " is " + effect_name);
+				local cargo_goal = AITown.GetCargoGoal(town, town_effect);
+				if (cargo_goal != 0) {
+//					AILog.Info(" - An amount of " + cargo_goal + " " + AICargo.GetCargoLabel(cargo_type) + " is required to grow " + AITown.GetName(town));
+					cargoRequired.AddItem(cargo_type, cargo_goal);
+				}
+			}
+		}
+//		AILog.Info(" ");
+		local num_cargo_types_required = cargoRequired.Count();
+		local result = num_cargo_types_required == 0 || (cargoRequired.HasItem(cargo) && num_cargo_types_required == 1);
+
+//		AILog.Info("-- Result for town " + AITown.GetName(town) + ": " + result + " - " + num_cargo_types_required + " --");
+		return result;
+	}
+
 	function BuildTownList() {
 		local townCount = AITown.GetTownCount();
 		if (townCount == m_townCount) return;
@@ -99,7 +134,7 @@ class TownManager {
 		} else {
 			local cargo = Utils.GetCargoType(cargoClass);
 			for (local town = localList.Begin(); !localList.IsEnd(); town = localList.Next()) {
-				localList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
+				localList.SetValue(town, (pick_mode == 0 ? GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
 			}
 			localList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 
@@ -109,7 +144,7 @@ class TownManager {
 				local templist = AIList();
 				templist.AddList(localList);
 				for (local town = localList.Begin(); !localList.IsEnd(); town = localList.Next()) {
-					if (!Utils.IsTownGrowing(town, cargo)) {
+					if (!IsTownGrowing(town, cargo)) {
 						templist.RemoveItem(town);
 						continue;
 					}
@@ -121,7 +156,7 @@ class TownManager {
 				localList.KeepList(templist);
 			}
 
-			if (localList.Count()) {
+			if (!localList.IsEmpty()) {
 				unusedTown = localList.Begin();
 				m_usedCitiesList[cargoClass].AddItem(unusedTown, 0);
 			}
@@ -191,7 +226,7 @@ class TownManager {
 			}
 		}
 
-		if (!localPairList.Count()) {
+		if (localPairList.IsEmpty()) {
 			return;
 		}
 
@@ -218,7 +253,7 @@ class TownManager {
 			local cargo = Utils.GetCargoType(cargoClass);
 			local cargolimit = cargoClass == AICargo.CC_PASSENGERS ? 70 : 35;
 			for (local town = localPairList.Begin(); !localPairList.IsEnd(); town = localPairList.Next()) {
-				localPairList.SetValue(town, (pick_mode == 0 ? TownManager.GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
+				localPairList.SetValue(town, (pick_mode == 0 ? GetLastMonthProductionDiffRate(town, cargo) : AITown.GetLastMonthProduction(town, cargo)));
 			}
 			localPairList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
 
@@ -226,7 +261,7 @@ class TownManager {
 				local templist = AIList();
 				templist.AddList(localPairList);
 				for (local town = localPairList.Begin(); !localPairList.IsEnd(); town = localPairList.Next()) {
-					if (pick_mode != 1 && !Utils.IsTownGrowing(town, cargo)) {
+					if (!IsTownGrowing(town, cargo)) {
 						templist.RemoveItem(town);
 						continue;
 					}
@@ -238,7 +273,7 @@ class TownManager {
 				localPairList.KeepList(templist);
 			}
 
-			if (!localPairList.Count()) {
+			if (localPairList.IsEmpty()) {
 				return;
 			}
 
@@ -289,8 +324,6 @@ class TownManager {
 //				AILog.Info("FindNearCities " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 			}
 		}
-
-		return;
 	}
 
 	function SaveTownManager() {
