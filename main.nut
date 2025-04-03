@@ -507,17 +507,17 @@ class LuDiAIAfterFix extends AIController {
 				if (allRoutesBuilt != 0) {
 					allRoutesBuilt = 0;
 //					roadTownManager.m_nearCityPairArray = [];
-					roadTownManager.m_usedCitiesPassTable.clear();
-					roadTownManager.m_usedCitiesMailTable.clear();
+					roadTownManager.m_usedCitiesPassList.Clear();
+					roadTownManager.m_usedCitiesMailList.Clear();
 //					shipTownManager.m_nearCityPairArray = [];
-					shipTownManager.m_usedCitiesPassTable.clear();
-					shipTownManager.m_usedCitiesMailTable.clear();
+					shipTownManager.m_usedCitiesPassList.Clear();
+					shipTownManager.m_usedCitiesMailList.Clear();
 //					airTownManager.m_nearCityPairArray = [];
-					airTownManager.m_usedCitiesPassTable.clear();
-					airTownManager.m_usedCitiesMailTable.clear();
+					airTownManager.m_usedCitiesPassList.Clear();
+					airTownManager.m_usedCitiesMailList.Clear();
 //					railTownManager.m_nearCityPairArray = [];
-					railTownManager.m_usedCitiesPassTable.clear();
-					railTownManager.m_usedCitiesMailTable.clear();
+					railTownManager.m_usedCitiesPassList.Clear();
+					railTownManager.m_usedCitiesMailList.Clear();
 					AILog.Warning("Not all routes have been used at this time.");
 				}
 			}

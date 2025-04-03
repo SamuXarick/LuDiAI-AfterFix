@@ -63,17 +63,17 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
 						if (cC == AICargo.CC_PASSENGERS) {
-							roadTownManager.m_usedCitiesPassTable.clear();
+							roadTownManager.m_usedCitiesPassList.Clear();
 						} else {
-							roadTownManager.m_usedCitiesMailTable.clear();
+							roadTownManager.m_usedCitiesMailList.Clear();
 						}
 					} else {
 						if ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (0 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
 							if (cC == AICargo.CC_PASSENGERS) {
-								roadTownManager.m_usedCitiesPassTable.clear();
+								roadTownManager.m_usedCitiesPassList.Clear();
 							} else {
-								roadTownManager.m_usedCitiesMailTable.clear();
+								roadTownManager.m_usedCitiesMailList.Clear();
 							}
 //							roadTownManager.ClearCargoClassArray(cC);
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));

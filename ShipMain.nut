@@ -62,17 +62,17 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
 						if (cC == AICargo.CC_PASSENGERS) {
-							shipTownManager.m_usedCitiesPassTable.clear();
+							shipTownManager.m_usedCitiesPassList.Clear();
 						} else {
-							shipTownManager.m_usedCitiesMailTable.clear();
+							shipTownManager.m_usedCitiesMailList.Clear();
 						}
 					} else {
 						if ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (2 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
 							if (cC == AICargo.CC_PASSENGERS) {
-								shipTownManager.m_usedCitiesPassTable.clear();
+								shipTownManager.m_usedCitiesPassList.Clear();
 							} else {
-								shipTownManager.m_usedCitiesMailTable.clear();
+								shipTownManager.m_usedCitiesMailList.Clear();
 							}
 //							shipTownManager.ClearCargoClassArray(cC);
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " water routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));

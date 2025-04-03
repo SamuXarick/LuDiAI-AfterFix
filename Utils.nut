@@ -1,64 +1,6 @@
 class Utils {
 };
 
-function Utils::ArrayHasItem(array, item) {
-	assert(typeof(item) == "array");
-
-	foreach (it in array) {
-		local i = 0;
-		do {
-			if (item[i] == it[0][i]) {
-				i++;
-			} else {
-				break;
-			}
-		} while (i < item.len());
-		if (i == item.len()) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function Utils::ArrayGetValue(array, item) {
-//	assert(Utils.ArrayHasItem(array, item));
-
-	foreach (it in array) {
-		local i = 0;
-		do {
-			if (item[i] == it[0][i]) {
-				i++;
-			} else {
-				break;
-			}
-		} while (i < item.len());
-		if (i == item.len()) {
-			return it[1];
-		}
-	}
-	assert(false);
-}
-
-// function Utils::ArraySetValue(array, item, value) {
-///	assert(Utils.ArrayHasItem(array, item));
-
-// 	foreach (it in array) {
-// 		local i = 0;
-// 		do {
-// 			if (item[i] == it[0][i]) {
-// 				i++;
-// 			} else {
-// 				break;
-// 			}
-// 		} while (i < item.len());
-// 		if (i == item.len()) {
-// 			it[1] = value;
-// 			return;
-// 		}
-// 	}
-// 	assert(false);
-// }
-
 function Utils::CountBits(value) {
 	assert(typeof(value) == "integer");
 
@@ -74,20 +16,6 @@ function Utils::Clamp(a, min, max) {
 	if (a <= min) return min;
 	if (a >= max) return max;
 	return a;
-}
-
-function Utils::TableListToAIList(table) {
-	local list = AIList();
-	foreach (x, y in table) {
-		list.AddItem(x, y);
-	}
-	return list;
-}
-
-function Utils::RemoveAIListFromTableList(ailist, table) {
-	for (local x = ailist.Begin(); !ailist.IsEnd(); x = ailist.Next()) {
-		table.rawdelete(x);
-	}
 }
 
 function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {

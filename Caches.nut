@@ -5,8 +5,8 @@ class Caches {
 	mail_capacities_list = {};
 	secondary_capacities_list = {}; // secondary capacity for a pass/mail aircraft
 	vehicle_lengths = {}; // vehicle length of rail engines
-	attach_list = [];
-	costs_with_refit = [];
+	attach_list = {}; // engine/wagon attachment results of rail engines
+	costs_with_refit = {};
 
 	function GetBuildWithRefitCapacity(depot, engine, cargo);
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine);
@@ -124,9 +124,9 @@ class Caches {
 		if (!AIEngine.IsWagon(wagon) || AIEngine.IsWagon(engine)) return false;
 
 		AIRail.SetCurrentRailType(railtype);
-		local combo = [engine, wagon, cargo];
-		if (Utils.ArrayHasItem(this.attach_list, combo)) {
-			return Utils.ArrayGetValue(this.attach_list, combo);
+		local cargo_engine_wagon = (cargo << 32) | (engine << 16) | wagon;
+		if (this.attach_list.rawin(cargo_engine_wagon)) {
+			return this.attach_list.rawget(cargo_engine_wagon);
 		}
 
 		/* it's not in the list yet */
@@ -140,9 +140,9 @@ class Caches {
 			local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 //			local error_v = AIError.GetLastErrorString();
 			local price = cost.GetCosts();
-			local pair = [engine, cargo];
-			if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
-				this.costs_with_refit.append([pair, price]);
+			local engine_cargo = (engine << 16) | cargo;
+			if (!this.costs_with_refit.rawin(engine_cargo)) {
+				this.costs_with_refit.rawset(engine_cargo, price);
 			}
 			cost.ResetCosts();
 			if (AIVehicle.IsValidVehicle(v)) {
@@ -166,9 +166,9 @@ class Caches {
 			local w = TestBuildVehicleWithRefit().TryBuild(depot, wagon, cargo);
 //			local error_w = AIError.GetLastErrorString();
 			price = cost.GetCosts();
-			pair = [wagon, cargo];
-			if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
-				this.costs_with_refit.append([pair, price]);
+			local wagon_cargo = (wagon << 16) | cargo;
+			if (!this.costs_with_refit.rawin(wagon_cargo)) {
+				this.costs_with_refit.rawset(wagon_cargo, price);
 			}
 			if (AIVehicle.IsValidVehicle(w)) {
 				local w_cap = AIVehicle.GetCapacity(w, cargo);
@@ -210,7 +210,7 @@ class Caches {
 			return true;
 		}
 
-		if (result != null) this.attach_list.append([combo, result]);
+		if (result != null) this.attach_list.rawset(cargo_engine_wagon, result);
 //		AILog.Info(AIEngine.GetName(engine) + " -- " + AIEngine.GetName(wagon) + " ? " + result);
 		return result == true;
 	}
@@ -219,8 +219,8 @@ class Caches {
 		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine)) return -1;
 
 		local railtype = AIEngine.GetRailType(engine);
-		local pair = [engine, cargo];
-		if (!Utils.ArrayHasItem(this.costs_with_refit, pair)) {
+		local engine_cargo = (engine << 16) | cargo;
+		if (!this.costs_with_refit.rawin(engine_cargo)) {
 			local veh_type = AIEngine.GetVehicleType(engine);
 			if (veh_type == AIVehicle.VT_RAIL) {
 				local price = -1;
@@ -235,7 +235,7 @@ class Caches {
 					if (price <= 0) {
 //						AILog.Error("Retrieved a price of zero for a vehicle with refit");
 					} else {
-						this.costs_with_refit.append([pair, price]);
+						this.costs_with_refit.rawset(engine_cargo, price);
 					}
 				}
 				return price;
@@ -243,7 +243,7 @@ class Caches {
 				assert(false);
 			}
 		}
-		return Utils.ArrayGetValue(this.costs_with_refit, pair);
+		return this.costs_with_refit.rawget(engine_cargo);
 	}
 
 	function SaveCaches() {

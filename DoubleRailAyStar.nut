@@ -230,6 +230,7 @@ function AyStar::FindPath(iterations)
 //				AILog.Info("id #" + id + " - " + Segment.GetName(scan._segment.m_segment_dir) + "; Cost: " + cost + "; Diff: " + diff);
 //				cost_prev = cost;
 //			}
+//			AIController.Break("Path found");
 			this._CleanPath();
 			return path;
 		}

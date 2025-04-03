@@ -127,6 +127,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 					}
 				}
 			}
+//			AILog.Info("total engineWagonPairs: " + engineWagonPairs.Count());
 
 			local max_station_spread = AIGameSettings.GetValue("station_spread");
 			local max_train_length = AIGameSettings.GetValue("max_train_length");
@@ -188,17 +189,17 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
 						if (cC == AICargo.CC_PASSENGERS) {
-							railTownManager.m_usedCitiesPassTable.clear();
+							railTownManager.m_usedCitiesPassList.Clear();
 						} else {
-							railTownManager.m_usedCitiesMailTable.clear();
+							railTownManager.m_usedCitiesMailList.Clear();
 						}
 					} else {
 						if ((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (6 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
 							if (cC == AICargo.CC_PASSENGERS) {
-								railTownManager.m_usedCitiesPassTable.clear();
+								railTownManager.m_usedCitiesPassList.Clear();
 							} else {
-								railTownManager.m_usedCitiesMailTable.clear();
+								railTownManager.m_usedCitiesMailList.Clear();
 							}
 //							railTownManager.ClearCargoClassArray(cC);
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " rail routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));

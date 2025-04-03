@@ -213,7 +213,7 @@ class RoadRoute extends RoadRouteManager {
 			local south_tile = tile[1];
 
 			if (AIBridge.IsBridgeTile(north_tile) && (AIBridge.GetOtherBridgeEnd(north_tile) == south_tile)) {
-				local old_bridge = AIBridge.GetBridgeID(north_tile);
+				local old_bridge = AIBridge.GetBridgeType(north_tile);
 
 				local bridge_list = AIBridgeList_Length(AIMap.DistanceManhattan(north_tile, south_tile) + 1);
 				for (local bridge = bridge_list.Begin(); !bridge_list.IsEnd(); bridge = bridge_list.Next()) {
