@@ -37,34 +37,6 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 	return converted_speed + unit_str;
 }
 
-/**
- * GetNthItem
- * @param list - The list to get the item from.
- * @param n - The order of the item.
- * @return - The n-th item of the list, null if not found.
- */
-function Utils::GetNthItem(list, n) {
-	if (list.IsEmpty()) {
-		AILog.Warning("GetNthItem: list is empty!");
-		return null;
-	}
-
-	if (n >= list.Count()) {
-		AILog.Warning("GetNthItem: list is too short!");
-		return null;
-	}
-
-	for (local item = list.Begin(); !list.IsEnd(); item = list.Next()) {
-		if (n == 0) {
-//			AILog.Info("GetNthItem: Found: " + item + " " + list.GetValue(item));
-			return item;
-		}
-		n--;
-	}
-
-	return null;
-}
-
 function Utils::MyCID() {
 	return AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
 }

@@ -111,8 +111,8 @@ class TownManager {
 		local unusedTown = null;
 		local pick_mode = AIController.GetSetting("pick_mode");
 		if (pick_mode == 1) {
-			local randomLocalListItemIndex = AIBase.RandRange(localList.Count());
-			unusedTown = Utils.GetNthItem(localList, randomLocalListItemIndex);
+			localList.RemoveTop(AIBase.RandRange(localList.Count()));
+			unusedTown = localList.Begin();
 			m_usedCitiesList[cargoClass].AddItem(unusedTown, 0);
 		} else {
 			local cargo = Utils.GetCargoType(cargoClass);
@@ -213,8 +213,8 @@ class TownManager {
 
 		local pick_mode = AIController.GetSetting("pick_mode");
 		if (pick_mode == 1) {
-			local randomLocalListItemIndex = AIBase.RandRange(localPairList.Count());
-			local toCity = Utils.GetNthItem(localPairList, randomLocalListItemIndex);
+			localPairList.RemoveTop(AIBase.RandRange(localPairList.Count()));
+			local toCity = localPairList.Begin();
 
 			local exists = false;
 			for (local i = 0; i < m_nearCityPairArray[cargoClass].len(); ++i) {
@@ -228,8 +228,7 @@ class TownManager {
 				m_nearCityPairArray[cargoClass].append([fromCity, toCity]);
 				return;
 			}
-		}
-		else {
+		} else {
 			local fromCity_tile = AITown.GetLocation(fromCity);
 			local cargo = Utils.GetCargoType(cargoClass);
 			local cargolimit = cargoClass == AICargo.CC_PASSENGERS ? 70 : 35;
