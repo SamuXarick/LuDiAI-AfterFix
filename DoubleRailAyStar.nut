@@ -100,7 +100,7 @@ function AyStar::FindPath(iterations)
 {
 	if (this._open == null) throw("can't execute over an uninitialized path");
 
-	while (this._open.Count() > 0 && (iterations == -1 || iterations-- > 0)) {
+	while (!this._open.IsEmpty() && (iterations == -1 || iterations-- > 0)) {
 		/* Get the path with the best score so far */
 		local path = this._open.Pop();
 		local cur_segment = path.GetSegment();
@@ -304,7 +304,7 @@ function AyStar::FindPath(iterations)
 		}
 	}
 
-	if (this._open.Count() > 0) return false;
+	if (!this._open.IsEmpty()) return false;
 	this._CleanPath();
 	return null;
 }

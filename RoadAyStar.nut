@@ -74,7 +74,7 @@ function AyStar::InitializePath(source, goal)
 
 function AyStar::FindPath(iterations)
 {
-	while (this._open.Count() && iterations-- > 0) {
+	while (!this._open.IsEmpty() && iterations-- > 0) {
 		/* Get the path with the best score so far */
 		local path = this._open.Pop();
 		local cur_tile = path._tile;
@@ -118,7 +118,7 @@ function AyStar::FindPath(iterations)
 		}
 	}
 
-	if (this._open.Count()) return false;
+	if (!this._open.IsEmpty()) return false;
 	this._CleanPath();
 	return null;
 }

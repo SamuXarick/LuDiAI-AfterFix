@@ -159,7 +159,7 @@ class AirBuildManager {
 		}
 
 		/* No airports available. Abort */
-		if (m_airport_types.Count() == 0) {
+		if (m_airport_types.IsEmpty()) {
 			SetRouteFinished();
 			return null;
 		}
@@ -170,7 +170,7 @@ class AirBuildManager {
 		UpdateAircraftLists();
 
 		local engine_count = 2;
-		if (infrastructure && AIVehicleList().Count()) {
+		if (infrastructure && !AIVehicleList().IsEmpty()) {
 			if (m_airportFrom != -1 && m_airportFrom > 0) {
 				local engine_id = GetBestAirportEngine(m_fromType);
 				local default_count = 8;
@@ -183,7 +183,7 @@ class AirBuildManager {
 				engine_count = 8;
 			}
 		}
-		if (m_big_engine_list.Count() == 0) {
+		if (m_big_engine_list.IsEmpty()) {
 			if (infrastructure) {
 				m_airport_types.RemoveItem(AIAirport.AT_INTERCON);
 				m_airport_types.RemoveItem(AIAirport.AT_INTERNATIONAL);
@@ -195,7 +195,7 @@ class AirBuildManager {
 			engine_costs = AIEngine.GetPrice(m_big_engine_list.Begin()) * engine_count;
 		}
 
-		if (m_small_engine_list.Count() == 0) {
+		if (m_small_engine_list.IsEmpty()) {
 			if (infrastructure) {
 				m_airport_types.RemoveItem(AIAirport.AT_COMMUTER);
 				m_airport_types.RemoveItem(AIAirport.AT_SMALL);
@@ -205,7 +205,7 @@ class AirBuildManager {
 			if (engine_costs < AIEngine.GetPrice(m_small_engine_list.Begin()) * engine_count) engine_costs = AIEngine.GetPrice(m_small_engine_list.Begin()) * engine_count;
 		}
 
-		if (m_helicopter_list.Count() == 0) {
+		if (m_helicopter_list.IsEmpty()) {
 			m_airport_types.RemoveItem(AIAirport.AT_HELISTATION);
 			m_airport_types.RemoveItem(AIAirport.AT_HELIDEPOT);
 			m_airport_types.RemoveItem(AIAirport.AT_HELIPORT);
@@ -751,7 +751,7 @@ class AirBuildManager {
 				tileList.AddList(tempList);
 
 				/* Couldn't find a suitable place for this town */
-				if (tileList.Count() == 0) {
+				if (tileList.IsEmpty()) {
 					continue;
 				}
 				tileList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
@@ -885,7 +885,7 @@ class AirBuildManager {
 			engine_list.RemoveList(templist);
 		}
 
-		if (engine_list.Count() == 0) {
+		if (engine_list.IsEmpty()) {
 			return null;
 		} else {
 			if (return_list) {

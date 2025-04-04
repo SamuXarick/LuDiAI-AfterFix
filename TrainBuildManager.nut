@@ -925,7 +925,7 @@ class RailBuildManager {
 		list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 		local adjacentStation = AIStation.STATION_NEW;
-		if (list.Count()) {
+		if (!list.IsEmpty()) {
 			adjacentStation = list.Begin();
 //			AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; station.GetTopTile() = " + AIMap.GetTileX(station.GetTopTile()) + "," + AIMap.GetTileY(station.GetTopTile()));
 		}

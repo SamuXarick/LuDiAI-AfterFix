@@ -147,7 +147,7 @@ class AirRoute extends AirRouteManager {
 		}
 		engine_list.RemoveList(removelist);
 		engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-		if (engine_list.Count() == 0) return m_engine == null ? -1 : m_engine;
+		if (engine_list.IsEmpty()) return m_engine == null ? -1 : m_engine;
 		return engine_list.Begin();
 	}
 
@@ -372,7 +372,7 @@ class AirRoute extends AirRouteManager {
 				vehicleList.AddItem(vehicle, 0);
 			}
 		}
-		if (vehicleList.Count() == 0) return;
+		if (vehicleList.IsEmpty()) return;
 
 		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_airportFrom);

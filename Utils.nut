@@ -44,7 +44,7 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
  * @return - The n-th item of the list, null if not found.
  */
 function Utils::GetNthItem(list, n) {
-	if (list.Count() == 0) {
+	if (list.IsEmpty()) {
 		AILog.Warning("GetNthItem: list is empty!");
 		return null;
 	}
@@ -432,7 +432,7 @@ function Utils::CheckAdjacentNonRoadStation(stationTile, stationId)
 	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 	local adjacentStation = AIStation.STATION_NEW;
-	if (list.Count()) {
+	if (!list.IsEmpty()) {
 		adjacentStation = list.Begin();
 //		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
 	}
@@ -506,7 +506,7 @@ function Utils::CheckAdjacentNonDock(stationTile)
 	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 
 	local adjacentStation = AIStation.STATION_NEW;
-	if (list.Count()) {
+	if (!list.IsEmpty()) {
 		adjacentStation = list.Begin();
 //		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
 	}

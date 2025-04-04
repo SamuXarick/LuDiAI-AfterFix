@@ -124,7 +124,7 @@ class ShipRoute extends ShipRouteManager {
 
 	function GetShipEngine(cargoClass) {
 		local engineList = GetEngineList(cargoClass);
-		if (engineList.Count() == 0) return m_engine == null ? -1 : m_engine;
+		if (engineList.IsEmpty()) return m_engine == null ? -1 : m_engine;
 
 		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
 		local cargo = Utils.GetCargoType(cargoClass);
@@ -547,7 +547,7 @@ class ShipRoute extends ShipRouteManager {
 				vehicleList.AddItem(vehicle, 0);
 			}
 		}
-		if (vehicleList.Count() == 0) return;
+		if (vehicleList.IsEmpty()) return;
 
 		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_dockFrom);

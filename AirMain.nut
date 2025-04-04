@@ -16,7 +16,7 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished) {
 				}
 			}
 
-			if (engineList.Count() == 0) {
+			if (engineList.IsEmpty()) {
 				return;
 			}
 

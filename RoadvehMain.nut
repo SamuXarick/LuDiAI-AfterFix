@@ -16,7 +16,7 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 				}
 			}
 
-			if (engineList.Count() == 0) {
+			if (engineList.IsEmpty()) {
 //				cargoClassRoad = cC;
 				return;
 			}

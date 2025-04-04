@@ -16,7 +16,7 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 				}
 			}
 
-			if (engineList.Count() == 0) {
+			if (engineList.IsEmpty()) {
 //				cargoClassWater = cC;
 				return;
 			}

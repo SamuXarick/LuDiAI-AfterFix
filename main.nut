@@ -360,7 +360,7 @@ class LuDiAIAfterFix extends AIController {
 		local townList = AIList();
 		local statuecount = 0;
 		for (local st = stationList.Begin(); !stationList.IsEnd(); st = stationList.Next()) {
-			if (AIStation.HasCargoRating(st, cargo_type)/* && AIVehicleList_Station(st).Count() > 0*/) { // too slow
+			if (AIStation.HasCargoRating(st, cargo_type)/* && !AIVehicleList_Station(st).IsEmpty()*/) { // too slow
 				local neartown = AIStation.GetNearestTown(st);
 				if (!townList.HasItem(neartown)) {
 					townList.AddItem(neartown, 0);

@@ -159,7 +159,7 @@ class RoadRoute extends RoadRouteManager {
 
 	function GetTruckEngine(cargoClass) {
 		local engineList = GetEngineList(cargoClass);
-		if (engineList.Count() == 0) return m_engine == null ? -1 : m_engine;
+		if (engineList.IsEmpty()) return m_engine == null ? -1 : m_engine;
 
 		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
 		local cargo = Utils.GetCargoType(cargoClass);
@@ -220,7 +220,7 @@ class RoadRoute extends RoadRouteManager {
 					bridge_list.SetValue(bridge, AIBridge.GetMaxSpeed(bridge));
 				}
 				bridge_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-				if (bridge_list.Count() > 0) {
+				if (!bridge_list.IsEmpty()) {
 					local new_bridge = bridge_list.Begin();
 					if (TestBuildBridge().TryBuild(AIVehicle.VT_ROAD, new_bridge, north_tile, south_tile)) {
 						AILog.Info("Bridge at tiles " + north_tile + " and " + south_tile + " upgraded from " + AIBridge.GetName(old_bridge, AIVehicle.VT_ROAD) + " (" + Utils.ConvertKmhishSpeedToDisplaySpeed(AIBridge.GetMaxSpeed(old_bridge)) + ") to " + AIBridge.GetName(new_bridge, AIVehicle.VT_ROAD) + " (" + Utils.ConvertKmhishSpeedToDisplaySpeed(AIBridge.GetMaxSpeed(new_bridge)) + ")");
@@ -515,7 +515,7 @@ class RoadRoute extends RoadRouteManager {
 				vehicleList.AddItem(vehicle, 0);
 			}
 		}
-		if (vehicleList.Count() == 0) return;
+		if (vehicleList.IsEmpty()) return;
 
 		local cargo_type = Utils.GetCargoType(m_cargoClass);
 		local station1 = AIStation.GetStationID(m_stationFrom);

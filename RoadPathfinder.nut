@@ -237,7 +237,7 @@ function Road::_Cost(self, path, new_tile,
 //	local signList = AISignList();
 //	signList.Valuate(AISign.GetLocation);
 //	signList.KeepValue(new_tile);
-//	if (!signList.Count()) AIExecMode() && AISign.BuildSign(new_tile, "x");
+//	if (signList.IsEmpty()) AIExecMode() && AISign.BuildSign(new_tile, "x");
 	local prev_tile = path._tile;
 	local dist = AIMap.DistanceManhattan(new_tile, prev_tile);
 

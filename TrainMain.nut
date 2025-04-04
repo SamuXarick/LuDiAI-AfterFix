@@ -100,7 +100,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 				}
 			}
 
-			if (engineList.Count() == 0 || wagonList.Count() == 0) {
+			if (engineList.IsEmpty() || wagonList.IsEmpty()) {
 //				cargoClassRail = cC;
 				return;
 			}
