@@ -67,10 +67,10 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 						if ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (0 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
 							roadTownManager.m_usedCitiesList[cC].Clear();
-//							roadTownManager.ClearCargoClassArray(cC);
+//							roadTownManager.m_nearCityPairArray[cC].clear();
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 						} else {
-//							roadTownManager.ClearCargoClassArray(cC);
+//							roadTownManager.m_nearCityPairArray[cC].clear();
 							if ((((allRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 								AILog.Warning("All " + AICargo.GetCargoLabel(cargo) + " road routes have been used!");
 							}
@@ -85,17 +85,17 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 
 				roadTownManager.FindNearCities(cityFrom, min_dist, max_dist, ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 
-				if (!roadTownManager.HasArrayCargoClassPairs(cC)) {
+				if (!roadTownManager.m_nearCityPairArray[cC].len()) {
 					AILog.Info("No near city available");
 					cityFrom = null;
 				}
 			}
 
 			if (cityFrom != null) {
-				for (local i = 0; i < roadTownManager.m_nearCityPairArray.len(); ++i) {
-					if (cityFrom == roadTownManager.m_nearCityPairArray[i][0] && cC == roadTownManager.m_nearCityPairArray[i][2]) {
-						if (!roadRouteManager.TownRouteExists(cityFrom, roadTownManager.m_nearCityPairArray[i][1], cC)) {
-							cityTo = roadTownManager.m_nearCityPairArray[i][1];
+				for (local i = 0; i < roadTownManager.m_nearCityPairArray[cC].len(); ++i) {
+					if (cityFrom == roadTownManager.m_nearCityPairArray[cC][i][0]) {
+						if (!roadRouteManager.TownRouteExists(cityFrom, roadTownManager.m_nearCityPairArray[cC][i][1], cC)) {
+							cityTo = roadTownManager.m_nearCityPairArray[cC][i][1];
 
 							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
 //								AILog.Info("roadRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));

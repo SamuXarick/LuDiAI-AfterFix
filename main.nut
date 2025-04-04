@@ -506,16 +506,20 @@ class LuDiAIAfterFix extends AIController {
 				AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 				if (allRoutesBuilt != 0) {
 					allRoutesBuilt = 0;
-//					roadTownManager.m_nearCityPairArray = [];
+//					roadTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
+//					roadTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
 					roadTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
 					roadTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
-//					shipTownManager.m_nearCityPairArray = [];
+//					shipTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
+//					shipTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
 					shipTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
 					shipTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
-//					airTownManager.m_nearCityPairArray = [];
+//					airTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
+//					airTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
 					airTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
 					airTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
-//					railTownManager.m_nearCityPairArray = [];
+//					railTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
+//					railTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
 					railTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
 					railTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
 					AILog.Warning("Not all routes have been used at this time.");
