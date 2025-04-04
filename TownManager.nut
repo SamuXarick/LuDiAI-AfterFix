@@ -170,7 +170,7 @@ class TownManager {
 //		AILog.Info("Town pair " + AITown.GetName(fromCity) + " and " + AITown.GetName(toCity) + " (" + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClass)) + ") are being removed...");
 		for (local i = m_nearCityPairArray.len() - 1; i >= 0; --i) {
 			if (TownPair(fromCity, toCity, cargoClass).IsTownPairDataEqual(m_nearCityPairArray[i])) {
-//				AILog.Info("Found pair " + AITown.GetName(m_nearCityPairArray[i][0]) + " and " + AITown.GetName(m_nearCityPairArray[i][1]) + "( " + AICargo.GetCargoLabel(Utils.GetCargoType(m_nearCityPairArray[i][2])) + ") in m_nearCityPairArray[" + i + "]");
+//				AILog.Info("Found pair " + AITown.GetName(m_nearCityPairArray[i][0]) + " and " + AITown.GetName(m_nearCityPairArray[i][1]) + " (" + AICargo.GetCargoLabel(Utils.GetCargoType(m_nearCityPairArray[i][2])) + ") in m_nearCityPairArray[" + i + "]");
 				m_nearCityPairArray.remove(i);
 				break;
 			}
@@ -179,21 +179,19 @@ class TownManager {
 		/* The following code is too slow */
 //		if (usedCities) {
 //			AILog.Info(m_usedCitiesList[cargoClass].Count() + " found in m_usedCitiesList[" + cargoClass + "]");
-//			local removeList = AIList();
-//			foreach (u, v in m_usedCitiesList[cargoClass]) {
+//			for (local town = m_usedCitiesList[cargoClass].Begin(); !m_usedCitiesList[cargoClass].IsEnd(); town = m_usedCitiesList[cargoClass].Next()) {
 //				local removeTown = true;
 //				for (local i = 0; i < m_nearCityPairArray.len(); ++i) {
-//					if ((u == m_nearCityPairArray[i][0] || u == m_nearCityPairArray[i][1]) && m_nearCityPairArray[i][2] == cargoClass) {
+//					if ((town == m_nearCityPairArray[i][0] || town == m_nearCityPairArray[i][1]) && cargoClass == m_nearCityPairArray[i][2]) {
 //						removeTown = false;
+//						break;
 //					}
 //				}
 //				if (removeTown) {
-//					AILog.Info("Town " + AITown.GetName(u) + " is being removed (RemoveUsedCityPair)");
-//					removeList.AddItem(u, 0);
+//					AILog.Info("Town " + AITown.GetName(town) + " is being removed (RemoveUsedCityPair)");
+//					m_usedCitiesList[cargoClass].RemoveItem(town);
 //				}
 //			}
-//
-//			m_usedCitiesList[cargoClass].RemoveList(removeList);
 //		}
 	}
 
