@@ -49,7 +49,7 @@ function Utils::GetNthItem(list, n) {
 		return null;
 	}
 
-	if (n + 1 > list.Count()) {
+	if (n >= list.Count()) {
 		AILog.Warning("GetNthItem: list is too short!");
 		return null;
 	}

@@ -653,11 +653,11 @@ class ShipBuildManager {
 					if (m_pathfinderTries < max_pathfinderTries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							if (!silent_mode) AILog.Info("canal pathfinder: FindPath iterated: " + count);
-							local signList = AISignList();
-							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
-								if (signList.Count() < 64000) break;
-								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
-							}
+//							local signList = AISignList();
+//							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
+//								if (signList.Count() < 64000) break;
+//								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
+//							}
 							return [null, pathfinder];
 						}
 					} else {
