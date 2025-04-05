@@ -1,10 +1,12 @@
 LuDiAI AfterFix
 ===============
-v22 (03-04-2025)
+v22 (05-04-2025)
 - OpenTTD and API requirements set to 15.0
 - Fixed a bug that allowed road depots to be part of multiple routes
 - Silence cache related errors about train engines and wagons
 - Allow ship pathfinder to build longer aqueducts when with infinite money
+- Fixed a bug when trying to generate rail station data from a single
+  piece
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0

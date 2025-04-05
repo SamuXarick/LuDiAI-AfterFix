@@ -163,14 +163,14 @@ class RailStation {
 							dir = RailStationDir.NE;
 							break;
 						}
-					}
-					if (AIRail.IsRailTile(exit_tile_SW_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_SW_1))) {
+					} else if (AIRail.IsRailTile(exit_tile_SW_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_SW_1))) {
 						local tracks = AIRail.GetRailTracks(exit_tile_SW_1);
 						if ((tracks & AIRail.RAILTRACK_NE_SW) != 0) {
 							dir = RailStationDir.SW;
 							break;
 						}
 					}
+					break;
 				}
 
 				case AIRail.RAILTRACK_NW_SE: {
@@ -182,14 +182,14 @@ class RailStation {
 							dir = RailStationDir.NW;
 							break;
 						}
-					}
-					if (AIRail.IsRailTile(exit_tile_SW_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_SW_1))) {
-						local tracks = AIRail.GetRailTracks(exit_tile_SW_1);
+					} else if (AIRail.IsRailTile(exit_tile_SE_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_SE_1))) {
+						local tracks = AIRail.GetRailTracks(exit_tile_SE_1);
 						if ((tracks & AIRail.RAILTRACK_NW_SE) != 0) {
 							dir = RailStationDir.SE;
 							break;
 						}
 					}
+					break;
 				}
 			}
 		}
@@ -466,14 +466,14 @@ class RailBuildManager {
 					++counter;
 				}
 				else {
-//					AILog.Warning("Removed railway station tile at " + stationTile);
+//					AILog.Warning("Removed railway station tile at " + stationTile + " from tile " + top_tile + " to tile " + bot_tile);
 					break;
 				}
 				AIController.Sleep(1);
 			} while (counter < 500);
 			if (counter == 500) {
 				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_railtype, bot_tile));
-//				AILog.Error("Failed to remove railway station tile at " + stationTile + " - " + AIError.GetLastErrorString());
+//				AILog.Error("Failed to remove railway station tile at " + stationTile + " from tile " + top_tile + " to tile " + bot_tile " - " + AIError.GetLastErrorString());
 			}
 			local counter = 0;
 			do {
