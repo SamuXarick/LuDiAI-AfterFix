@@ -285,7 +285,7 @@ class LuDiAIAfterFix extends AIController {
 				if (struct == RailStructType.STATION) {
 					local tile2 = i.m_tile2;
 					if (AIRail.IsRailStationTile(tile) && AIRail.IsRailStationTile(tile2) &&
-							AICompany.IsMine(AITile.GetOwner(tile)) && AICompany.IsMine(AITile.GetOwner(tile)) &&
+							AITile.GetOwner(tile) == ::caches.myCID && AITile.GetOwner(tile2) == ::caches.myCID &&
 							AIStation.GetStationID(tile) == AIStation.GetStationID(tile2)) {
 						if (TestRemoveRailStationTileRectangle().TryRemove(tile, tile2, false)) {
 							clearedList.AddItem(id, 0);
@@ -296,7 +296,7 @@ class LuDiAIAfterFix extends AIController {
 					}
 				}
 				else if (struct == RailStructType.DEPOT) {
-					if (AIRail.IsRailDepotTile(tile) && AICompany.IsMine(AITile.GetOwner(tile))) {
+					if (AIRail.IsRailDepotTile(tile) && AITile.GetOwner(tile) == ::caches.myCID) {
 						if (TestDemolishTile().TryDemolish(tile)) {
 							clearedList.AddItem(id, 0);
 						}
@@ -308,7 +308,7 @@ class LuDiAIAfterFix extends AIController {
 				else if (struct == RailStructType.BRIDGE) {
 					local tile2 = i.m_tile2;
 					if (AIBridge.IsBridgeTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) &&
-							AIBridge.GetOtherBridgeEnd(tile) == tile2 && AICompany.IsMine(AITile.GetOwner(tile))) {
+							AIBridge.GetOtherBridgeEnd(tile) == tile2 && AITile.GetOwner(tile) == ::caches.myCID) {
 						if (TestRemoveBridge().TryRemove(tile)) {
 							clearedList.AddItem(id, 0);
 						}
@@ -320,7 +320,7 @@ class LuDiAIAfterFix extends AIController {
 				else if (struct == RailStructType.TUNNEL) {
 					local tile2 = i.m_tile2;
 					if (AITunnel.IsTunnelTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) &&
-							AITunnel.GetOtherTunnelEnd(tile) == tile2 && AICompany.IsMine(AITile.GetOwner(tile))) {
+							AITunnel.GetOtherTunnelEnd(tile) == tile2 && AITile.GetOwner(tile) == ::caches.myCID) {
 						if (TestRemoveTunnel().TryRemove(tile)) {
 							clearedList.AddItem(id, 0);
 						}
@@ -332,7 +332,7 @@ class LuDiAIAfterFix extends AIController {
 				else if (struct == RailStructType.RAIL) {
 					local tile_from = i.m_tile2;
 					local tile_to = i.m_tile3;
-					if (AIRail.IsRailTile(tile) && AICompany.IsMine(AITile.GetOwner(tile))) {
+					if (AIRail.IsRailTile(tile) && AITile.GetOwner(tile) == ::caches.myCID) {
 						if (TestRemoveRail().TryRemove(tile_from, tile, tile_to)) {
 							clearedList.AddItem(id, 0);
 						}
@@ -349,7 +349,6 @@ class LuDiAIAfterFix extends AIController {
 	}
 
 	function PerformTownActions() {
-		local myCID = Utils.MyCID();
 		if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) return;
 
 		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
@@ -389,7 +388,7 @@ class LuDiAIAfterFix extends AIController {
 				if (AITown.IsActionAvailable(town, action)) {
 					local perform_action = true;
 					local cost = TestPerformTownAction().TestCost(town, action);
-					if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+					if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.myCID) <= cost) {
 						perform_action = false;
 					}
 					if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
@@ -408,7 +407,7 @@ class LuDiAIAfterFix extends AIController {
 						if (AITown.IsActionAvailable(town, action)) {
 							local perform_action = true;
 							local cost = TestPerformTownAction().TestCost(town, action);
-							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.myCID) <= cost) {
 								perform_action = false;
 							}
 							if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
@@ -420,7 +419,7 @@ class LuDiAIAfterFix extends AIController {
 						if (AITown.IsActionAvailable(town, action)) {
 							local perform_action = true;
 							local cost = TestPerformTownAction().TestCost(town, action);
-							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.myCID) <= cost) {
 								perform_action = false;
 							}
 							if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
@@ -432,7 +431,7 @@ class LuDiAIAfterFix extends AIController {
 						if (AITown.IsActionAvailable(town, action)) {
 							local perform_action = true;
 							local cost = TestPerformTownAction().TestCost(town, action);
-							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+							if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.myCID) <= cost) {
 								perform_action = false;
 							}
 							if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
@@ -447,7 +446,7 @@ class LuDiAIAfterFix extends AIController {
 					if (AITown.IsActionAvailable(town, action) && AITown.GetFundBuildingsDuration(town) == 0) {
 						local perform_action = true;
 						local cost = TestPerformTownAction().TestCost(town, action);
-						if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(myCID) <= cost) {
+						if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.myCID) <= cost) {
 							perform_action = false;
 						}
 						if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
@@ -462,7 +461,7 @@ class LuDiAIAfterFix extends AIController {
 	function BuildHQ() {
 		if (!AIController.GetSetting("build_hq")) return;
 
-		if (!AIMap.IsValidTile(AICompany.GetCompanyHQ(Utils.MyCID()))) {
+		if (!AIMap.IsValidTile(AICompany.GetCompanyHQ(::caches.myCID))) {
 //			AILog.Info("We don't have a company HQ yet...");
 			local tileN = AIBase.RandRange(AIMap.GetMapSize());
 			if (AIMap.IsValidTile(tileN)) {
@@ -499,7 +498,7 @@ class LuDiAIAfterFix extends AIController {
 		if (AIMap.IsValidTile(town_tile) && AITile.IsBuildable(town_tile) && AITile.GetSlope(town_tile) == AITile.SLOPE_FLAT) {
 			local perform_action = true;
 			local cost = TestFoundTown().TestCost(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null);
-			if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(Utils.MyCID()) <= cost) {
+			if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.myCID) <= cost) {
 				perform_action = false;
 			}
 			if (perform_action && TestFoundTown().TryFound(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null)) {
@@ -602,7 +601,7 @@ class LuDiAIAfterFix extends AIController {
 }
 
 function LuDiAIAfterFix::Start() {
-	if (AICompany.GetAutoRenewStatus(Utils.MyCID())) AICompany.SetAutoRenewStatus(false);
+	if (AICompany.GetAutoRenewStatus(::caches.myCID)) AICompany.SetAutoRenewStatus(false);
 
 	if (loading) {
 		if (loadData == null) {

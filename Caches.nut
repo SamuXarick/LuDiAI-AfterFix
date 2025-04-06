@@ -1,4 +1,6 @@
 class Caches {
+	myCID = AICompany.ResolveCompanyID(AICompany.COMPANY_SELF); // not saved
+
 	_depot_tile = AIMap.TILE_INVALID;
 
 	pass_capacities_list = {};
@@ -76,7 +78,7 @@ class Caches {
 	}
 
 	function GetExistingRailDepot(railtype) {
-		if (!AIRail.IsRailDepotTile(this._depot_tile) || !AICompany.IsMine(AITile.GetOwner(this._depot_tile)) || AIRail.GetRailType(this._depot_tile) != railtype) {
+		if (!AIRail.IsRailDepotTile(this._depot_tile) || AITile.GetOwner(this._depot_tile) != ::caches.myCID || AIRail.GetRailType(this._depot_tile) != railtype) {
 			this._depot_tile = AIMap.TILE_INVALID;
 			local depot_list = AIDepotList(AITile.TRANSPORT_RAIL);
 			foreach (depot in depot_list) {

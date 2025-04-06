@@ -37,10 +37,6 @@ function Utils::ConvertKmhishSpeedToDisplaySpeed(speed) {
 	return converted_speed + unit_str;
 }
 
-function Utils::MyCID() {
-	return AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
-}
-
 function Utils::GetValidOffsetTile(tile, offsetX, offsetY) {
 	local oldX = AIMap.GetTileX(tile);
 	local oldY = AIMap.GetTileY(tile);
@@ -193,7 +189,7 @@ function Utils::AreOtherStationsNearby(tile, cargoClass, stationId) {
 		/* if any other station is nearby, except my own airports, return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 			if (AITile.IsStationTile(tile)) {
-				if (AITile.GetOwner(tile) != Utils.MyCID()) {
+				if (AITile.GetOwner(tile) != ::caches.myCID) {
 					return true;
 				} else {
 					local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), stationType);
@@ -232,7 +228,7 @@ function Utils::AreOtherDocksNearby(tile_north, tile_south) {
 		/* if any other station is nearby, except my own airports, return true */
 		for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 			if (AITile.IsStationTile(tile)) {
-				if (AITile.GetOwner(tile) != Utils.MyCID()) {
+				if (AITile.GetOwner(tile) != ::caches.myCID) {
 					return true;
 				} else {
 					local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
@@ -248,7 +244,7 @@ function Utils::AreOtherDocksNearby(tile_north, tile_south) {
 }
 
 function Utils::IsTileMyRoadStation(tile, cargoClass) {
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID &&
 			AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return true;
 	}
@@ -257,7 +253,7 @@ function Utils::IsTileMyRoadStation(tile, cargoClass) {
 }
 
 function Utils::IsTileMyDock(tile) {
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
 		return true;
 	}
 
@@ -265,7 +261,7 @@ function Utils::IsTileMyDock(tile) {
 }
 
 function Utils::IsTileMyStationWithoutAirport(tile) { // Checks RoadStation
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_AIRPORT)) {
 		return true;
 	}
@@ -274,7 +270,7 @@ function Utils::IsTileMyStationWithoutAirport(tile) { // Checks RoadStation
 }
 
 function Utils::IsTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks Airport
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP)) {
 		return true;
 	}
@@ -283,7 +279,7 @@ function Utils::IsTileMyStationWithoutRoadStation(tile, cargoClass) { // Checks 
 }
 
 function Utils::IsTileMyStationWithoutRoadStationOfAnyType(tile) {
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_BUS_STOP) &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP)) {
 		return true;
@@ -293,7 +289,7 @@ function Utils::IsTileMyStationWithoutRoadStationOfAnyType(tile) {
 }
 
 function Utils::IsTileMyStationWithoutDock(tile) {
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK)) {
 		return true;
 	}
@@ -302,7 +298,7 @@ function Utils::IsTileMyStationWithoutDock(tile) {
 }
 
 function Utils::IsTileMyStationWithoutRailwayStation(tile) {
-	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() &&
+	if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID &&
 			!AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
 		return true;
 	}
@@ -879,7 +875,7 @@ function Utils::HasMoney(money)
 
 	local loan_amount = AICompany.GetLoanAmount();
 	local max_loan_amount = AICompany.GetMaxLoanAmount();
-	local bank_balance = AICompany.GetBankBalance(AICompany.COMPANY_SELF);
+	local bank_balance = AICompany.GetBankBalance(::caches.myCID);
 //	AILog.Info("loan_amount = " + loan_amount + "; max_loan_amount = " + max_loan_amount + "; bank_balance = " + bank_balance);
 //	AILog.Info("bank_balance + max_loan_amount - loan_amount >= money : " + (bank_balance + max_loan_amount - loan_amount) + " >= " + money + " : " + (bank_balance + max_loan_amount - loan_amount >= money));
 	return (bank_balance + max_loan_amount - loan_amount) >= money;
@@ -887,7 +883,7 @@ function Utils::HasMoney(money)
 
 function Utils::GetMoney(money)
 {
-	local bank_balance = AICompany.GetBankBalance(AICompany.COMPANY_SELF);
+	local bank_balance = AICompany.GetBankBalance(::caches.myCID);
 	if (bank_balance >= money) return;
 	local request_loan = money - bank_balance;
 	local loan_interval = AICompany.GetLoanInterval();
@@ -904,7 +900,7 @@ function Utils::GetMoney(money)
 
 function Utils::RepayLoan()
 {
-	local bank_balance = AICompany.GetBankBalance(AICompany.COMPANY_SELF);
+	local bank_balance = AICompany.GetBankBalance(::caches.myCID);
 	local loan_amount = AICompany.GetLoanAmount();
 	local repay_loan = loan_amount - bank_balance > 0 ? loan_amount - bank_balance : 0;
 	AICompany.SetMinimumLoanAmount(repay_loan);
@@ -1289,44 +1285,6 @@ class TestBuildLock extends MoneyTest {
 	}
 }
 
-// class TestBuildBuoy extends MoneyTest {
-// 	l = null;
-
-// 	function DoAction() {
-// 		return AIExecMode() && AIMarine.BuildBuoy(l);
-// 	}
-
-// 	function GetPrice() {
-// 		local cost = AIAccounting();
-// 		AITestMode() && AIMarine.BuildBuoy(l);
-// 		return cost.GetCosts();
-// 	}
-
-// 	function TryBuild(location) {
-// 		l = location;
-// 		return DoMoneyTest();
-// 	}
-// }
-
-// class TestRemoveBuoy extends MoneyTest {
-// 	l = null;
-
-// 	function DoAction() {
-// 		return AIExecMode() && AIMarine.RemoveBuoy(l);
-// 	}
-
-// 	function GetPrice() {
-// 		local cost = AIAccounting();
-// 		AITestMode() && AIMarine.RemoveBuoy(l);
-// 		return cost.GetCosts();
-// 	}
-
-// 	function TryRemove(location) {
-// 		l = location;
-// 		return DoMoneyTest();
-// 	}
-// }
-
 class TestRemoveDock extends MoneyTest {
 	l = null;
 
@@ -1412,27 +1370,6 @@ class TestBuildRailStation extends MoneyTest {
 		return DoMoneyTest();
 	}
 }
-
-// class TestBuildRailTrack extends MoneyTest {
-// 	l = null;
-// 	t = null;
-
-// 	function DoAction() {
-// 		return AIExecMode() && AIRail.BuildRailTrack(l, t);
-// 	}
-
-// 	function GetPrice() {
-// 		local cost = AIAccounting();
-// 		AITestMode() && AIRail.BuildRailTrack(l, t);
-// 		return cost.GetCosts();
-// 	}
-
-// 	function TryBuild(location, track) {
-// 		l = location;
-// 		t = track;
-// 		return DoMoneyTest();
-// 	}
-// }
 
 class TestBuildRail extends MoneyTest {
 	f = null;
@@ -1523,27 +1460,6 @@ class TestRemoveRailStationTileRectangle extends MoneyTest {
 		return DoMoneyTest();
 	}
 }
-
-// class TestRemoveRailTrack extends MoneyTest {
-// 	l = null;
-// 	t = null;
-
-// 	function DoAction() {
-// 		return AIExecMode() && AIRail.RemoveRailTrack(l, t);
-// 	}
-
-// 	function GetPrice() {
-// 		local cost = AIAccounting();
-// 		AITestMode() && AIRail.RemoveRailTrack(l, t);
-// 		return cost.GetCosts();
-// 	}
-
-// 	function TryRemove(location, track) {
-// 		l = location;
-// 		t = track;
-// 		return DoMoneyTest();
-// 	}
-// }
 
 class TestRemoveRail extends MoneyTest {
 	f = null;

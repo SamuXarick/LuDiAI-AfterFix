@@ -62,7 +62,8 @@ class Road
 	 * @param goal The target tile.
 	 * @see AyStar::InitializePath()
 	 */
-	function InitializePath(source, goal) {
+	function InitializePath(source, goal)
+	{
 		this._pathfinder.InitializePath([source, 0xFF], goal);
 		if (this._search_range) {
 			local source_x = AIMap.GetTileX(source);
@@ -209,7 +210,7 @@ function Road::_CostHelperEfficient(self, path, new_tile, coast_cost_only = null
 		if (!_AIRoad.AreRoadTilesConnected(prev_tile, new_tile)) {
 			cost += self._cost_no_existing_road * 2;
 			if (_AIRoad.IsRoadTile(new_tile) || _AIBridge.IsBridgeTile(new_tile) || _AITunnel.IsTunnelTile(new_tile) ||
-					(_AIRoad.IsRoadStationTile(new_tile) || _AIRoad.IsRoadDepotTile(new_tile)) && _AITile.GetOwner(new_tile) == _AICompany.ResolveCompanyID(_AICompany.COMPANY_SELF)) {
+					(_AIRoad.IsRoadStationTile(new_tile) || _AIRoad.IsRoadDepotTile(new_tile)) && _AITile.GetOwner(new_tile) == ::caches.myCID) {
 				cost -= self._cost_no_existing_road;
 			}
 		}
@@ -329,7 +330,7 @@ function Road::_Neighbours(self, path, cur_node,
 			if (_AIRoad.AreRoadTilesConnected(cur_node, next_tile) && !_AIRail.IsLevelCrossingTile(next_tile)) {
 				if (self._IsInsideRangeEfficient(self, next_tile)) tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);
 			} else if ((_AITile.IsBuildable(next_tile) || _AIRoad.IsRoadTile(next_tile) && !_AIRail.IsLevelCrossingTile(next_tile) ||
-					(_AIRoad.IsRoadStationTile(next_tile) || _AIRoad.IsRoadDepotTile(next_tile)) && _AITile.GetOwner(next_tile) == _AICompany.ResolveCompanyID(_AICompany.COMPANY_SELF)) &&
+					(_AIRoad.IsRoadStationTile(next_tile) || _AIRoad.IsRoadDepotTile(next_tile)) && _AITile.GetOwner(next_tile) == ::caches.myCID) &&
 					(!par || _AIRoad.CanBuildConnectedRoadPartsHere(cur_node, last_node, next_tile) > 0) &&
 					_AIRoad.BuildRoad(cur_node, next_tile)) {
 				if (self._IsInsideRangeEfficient(self, next_tile)) tiles.push([next_tile, self._GetDirectionEfficient(cur_node, next_tile, false)]);

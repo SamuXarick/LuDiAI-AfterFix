@@ -788,7 +788,7 @@ class AirBuildManager {
 					tileList2.RemoveRectangle(tile, AIMap.GetTileIndex(AIMap.GetTileX(tile + airport_x - 1), AIMap.GetTileY(tile + airport_y - 1)));
 					local nearby_station = false;
 					for (local t = tileList2.Begin(); !tileList2.IsEnd(); t = tileList2.Next()) {
-						if (AITile.IsStationTile(t) && (AIAirport.IsAirportTile(t) || AITile.GetOwner(t) != Utils.MyCID() && AIController.GetSetting("is_friendly"))) {
+						if (AITile.IsStationTile(t) && (AIAirport.IsAirportTile(t) || AITile.GetOwner(t) != ::caches.myCID && AIController.GetSetting("is_friendly"))) {
 							nearby_station = true;
 							break;
 						}

@@ -157,13 +157,13 @@ class RailStation {
 				case AIRail.RAILTRACK_NE_SW: {
 					local exit_tile_NE_1 = top_tile - 1;
 					local exit_tile_SW_1 = top_tile + length;
-					if (AIRail.IsRailTile(exit_tile_NE_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_NE_1))) {
+					if (AIRail.IsRailTile(exit_tile_NE_1) && AITile.GetOwner(exit_tile_NE_1) == ::caches.myCID) {
 						local tracks = AIRail.GetRailTracks(exit_tile_NE_1);
 						if ((tracks & AIRail.RAILTRACK_NE_SW) != 0) {
 							dir = RailStationDir.NE;
 							break;
 						}
-					} else if (AIRail.IsRailTile(exit_tile_SW_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_SW_1))) {
+					} else if (AIRail.IsRailTile(exit_tile_SW_1) && AITile.GetOwner(exit_tile_SW_1) == ::caches.myCID) {
 						local tracks = AIRail.GetRailTracks(exit_tile_SW_1);
 						if ((tracks & AIRail.RAILTRACK_NE_SW) != 0) {
 							dir = RailStationDir.SW;
@@ -176,13 +176,13 @@ class RailStation {
 				case AIRail.RAILTRACK_NW_SE: {
 					local exit_tile_NW_1 = top_tile - AIMap.GetMapSizeX();
 					local exit_tile_SE_1 = top_tile + length * AIMap.GetMapSizeX();
-					if (AIRail.IsRailTile(exit_tile_NW_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_NW_1))) {
+					if (AIRail.IsRailTile(exit_tile_NW_1) && AITile.GetOwner(exit_tile_NW_1) == ::caches.myCID) {
 						local tracks = AIRail.GetRailTracks(exit_tile_NW_1);
 						if ((tracks & AIRail.RAILTRACK_NW_SE) != 0) {
 							dir = RailStationDir.NW;
 							break;
 						}
-					} else if (AIRail.IsRailTile(exit_tile_SE_1) && AICompany.IsMine(AITile.GetOwner(exit_tile_SE_1))) {
+					} else if (AIRail.IsRailTile(exit_tile_SE_1) && AITile.GetOwner(exit_tile_SE_1) == ::caches.myCID) {
 						local tracks = AIRail.GetRailTracks(exit_tile_SE_1);
 						if ((tracks & AIRail.RAILTRACK_NW_SE) != 0) {
 							dir = RailStationDir.SE;
@@ -759,7 +759,7 @@ class RailBuildManager {
 
 			/* if another railway station of mine is nearby return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == Utils.MyCID() && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
+				if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
 					return true;
 				}
 			}
@@ -770,7 +770,7 @@ class RailBuildManager {
 			/* if any other station is nearby, except my own railway stations, return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 				if (AITile.IsStationTile(tile)) {
-					if (AITile.GetOwner(tile) != Utils.MyCID()) {
+					if (AITile.GetOwner(tile) != ::caches.myCID) {
 						return true;
 					} else {
 						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
