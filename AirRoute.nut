@@ -54,10 +54,10 @@ class AirRoute extends AirRouteManager
 		this.m_airport_type_to = AIAirport.GetAirportType(airport_to);
 
 		/* This requires the values above to be initialized */
-		this.m_engine = GetAircraftEngine();
+		this.m_engine = this.GetAircraftEngine();
 
 		if (!is_loaded) {
-			AddVehiclesToNewRoute();
+			this.AddVehiclesToNewRoute();
 		}
 	}
 
@@ -104,9 +104,11 @@ class AirRoute extends AirRouteManager
 	function SentToDepotList(i)
 	{
 		local sent_to_depot_list = AIList();
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 		foreach (vehicle, status in this.m_vehicleList) {
-			if (status == i) sent_to_depot_list[vehicle] = i;
+			if (status == i) {
+				sent_to_depot_list[vehicle] = i;
+			}
 		}
 		return sent_to_depot_list;
 	}
@@ -165,7 +167,7 @@ class AirRoute extends AirRouteManager
 	{
 		if (!this.m_activeRoute || !this.m_renewVehicles) return;
 
-		this.m_engine = GetAircraftEngine();
+		this.m_engine = this.GetAircraftEngine();
 	}
 
 	function DeleteSellVehicle(vehicle)
@@ -177,8 +179,8 @@ class AirRoute extends AirRouteManager
 
 	function AddVehicle(return_vehicle = false, skip_order = false)
 	{
-		ValidateVehicleList();
-		if (this.m_vehicleList.Count() >= OptimalVehicleCount()) {
+		this.ValidateVehicleList();
+		if (this.m_vehicleList.Count() >= this.OptimalVehicleCount()) {
 			return null;
 		}
 
@@ -224,7 +226,7 @@ class AirRoute extends AirRouteManager
 							AIOrder.AppendOrder(new_vehicle, order_2, (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE))) {
 						vehicle_ready_to_start = true;
 					} else {
-						DeleteSellVehicle(new_vehicle);
+						this.DeleteSellVehicle(new_vehicle);
 						return null;
 					}
 				} else {
@@ -232,7 +234,7 @@ class AirRoute extends AirRouteManager
 						vehicle_ready_to_start = true;
 					} else {
 						AILog.Error("Could not share " + AIVehicle.GetName(new_vehicle) + " orders with " + AIVehicle.GetName(share_orders_vid));
-						DeleteSellVehicle(new_vehicle);
+						this.DeleteSellVehicle(new_vehicle);
 						return null;
 					}
 				}
@@ -243,7 +245,7 @@ class AirRoute extends AirRouteManager
 					if (clone_vehicle_id != share_orders_vid) {
 						if (!AIOrder.ShareOrders(new_vehicle, share_orders_vid)) {
 							AILog.Error("Could not share " + AIVehicle.GetName(new_vehicle) + " orders with " + AIVehicle.GetName(share_orders_vid));
-							DeleteSellVehicle(new_vehicle);
+							this.DeleteSellVehicle(new_vehicle);
 							return null;
 						}
 					}
@@ -283,10 +285,10 @@ class AirRoute extends AirRouteManager
 
 	function AddVehiclesToNewRoute()
 	{
-		GroupVehicles();
-		local optimal_vehicle_count = OptimalVehicleCount();
+		this.GroupVehicles();
+		local optimal_vehicle_count = this.OptimalVehicleCount();
 
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 		local num_vehicles = this.m_vehicleList.Count();
 		local num_vehicles_before = num_vehicles;
 		if (num_vehicles >= optimal_vehicle_count) {
@@ -307,7 +309,7 @@ class AirRoute extends AirRouteManager
 				break;
 			}
 			this.m_lastVehicleAdded = 0;
-			local added_vehicle = AddVehicle(true, (num_vehicles % 2) == 1);
+			local added_vehicle = this.AddVehicle(true, (num_vehicles % 2) == 1);
 			if (added_vehicle != null) {
 				num_vehicles++;
 				AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on new route from " + (num_vehicles % 2 == 1 ? this.m_station_name_to : this.m_station_name_from) + " to " + (num_vehicles % 2 == 1 ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + "/" + optimal_vehicle_count + " aircraft, " + this.m_fake_dist + " realfake tiles)");
@@ -355,11 +357,11 @@ class AirRoute extends AirRouteManager
 	function SendNegativeProfitVehiclesToDepot()
 	{
 		if (this.m_lastVehicleAdded <= 0 || AIDate.GetCurrentDate() - this.m_lastVehicleAdded <= 30) return;
-//		AILog.Info("SendNegativeProfitVehiclesToDepot . this.m_lastVehicleAdded = " + this.m_lastVehicleAdded + "; " + AIDate.GetCurrentDate() + " - " + this.m_lastVehicleAdded + " = " + (AIDate.GetCurrentDate() - this.m_lastVehicleAdded) + " < 45" + " - " + this.m_station_name_from + " to " + this.m_station_name_to);
+//		AILog.Info("this.SendNegativeProfitVehiclesToDepot . this.m_lastVehicleAdded = " + this.m_lastVehicleAdded + "; " + AIDate.GetCurrentDate() + " - " + this.m_lastVehicleAdded + " = " + (AIDate.GetCurrentDate() - this.m_lastVehicleAdded) + " < 45" + " - " + this.m_station_name_from + " to " + this.m_station_name_to);
 
 //		if (AIDate.GetCurrentDate() - this.m_lastVehicleRemoved <= 30) return;
 
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 
 		foreach (vehicle, _ in this.m_vehicleList) {
 			if (AIVehicle.GetAge(vehicle) > 730 && AIVehicle.GetProfitLastYear(vehicle) < 0) {
@@ -377,7 +379,7 @@ class AirRoute extends AirRouteManager
 
 	function SendLowProfitVehiclesToDepot(max_all_routes_profit)
 	{
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 		local vehicle_list = AIList();
 		foreach (vehicle, _ in this.m_vehicleList) {
 			if (AIVehicle.GetAge(vehicle) > 730) {
@@ -416,7 +418,7 @@ class AirRoute extends AirRouteManager
 		foreach (vehicle, _ in sent_to_depot_list) {
 			if (this.m_vehicleList.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
 				local vehicle_name = AIVehicle.GetName(vehicle);
-				DeleteSellVehicle(vehicle);
+				this.DeleteSellVehicle(vehicle);
 
 				AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sold!");
 			}
@@ -427,9 +429,9 @@ class AirRoute extends AirRouteManager
 		foreach (vehicle, _ in sent_to_depot_list) {
 			if (this.m_vehicleList.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
 				local skip_to_order = AIOrder.ResolveOrderPosition(vehicle, AIOrder.ORDER_CURRENT);
-				DeleteSellVehicle(vehicle);
+				this.DeleteSellVehicle(vehicle);
 
-				local renewed_vehicle = AddVehicle(true, skip_to_order);
+				local renewed_vehicle = this.AddVehicle(true, skip_to_order);
 				if (renewed_vehicle != null) {
 					AILog.Info(AIVehicle.GetName(renewed_vehicle) + " on route from " + (skip_to_order < 1 ? this.m_station_name_from : this.m_station_name_to) + " to " + (skip_to_order < 1 ? this.m_station_name_to : this.m_station_name_from) + " has been renewed!");
 				}
@@ -444,7 +446,7 @@ class AirRoute extends AirRouteManager
 		}
 
 		if (this.m_lastVehicleAdded <= 0) {
-			return AddVehiclesToNewRoute();
+			return this.AddVehiclesToNewRoute();
 		}
 
 		if (!this.m_renewVehicles) {
@@ -455,11 +457,11 @@ class AirRoute extends AirRouteManager
 			return 0;
 		}
 
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 		local num_vehicles = this.m_vehicleList.Count();
 		local num_vehicles_before = num_vehicles;
 
-		local optimal_vehicle_count = OptimalVehicleCount();
+		local optimal_vehicle_count = this.OptimalVehicleCount();
 		if (num_vehicles >= optimal_vehicle_count && maxed_out_num_vehs) {
 			return 0;
 		}
@@ -550,7 +552,7 @@ class AirRoute extends AirRouteManager
 		local number_to_add = max (1, (cargo_waiting_from > cargo_waiting_to ? cargo_waiting_from : cargo_waiting_to) / engine_capacity);
 		while (number_to_add) {
 			number_to_add--;
-			local added_vehicle = AddVehicle(true, cargo_waiting_from <= cargo_waiting_to);
+			local added_vehicle = this.AddVehicle(true, cargo_waiting_from <= cargo_waiting_to);
 			if (added_vehicle != null) {
 				num_vehicles++;
 				local skipped_order = false;
@@ -575,7 +577,7 @@ class AirRoute extends AirRouteManager
 			return;
 		}
 
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 		local engine_price = AIEngine.GetPrice(this.m_engine);
 		local count = 1 + AIGroup.GetNumVehicles(this.m_sentToDepotAirGroup[1], AIVehicle.VT_AIR);
 
@@ -599,7 +601,7 @@ class AirRoute extends AirRouteManager
 
 	function RemoveIfUnserviced()
 	{
-		ValidateVehicleList();
+		this.ValidateVehicleList();
 		if (this.m_vehicleList.IsEmpty() && (((!AIEngine.IsValidEngine(this.m_engine) || !AIEngine.IsBuildable(this.m_engine)) && this.m_lastVehicleAdded == 0) ||
 				(AIDate.GetCurrentDate() - this.m_lastVehicleAdded >= 90) && this.m_lastVehicleAdded > 0)) {
 			this.m_activeRoute = false;
