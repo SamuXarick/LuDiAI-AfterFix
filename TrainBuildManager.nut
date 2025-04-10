@@ -754,8 +754,7 @@ class RailBuildManager {
 		if (!AIController.GetSetting("is_friendly")) {
 			squareSize = 2;
 			/* don't care about enemy stations when is_friendly is off */
-			square.AddRectangle(Utils.GetValidOffsetTile(station.GetTopTile(), -1 * squareSize, -1 * squareSize),
-					Utils.GetValidOffsetTile(station.GetBottomTile(), squareSize, squareSize));
+			square.AddRectangle(Utils.GetValidOffsetTile(station.GetTopTile(), -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(station.GetBottomTile(), squareSize, squareSize));
 
 			/* if another railway station of mine is nearby return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
@@ -764,8 +763,7 @@ class RailBuildManager {
 				}
 			}
 		} else {
-			square.AddRectangle(Utils.GetValidOffsetTile(station.GetTopTile(), -1 * squareSize, -1 * squareSize),
-					Utils.GetValidOffsetTile(station.GetBottomTile(), squareSize, squareSize));
+			square.AddRectangle(Utils.GetValidOffsetTile(station.GetTopTile(), -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(station.GetBottomTile(), squareSize, squareSize));
 
 			/* if any other station is nearby, except my own railway stations, return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
@@ -882,7 +880,7 @@ class RailBuildManager {
 
 		local stationList = AIList();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
-			stationList.AddItem(tileList.GetValue(tile), AITile.GetDistanceManhattanToTile(tile, station.GetTopTile()));
+			stationList.AddItem(tileList.GetValue(tile), AIMap.DistanceManhattan(tile, station.GetTopTile()));
 		}
 
 		local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);

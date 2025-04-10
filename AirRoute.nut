@@ -1,6 +1,7 @@
 require("AirRouteManager.nut");
 
-class AirRoute extends AirRouteManager {
+class AirRoute extends AirRouteManager
+{
 	m_cityFrom = null;
 	m_cityTo = null;
 	m_airportFrom = null;
@@ -20,7 +21,8 @@ class AirRoute extends AirRouteManager {
 
 	m_vehicleList = null;
 
-	constructor(cityFrom, cityTo, airportFrom, airportTo, cargoClass, sentToDepotAirGroup, isLoaded = 0) {
+	constructor(cityFrom, cityTo, airportFrom, airportTo, cargoClass, sentToDepotAirGroup, isLoaded = 0)
+	{
 		m_cityFrom = cityFrom;
 		m_cityTo = cityTo;
 		m_airportFrom = airportFrom;
@@ -50,7 +52,8 @@ class AirRoute extends AirRouteManager {
 	function GetAircraftEngine(cargoClass);
 	function AddRemoveVehicleToRoute();
 
-	function ValidateVehicleList() {
+	function ValidateVehicleList()
+	{
 		local stationFrom = AIStation.GetStationID(m_airportFrom);
 		local stationTo = AIStation.GetStationID(m_airportTo);
 
@@ -93,7 +96,8 @@ class AirRoute extends AirRouteManager {
 		}
 	}
 
-	function SentToDepotList(i) {
+	function SentToDepotList(i)
+	{
 		local sent_to_depot_list = AIList();
 		ValidateVehicleList();
 		foreach (vehicle, status in m_vehicleList) {
@@ -102,7 +106,8 @@ class AirRoute extends AirRouteManager {
 		return sent_to_depot_list;
 	}
 
-	function GetAircraftEngine(cargoClass) {
+	function GetAircraftEngine(cargoClass)
+	{
 		local airport1_type = AIAirport.GetAirportType(m_airportFrom);
 		local airport2_type = AIAirport.GetAirportType(m_airportTo);
 
@@ -151,19 +156,22 @@ class AirRoute extends AirRouteManager {
 		return engine_list.Begin();
 	}
 
-	function UpgradeEngine() {
+	function UpgradeEngine()
+	{
 		if (!m_activeRoute || !m_renewVehicles) return;
 
 		m_engine = GetAircraftEngine(m_cargoClass);
 	}
 
-	function DeleteSellVehicle(vehicle) {
+	function DeleteSellVehicle(vehicle)
+	{
 		m_vehicleList.rawdelete(vehicle);
 		AIVehicle.SellVehicle(vehicle);
 		Utils.RepayLoan();
 	}
 
-	function AddVehicle(return_vehicle = false, skip_order = false) {
+	function AddVehicle(return_vehicle = false, skip_order = false)
+	{
 		ValidateVehicleList();
 		if (m_vehicleList.len() >= OptimalVehicleCount()) {
 			return null;
@@ -261,8 +269,9 @@ class AirRoute extends AirRouteManager {
 		}
 	}
 
-	function OptimalVehicleCount() {
-	local count_interval = WrightAI.GetEngineRealFakeDist(m_engine, AirBuildManager.DAYS_INTERVAL);
+	function OptimalVehicleCount()
+	{
+		local count_interval = WrightAI.GetEngineRealFakeDist(m_engine, AirBuildManager.DAYS_INTERVAL);
 		local fakedist = WrightAI.DistanceRealFake(m_airportFrom, m_airportTo);
 		local airport1_type = AIAirport.GetAirportType(m_airportFrom);
 		local airport2_type = AIAirport.GetAirportType(m_airportTo);
@@ -270,7 +279,8 @@ class AirRoute extends AirRouteManager {
 		return (count_interval > 0 ? (fakedist / count_interval) : 0) + WrightAI.GetNumTerminals(aircraft_type, airport1_type) + WrightAI.GetNumTerminals(aircraft_type, airport2_type);
 	}
 
-	function AddVehiclesToNewRoute(cargoClass) {
+	function AddVehiclesToNewRoute(cargoClass)
+	{
 		m_group = GroupVehicles();
 		local optimal_vehicle_count = OptimalVehicleCount();
 
@@ -316,7 +326,8 @@ class AirRoute extends AirRouteManager {
 		return numvehicles - numvehicles_before;
 	}
 
-	function SendMoveVehicleToDepot(vehicle_id) {
+	function SendMoveVehicleToDepot(vehicle_id)
+	{
 		if (AIVehicle.GetGroupID(vehicle_id) != m_sentToDepotAirGroup[0] && AIVehicle.GetGroupID(vehicle_id) != m_sentToDepotAirGroup[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
 			local airport1_hangars = AIAirport.GetNumHangars(m_airportFrom) != 0;
@@ -342,7 +353,8 @@ class AirRoute extends AirRouteManager {
 		return 0;
 	}
 
-	function SendNegativeProfitVehiclesToDepot() {
+	function SendNegativeProfitVehiclesToDepot()
+	{
 		if (m_lastVehicleAdded <= 0 || AIDate.GetCurrentDate() - m_lastVehicleAdded <= 30) return;
 //		AILog.Info("SendNegativeProfitVehiclesToDepot . m_lastVehicleAdded = " + m_lastVehicleAdded + "; " + AIDate.GetCurrentDate() + " - " + m_lastVehicleAdded + " = " + (AIDate.GetCurrentDate() - m_lastVehicleAdded) + " < 45" + " - " + AIBaseStation.GetName(AIStation.GetStationID(m_airportFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(m_airportTo)));
 
@@ -364,7 +376,8 @@ class AirRoute extends AirRouteManager {
 		}
 	}
 
-	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit) {
+	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit)
+	{
 		ValidateVehicleList();
 		local vehicleList = AIList();
 		foreach (vehicle, _ in this.m_vehicleList) {
@@ -400,7 +413,8 @@ class AirRoute extends AirRouteManager {
 		}
 	}
 
-	function SellVehiclesInDepot() {
+	function SellVehiclesInDepot()
+	{
 		local sent_to_depot_list = this.SentToDepotList(0);
 
 		for (local vehicle = sent_to_depot_list.Begin(); !sent_to_depot_list.IsEnd(); vehicle = sent_to_depot_list.Next()) {
@@ -427,7 +441,8 @@ class AirRoute extends AirRouteManager {
 		}
 	}
 
-	function AddRemoveVehicleToRoute(maxed_out_num_vehs) {
+	function AddRemoveVehicleToRoute(maxed_out_num_vehs)
+	{
 		if (!m_activeRoute) {
 			return 0;
 		}
@@ -564,7 +579,8 @@ class AirRoute extends AirRouteManager {
 		return numvehicles - numvehicles_before;
 	}
 
-	function RenewVehicles() {
+	function RenewVehicles()
+	{
 		if (!m_renewVehicles) {
 			return;
 		}
@@ -591,7 +607,8 @@ class AirRoute extends AirRouteManager {
 		}
 	}
 
-	function RemoveIfUnserviced() {
+	function RemoveIfUnserviced()
+	{
 		ValidateVehicleList();
 		if (this.m_vehicleList.len() == 0 && (((!AIEngine.IsValidEngine(m_engine) || !AIEngine.IsBuildable(m_engine)) && m_lastVehicleAdded == 0) ||
 				(AIDate.GetCurrentDate() - m_lastVehicleAdded >= 90) && m_lastVehicleAdded > 0)) {
@@ -612,7 +629,8 @@ class AirRoute extends AirRouteManager {
 		return false;
 	}
 
-	function GroupVehicles() {
+	function GroupVehicles()
+	{
 		foreach (vehicle, _ in this.m_vehicleList) {
 			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != m_sentToDepotAirGroup[0] && AIVehicle.GetGroupID(vehicle) != m_sentToDepotAirGroup[1]) {
 				if (!AIGroup.IsValidGroup(m_group)) {
@@ -642,11 +660,13 @@ class AirRoute extends AirRouteManager {
 		return m_group;
 	}
 
-	function SaveRoute() {
+	function SaveRoute()
+	{
 		return [m_cityFrom, m_cityTo, m_airportFrom, m_airportTo, m_cargoClass, m_lastVehicleAdded, m_lastVehicleRemoved, m_activeRoute, m_sentToDepotAirGroup, m_group, m_renewVehicles];
 	}
 
-	function LoadRoute(data) {
+	function LoadRoute(data)
+	{
 		local cityFrom = data[0];
 		local cityTo = data[1];
 		local airportFrom = data[2];
@@ -691,4 +711,4 @@ class AirRoute extends AirRouteManager {
 
 		return route;
 	}
-}
+};

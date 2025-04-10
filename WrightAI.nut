@@ -205,165 +205,43 @@ function WrightAI::GetEngineRouteIncome(engine_id, cargo, fakedist, primary_capa
 	return income;
 }
 
-function WrightAI::CheckAdjacentNonAirport(airportTile, airport_type) {
-	if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
-		return AIStation.STATION_NEW;
-	}
-
-	local tileList = AITileList();
-	local spreadrectangle = WrightAI.ExpandAdjacentAirportRect(airportTile, airport_type);
-	tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
-
-	local templist = AITileList();
-	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-		if (Utils.IsTileMyStationWithoutAirport(tile)) {
-			tileList.SetValue(tile, AIStation.GetStationID(tile));
-		} else {
-			templist.AddTile(tile);
+function WrightAI::GetAdjacentNonAirportStationID(airport_rectangle, spread_rectangle) {
+	local tile_list = AITileList();
+	tile_list.AddRectangle(spread_rectangle.tile_top, spread_rectangle.tile_bot);
+	foreach (tile, _ in tile_list) {
+		if (!AITile.IsStationTile(tile)) {
+			tile_list[tile] = null;
+			continue;
 		}
+		if (AITile.GetOwner(tile) != ::caches.myCID) {
+			tile_list[tile] = null;
+			continue;
+		}
+		local station_id = AIStation.GetStationID(tile);
+		if (AIStation.HasStationType(station_id, AIStation.STATION_AIRPORT)) {
+			tile_list[tile] = null;
+			continue;
+		}
+		tile_list[tile] = station_id;
 	}
-	tileList.RemoveList(templist);
 
-	local stationList = AIList();
-	for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
-		stationList.AddItem(tileList.GetValue(tile), AITile.GetDistanceManhattanToTile(tile, airportTile));
+	local station_list = AIList();
+	station_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
+	foreach (tile, station_id in tile_list) {
+		station_list[station_id] = airport_rectangle.DistanceManhattan(tile);
 	}
 
-	local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);
-	local spreadrectangle_top_y = AIMap.GetTileY(spreadrectangle[0]);
-	local spreadrectangle_bot_x = AIMap.GetTileX(spreadrectangle[1]);
-	local spreadrectangle_bot_y = AIMap.GetTileY(spreadrectangle[1]);
-
-	local list = AIList();
-	list.AddList(stationList);
-	for (local stationId = stationList.Begin(); !stationList.IsEnd(); stationId = stationList.Next()) {
-		local stationTiles = AITileList_StationType(stationId, AIStation.STATION_ANY);
-		local station_top_x = AIMap.GetTileX(AIBaseStation.GetLocation(stationId));
-		local station_top_y = AIMap.GetTileY(AIBaseStation.GetLocation(stationId));
-		local station_bot_x = station_top_x;
-		local station_bot_y = station_top_y;
-		for (local tile = stationTiles.Begin(); !stationTiles.IsEnd(); tile = stationTiles.Next()) {
-			local tile_x = AIMap.GetTileX(tile);
-			local tile_y = AIMap.GetTileY(tile);
-			if (tile_x < station_top_x) {
-				station_top_x = tile_x;
-			}
-			if (tile_x > station_bot_x) {
-				station_bot_x = tile_x;
-			}
-			if (tile_y < station_top_y) {
-				station_top_y = tile_y;
-			}
-			if (tile_y > station_bot_y) {
-				station_bot_y = tile_y;
+	foreach (station_id, _ in station_list) {
+		local station_tiles = AITileList_StationType(station_id, AIStation.STATION_ANY);
+		foreach (tile, _ in station_tiles) {
+			if (!spread_rectangle.Contains(tile)) {
+				station_list[station_id] = null;
+				break;
 			}
 		}
-
-		if (spreadrectangle_top_x > station_top_x ||
-			spreadrectangle_top_y > station_top_y ||
-			spreadrectangle_bot_x < station_bot_x ||
-			spreadrectangle_bot_y < station_bot_y) {
-			list.RemoveItem(stationId);
-		}
-	}
-	list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
-
-	local adjacentStation = AIStation.STATION_NEW;
-	if (!list.IsEmpty()) {
-		adjacentStation = list.Begin();
-//		AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; airportTile = " + AIMap.GetTileX(airportTile) + "," + AIMap.GetTileY(airportTile));
 	}
 
-	return adjacentStation;
-}
-
-function WrightAI::ExpandAdjacentAirportRect(airportTile, airport_type) {
-	local spread_rad = AIGameSettings.GetValue("station_spread");
-	local airport_x = AIAirport.GetAirportWidth(airport_type);
-	local airport_y = AIAirport.GetAirportHeight(airport_type);
-
-	local remaining_x = spread_rad - airport_x;
-	local remaining_y = spread_rad - airport_y;
-
-	local tile_top_x = AIMap.GetTileX(airportTile);
-	local tile_top_y = AIMap.GetTileY(airportTile);
-	local tile_bot_x = tile_top_x + airport_x - 1;
-	local tile_bot_y = tile_top_y + airport_y - 1;
-
-	for (local x = remaining_x; x > 0; x--) {
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_top_x - 1, tile_top_y))) {
-			tile_top_x = tile_top_x - 1;
-		}
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_bot_x + 1, tile_bot_y))) {
-			tile_bot_x = tile_bot_x + 1;
-		}
-	}
-
-	for (local y = remaining_y; y > 0; y--) {
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_top_x, tile_top_y - 1))) {
-			tile_top_y = tile_top_y - 1;
-		}
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_bot_x, tile_bot_y + 1))) {
-			tile_bot_y = tile_bot_y + 1;
-		}
-	}
-
-//	AILog.Info("spreadrectangle top = " + tile_top_x + "," + tile_top_y + " ; spreadrectangle bottom = " + tile_bot_x + "," + tile_bot_y);
-	return [AIMap.GetTileIndex(tile_top_x, tile_top_y), AIMap.GetTileIndex(tile_bot_x, tile_bot_y)];
-}
-
-function WrightAI::TownAirportRadRect(airport_type, index, town = true) {
-	local airport_x = AIAirport.GetAirportWidth(airport_type);
-	local airport_y = AIAirport.GetAirportHeight(airport_type);
-	local airport_rad = AIAirport.GetAirportCoverageRadius(airport_type);
-
-	local top_x;
-	local top_y;
-	local bot_x;
-	local bot_y;
-	if (town) {
-		local town_rectangle = Utils.EstimateTownRectangle(index);
-
-		top_x = AIMap.GetTileX(town_rectangle[0]);
-		top_y = AIMap.GetTileY(town_rectangle[0]);
-		bot_x = AIMap.GetTileX(town_rectangle[1]);
-		bot_y = AIMap.GetTileY(town_rectangle[1]);
-	} else {
-		top_x = AIMap.GetTileX(index);
-		top_y = AIMap.GetTileY(index);
-		bot_x = top_x + airport_x - 1;
-		bot_y = top_y + airport_y - 1;
-	}
-//	AILog.Info("top tile was " + top_x + "," + top_y + " bottom tile was " + bot_x + "," + bot_y + " ; town = " + town);
-
-	for (local x = airport_x; x > 1; x--) {
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(top_x - 1, top_y))) {
-			top_x = top_x - 1;
-		}
-	}
-
-	for (local y = airport_y; y > 1; y--) {
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(top_x, top_y - 1))) {
-			top_y = top_y - 1;
-		}
-	}
-
-	for (local r = airport_rad; r > 0; r--) {
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(top_x - 1, top_y))) {
-			top_x = top_x - 1;
-		}
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(top_x, top_y - 1))) {
-			top_y = top_y - 1;
-		}
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(bot_x + 1, bot_y))) {
-			bot_x = bot_x + 1;
-		}
-		if (AIMap.IsValidTile(AIMap.GetTileIndex(bot_x, bot_y + 1))) {
-			bot_y = bot_y + 1;
-		}
-	}
-//	AILog.Info("top tile now " + top_x + "," + top_y + " bottom tile now " + bot_x + "," + bot_y + " ; town = " + town);
-	return [AIMap.GetTileIndex(top_x, top_y), AIMap.GetTileIndex(bot_x, bot_y)];
+	return station_list.IsEmpty() ? AIStation.STATION_NEW : station_list.Begin();
 }
 
 function WrightAI::GetAirportTypeName(airport_type)
@@ -378,31 +256,4 @@ function WrightAI::GetAirportTypeName(airport_type)
 	if (airport_type == AIAirport.AT_HELIDEPOT) return "Helidepot";
 	if (airport_type == AIAirport.AT_HELIPORT) return "Heliport";
 	return "Invalid";
-}
-
-function WrightAI::GetMinAirportDistToTile(airport_tile, airport_type, town_tile)
-{
-	local airport_x = AIAirport.GetAirportWidth(airport_type);
-	local airport_y = AIAirport.GetAirportHeight(airport_type);
-
-	local top_x = AIMap.GetTileX(airport_tile);
-	local top_y = AIMap.GetTileY(airport_tile);
-	local bot_x = top_x + airport_x - 1;
-	local bot_y = top_y + airport_y - 1;
-
-	local tileList = AITileList();
-	tileList.AddTile(AIMap.GetTileIndex(top_x, top_y));
-	tileList.AddTile(AIMap.GetTileIndex(top_x, bot_y));
-	tileList.AddTile(AIMap.GetTileIndex(bot_x, top_y));
-	tileList.AddTile(AIMap.GetTileIndex(bot_x, bot_y));
-
-	local min_dist = 0x1FFF;
-	for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-		local dist = AIMap.DistanceManhattan(tile, town_tile);
-		if (dist < min_dist) {
-			min_dist = dist;
-		}
-	}
-
-	return min_dist;
 }

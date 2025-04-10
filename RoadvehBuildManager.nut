@@ -246,8 +246,7 @@ class RoadBuildManager {
 
 			local squareSize = AIGameSettings.GetValue("station_spread") / 2;
 
-			tileList.AddRectangle(Utils.GetValidOffsetTile(stationTile, -1 * squareSize, -1 * squareSize),
-				Utils.GetValidOffsetTile(stationTile, squareSize, squareSize));
+			tileList.AddRectangle(Utils.GetValidOffsetTile(stationTile, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(stationTile, squareSize, squareSize));
 
 			local templist = AITileList();
 			templist.AddList(tileList);
@@ -1212,8 +1211,7 @@ class RoadBuildManager {
 
 		/* second attempt, build closer to the destination */
 		local tileList = AITileList();
-		tileList.AddRectangle(Utils.GetValidOffsetTile(m_stationTo, -1 * squareSize, -1 * squareSize),
-			Utils.GetValidOffsetTile(m_stationTo, squareSize, squareSize));
+		tileList.AddRectangle(Utils.GetValidOffsetTile(m_stationTo, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(m_stationTo, squareSize, squareSize));
 
 		local removelist = AITileList();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
@@ -1236,8 +1234,7 @@ class RoadBuildManager {
 		/* third attempt, build closer to the source */
 		tileList.Clear();
 
-		tileList.AddRectangle(Utils.GetValidOffsetTile(m_stationFrom, -1 * squareSize, -1 * squareSize),
-			Utils.GetValidOffsetTile(m_stationFrom, squareSize, squareSize));
+		tileList.AddRectangle(Utils.GetValidOffsetTile(m_stationFrom, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(m_stationFrom, squareSize, squareSize));
 
 		removelist.Clear();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {

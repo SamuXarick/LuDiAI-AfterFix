@@ -310,7 +310,7 @@ class ShipRoute extends ShipRouteManager {
 	function OptimalVehicleCount() {
 		if (MAX_VEHICLE_COUNT_MODE == 0) return 10;
 
-		local dockDistance = AITile.GetDistanceManhattanToTile(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
+		local dockDistance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 //		AILog.Info("dockDistance = " + dockDistance);
 		local count_interval = (AIEngine.GetMaxSpeed(this.m_engine) * 2 * 74 * STATION_RATING_INTERVAL) / (256 * 16);
 //		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + AIEngine.GetMaxSpeed(this.m_engine));
@@ -348,7 +348,7 @@ class ShipRoute extends ShipRouteManager {
 			return 0;
 		}
 
-		local routedist = AITile.GetDistanceManhattanToTile(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
+		local routedist = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 
 		local buyVehicleCount = max((((numvehicles + 1) * 2) >= optimal_vehicle_count ? 1 : 2), (optimal_vehicle_count / 2 - numvehicles))
 
@@ -661,7 +661,7 @@ class ShipRoute extends ShipRouteManager {
 
 		if ((cargoWaiting1 > engine_capacity || cargoWaiting2 > engine_capacity) && group_usage > 66) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
-			local routedist = AITile.GetDistanceManhattanToTile(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
+			local routedist = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 			while (number_to_add) {
 				number_to_add--;
 				local added_vehicle = AddVehicle(true);

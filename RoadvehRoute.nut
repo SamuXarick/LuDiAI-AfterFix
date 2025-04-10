@@ -351,7 +351,7 @@ class RoadRoute extends RoadRouteManager {
 	function OptimalVehicleCount() {
 		if (MAX_VEHICLE_COUNT_MODE == 0) return 25;
 
-		local stationDistance = AITile.GetDistanceManhattanToTile(m_stationFrom, m_stationTo);
+		local stationDistance = AIMap.DistanceManhattan(m_stationFrom, m_stationTo);
 //		AILog.Info("stationDistance = " + stationDistance);
 		local articulatedEngine = AIEngine.IsArticulated(this.m_engine);
 		local count_interval = ((AIEngine.GetMaxSpeed(this.m_engine) * 2 * 3 * 74 * MIN_VEHICLE_START_COUNT / 4) / 192) / 16;
@@ -398,7 +398,7 @@ class RoadRoute extends RoadRouteManager {
 			return 0;
 		}
 
-		local routedist = AITile.GetDistanceManhattanToTile(m_stationFrom, m_stationTo);
+		local routedist = AIMap.DistanceManhattan(m_stationFrom, m_stationTo);
 
 		local buyVehicleCount = cargoClass == AICargo.CC_PASSENGERS ? START_VEHICLE_COUNT : MIN_VEHICLE_START_COUNT;
 		buyVehicleCount += MAX_VEHICLE_COUNT_MODE == 0 ? routedist / 20 : optimal_vehicle_count / (cargoClass == AICargo.CC_PASSENGERS ? 2 : 4);
@@ -648,7 +648,7 @@ class RoadRoute extends RoadRouteManager {
 
 		if (cargoWaiting1 > engine_capacity || cargoWaiting2 > engine_capacity) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
-			local routedist = AITile.GetDistanceManhattanToTile(m_stationFrom, m_stationTo);
+			local routedist = AIMap.DistanceManhattan(m_stationFrom, m_stationTo);
 			while (number_to_add) {
 				number_to_add--;
 				local added_vehicle = AddVehicle(true);

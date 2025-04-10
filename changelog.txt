@@ -7,6 +7,8 @@ v22 (05-04-2025)
 - Allow ship pathfinder to build longer aqueducts when with infinite money
 - Fixed a bug when trying to generate rail station data from a single
   piece
+- Fixed a bug in the area coordinates that is used to look for stations in
+  the vicinity of an airport
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0
