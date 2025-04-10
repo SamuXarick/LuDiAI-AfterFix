@@ -427,7 +427,7 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 //	local engine_price = ::caches.GetCostWithRefit(engine, cargo);
 //	local wagon_price = ::caches.GetCostWithRefit(wagon, cargo);
 //	local train_price = engine_price + wagon_price * num_wagons;
-	local engine_reliability = AIEngine.GetReliability(engine);
+//	local engine_reliability = AIEngine.GetReliability(engine);
 //	local reliability = min(65535, (engine_reliability << 16) / 100);
 
 //	AILog.Info("engine_max_age = " + engine_max_age);
@@ -484,20 +484,7 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 //	return [income, distance_advanced / 16, num_wagons, train_capacity, best_railtypes];
 
 	/* Simplified method for estimated income. */
-	local multiplier = engine_reliability;
-	local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
-	switch (breakdowns) {
-		case 0:
-			multiplier = 100;
-			break;
-		case 1:
-			multiplier = engine_reliability + (100 - engine_reliability) / 2;
-			break;
-		case 2:
-		default:
-			multiplier = engine_reliability;
-			break;
-	}
+	local multiplier = Utils.GetEngineReliabilityMultiplier(engine);
 	local distance_advanced = (train_max_speed * 2 * 74 * days_in_transit) / (256 * 16);
 	days_in_transit = days_in_transit + RailRoute.STATION_LOADING_INTERVAL;
 	local income = ((train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
@@ -643,7 +630,7 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 		local train_power_watts = engine_power * 746;
 // 		return DoUpdateSpeed(GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N), 2, train_max_speed, sub_speed, cur_speed, progress);
 // 	} else {
-// 		assert(false);
+// 		throw "acceleration_model " + acceleration_model + " is unsupported in UpdateSpeed";
 // 	}
 // }
 

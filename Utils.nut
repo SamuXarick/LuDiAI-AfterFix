@@ -647,6 +647,20 @@ class Utils
 		}
 	}
 
+	function GetEngineReliabilityMultiplier(engine_id)
+	{
+		local reliability = AIEngine.GetReliability(engine_id);
+		switch (AIGameSettings.GetValue("vehicle_breakdowns")) {
+			case 0:
+				return 100;
+			case 1:
+				return reliability + (100 - reliability) / 2;
+			case 2:
+			default:
+				return reliability;
+		}
+	}
+
 	function RemovingCanalBlocksConnection(tile)
 	{
 		local t_sw = tile + AIMap.GetTileIndex(1, 0);

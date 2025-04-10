@@ -174,7 +174,7 @@ class AirBuildManager
 				local engine_id = GetBestAirportEngine(m_fromType);
 				local default_count = 8;
 				if (engine_id != null) {
-					local count = WrightAI.GetEngineOptimalDaysInTransit(engine_id, m_cargoType, DAYS_INTERVAL, true, m_airportFrom, m_fromType);
+					local count = WrightAI().GetEngineOptimalDaysInTransit(engine_id, m_cargoType, DAYS_INTERVAL, true, m_airportFrom, m_fromType);
 					default_count = count[2] > 0 && count[2] != 1000 ? count[2] : default_count;
 				}
 				engine_count = default_count;
@@ -345,7 +345,7 @@ class AirBuildManager
 
 			local large_engine;
 			if (large_available) {
-				large_engine = WrightAI.GetBestEngineIncome(large_engine_list, m_cargoType, DAYS_INTERVAL);
+				large_engine = WrightAI().GetBestEngineIncome(large_engine_list, m_cargoType, DAYS_INTERVAL);
 				if (large_engine[0] == null) {
 //					AILog.Info("large_available = false [3]");
 					large_available = false;
@@ -425,7 +425,7 @@ class AirBuildManager
 
 			local small_engine;
 			if (small_available) {
-				small_engine = WrightAI.GetBestEngineIncome(small_engine_list, m_cargoType, DAYS_INTERVAL);
+				small_engine = WrightAI().GetBestEngineIncome(small_engine_list, m_cargoType, DAYS_INTERVAL);
 				if (small_engine[0] == null) {
 //					AILog.Info("small_available = false [3]");
 					small_available = false;
@@ -504,7 +504,7 @@ class AirBuildManager
 
 			local heli_engine;
 			if (heli_available) {
-				heli_engine = WrightAI.GetBestEngineIncome(heli_engine_list, m_cargoType, DAYS_INTERVAL);
+				heli_engine = WrightAI().GetBestEngineIncome(heli_engine_list, m_cargoType, DAYS_INTERVAL);
 				if (heli_engine[0] == null) {
 //					AILog.Info("heli_available = false [3]");
 					heli_available = false;
@@ -865,7 +865,7 @@ class AirBuildManager
 		local all_engines = AIEngineList(AIVehicle.VT_AIR);
 		foreach (engine, _ in all_engines) {
 			if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, m_cargoType)) {
-				local income = WrightAI.GetEngineOptimalDaysInTransit(engine, m_cargoType, DAYS_INTERVAL, true, from_location, from_type);
+				local income = WrightAI().GetEngineOptimalDaysInTransit(engine, m_cargoType, DAYS_INTERVAL, true, from_location, from_type);
 				switch (AIEngine.GetPlaneType(engine)) {
 					case AIAirport.PT_BIG_PLANE: {
 						m_big_engine_list[engine] = income[0];

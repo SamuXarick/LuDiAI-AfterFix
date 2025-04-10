@@ -2205,7 +2205,7 @@ class RailBuildManager {
 		} else if (AITunnel.IsTunnelTile(current[1])) {
 			return (AIMap.DistanceManhattan(current[1], AITunnel.GetOtherTunnelEnd(current[1])) + 1) * 2;
 		}
-		assert(false);
+		throw "current[1] " + current[1] + "is neither a rail tile, a bridge tile nor a tunnel in TrackSignalLength";
 	}
 
 	function BuildSignalsInLine(current, length) {

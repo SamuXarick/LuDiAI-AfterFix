@@ -165,7 +165,6 @@ class RailRoute extends RailRouteManager {
 		local engineWagonPairList = GetEngineWagonPairs(cargoClass);
 		if (engineWagonPairList.len() == 0) return m_engineWagonPair == null ? [-1, -1, -1, -1, -1] : m_engineWagonPair;
 
-		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
 		local cargo = Utils.GetCargoType(cargoClass);
 
 		local best_income = null;
@@ -173,20 +172,7 @@ class RailRoute extends RailRouteManager {
 		foreach (pair in engineWagonPairList) {
 			local engine = pair[0];
 			local wagon = pair[1];
-			local reliability = AIEngine.GetReliability(engine);
-			local multiplier = reliability;
-			switch (breakdowns) {
-				case 0:
-					multiplier = 100;
-					break;
-				case 1:
-					multiplier = reliability + (100 - reliability) / 2;
-					break;
-				case 2:
-				default:
-					multiplier = reliability;
-					break;
-			}
+			local multiplier = Utils.GetEngineReliabilityMultiplier(engine);
 			local engine_max_speed = AIEngine.GetMaxSpeed(engine) == 0 ? 65535 : AIEngine.GetMaxSpeed(engine);
 			local wagon_max_speed = AIEngine.GetMaxSpeed(wagon) == 0 ? 65535 : AIEngine.GetMaxSpeed(wagon);
 			local train_max_speed = min(engine_max_speed, wagon_max_speed);

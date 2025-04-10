@@ -126,27 +126,13 @@ class ShipRoute extends ShipRouteManager {
 		local engineList = GetEngineList(cargoClass);
 		if (engineList.IsEmpty()) return m_engine == null ? -1 : m_engine;
 
-		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
 		local cargo = Utils.GetCargoType(cargoClass);
 
 		local distance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 		local best_income = null;
 		local best_engine = null;
 		for (local engine = engineList.Begin(); !engineList.IsEnd(); engine = engineList.Next()) {
-			local reliability = AIEngine.GetReliability(engine);
-			local multiplier = reliability;
-			switch (breakdowns) {
-				case 0:
-					multiplier = 100;
-					break;
-				case 1:
-					multiplier = reliability + (100 - reliability) / 2;
-					break;
-				case 2:
-				default:
-					multiplier = reliability;
-					break;
-			}
+			local multiplier = Utils.GetEngineReliabilityMultiplier(engine);
 			local max_speed = AIEngine.GetMaxSpeed(engine);
 			local days_in_transit = (distance * 256 * 16) / (2 * 74 * max_speed);
 			local running_cost = AIEngine.GetRunningCost(engine);

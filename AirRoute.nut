@@ -106,6 +106,22 @@ class AirRoute extends AirRouteManager
 		return sent_to_depot_list;
 	}
 
+	function GetEngineRouteIncome(engine_id, cargo, fake_dist, primary_capacity = 0, secondary_capacity = 0)
+	{
+		local running_cost = AIEngine.GetRunningCost(engine_id);
+		primary_capacity = primary_capacity == 0 ? ::caches.GetCapacity(engine_id, cargo) : primary_capacity;
+		local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
+		local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
+		secondary_capacity = AIController.GetSetting("select_town_cargo") != 2 ? 0 : secondary_capacity == 0 ? is_valid_secondary_cargo ? ::caches.GetSecondaryCapacity(engine_id) : 0 : secondary_capacity;
+		local days_in_transit = (fake_dist * 256 * 16) / (2 * 74 * AIEngine.GetMaxSpeed(engine_id));
+		local multiplier = Utils.GetEngineReliabilityMultiplier(engine_id);
+		local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo, fake_dist, days_in_transit);
+		local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, fake_dist, days_in_transit) : 0;
+		local income = (income_primary + income_secondary - running_cost * days_in_transit / 365) * multiplier;
+//		AILog.Info("Engine = " + AIEngine.GetName(engine_id) + "; income = " + income);
+		return income;
+	}
+
 	function GetAircraftEngine(cargoClass)
 	{
 		local airport1_type = AIAirport.GetAirportType(m_airportFrom);
@@ -143,7 +159,7 @@ class AirRoute extends AirRouteManager
 				}
 				local primary_capacity = ::caches.GetBuildWithRefitCapacity(hangar, engine, cargo);
 				local secondary_capacity = (AIController.GetSetting("select_town_cargo") == 2 && AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine) : 0;
-				local engine_income = WrightAI.GetEngineRouteIncome(engine, cargo, fakedist, primary_capacity, secondary_capacity);
+				local engine_income = GetEngineRouteIncome(engine, cargo, fakedist, primary_capacity, secondary_capacity);
 				if (engine_income <= 0) {
 					removelist.AddItem(engine, 0);
 				}
@@ -271,7 +287,7 @@ class AirRoute extends AirRouteManager
 
 	function OptimalVehicleCount()
 	{
-		local count_interval = WrightAI.GetEngineRealFakeDist(m_engine, AirBuildManager.DAYS_INTERVAL);
+		local count_interval = (AIEngine.GetMaxSpeed(m_engine) * 2 * 74 * AirBuildManager.DAYS_INTERVAL / 256) / 16;
 		local fakedist = WrightAI.DistanceRealFake(m_airportFrom, m_airportTo);
 		local airport1_type = AIAirport.GetAirportType(m_airportFrom);
 		local airport2_type = AIAirport.GetAirportType(m_airportTo);

@@ -209,11 +209,11 @@ function SingleRail::_IsSlopedBridge(end_a, end_b, end)
 	if (end == end_a) {
 		direction = (end_b - end_a) / AIMap.DistanceManhattan(end_a, end_b);
 		slope = AITile.GetSlope(end_a);
-	} else if (end = end_b) {
+	} else if (end == end_b) {
 		direction = (end_a - end_b) / AIMap.DistanceManhattan(end_b, end_a);
 		slope = AITile.GetSlope(end_b);
 	} else {
-		assert(false);
+		throw "end " + end + "must match either end_a or end_b in _IsSlopedBridge";
 	}
 
 	return !(((slope == AITile.SLOPE_NE || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_E) && direction == 1) ||

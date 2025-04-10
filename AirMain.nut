@@ -32,7 +32,7 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished)
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
-//			local bestengineinfo = WrightAI.GetBestEngineIncome(engine_list, cargo, AirBuildManager.DAYS_INTERVAL);
+//			local bestengineinfo = WrightAI().GetBestEngineIncome(engine_list, cargo, AirBuildManager.DAYS_INTERVAL);
 //			if (bestengineinfo[0] == null) {
 //				return;
 //			}
