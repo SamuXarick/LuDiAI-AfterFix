@@ -10,13 +10,13 @@ class Caches {
 	attach_list = {}; // engine/wagon attachment results of rail engines
 	costs_with_refit = {};
 
-	function GetBuildWithRefitCapacity(depot, engine, cargo);
+	function GetBuildWithRefitCapacity(depot, engine, cargo_type);
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine);
-	function GetCapacity(engine, cargo);
+	function GetCapacity(engine, cargo_type);
 	function GetSecondaryCapacity(engine);
 	function GetExistingRailDepot(railtype);
 	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID);
-	function CanAttachToEngine(wagon, engine, cargo, railtype, depot = AIMap.TILE_INVALID);
+	function CanAttachToEngine(wagon, engine, cargo_type, railtype, depot = AIMap.TILE_INVALID);
 	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID);
 
 	function GetBuildWithRefitCapacity(depot, engine, cargo_type) {
@@ -39,7 +39,7 @@ class Caches {
 
 	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
 //		if (!AIEngine.IsBuildable(engine)) return 0;
-		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
+		if (AIEngine.GetVehicleType(engine) != AIVehicle.VT_AIR) return 0;
 		if (!AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) return 0;
 
 		if (!this.secondary_capacities_list.rawin(engine)) {
