@@ -131,9 +131,9 @@ function LuDiAIAfterFix::BuildRoadRoute(cityFrom, unfinished) {
 			}
 
 			if (!unfinished) buildTimerRoad = 0;
-			local from = unfinished ? roadBuildManager.m_cityFrom : cityFrom;
-			local to = unfinished ? roadBuildManager.m_cityTo : cityTo;
-			local cargoC = unfinished ? roadBuildManager.m_cargoClass : cC;
+			local from = unfinished ? roadBuildManager.m_city_from : cityFrom;
+			local to = unfinished ? roadBuildManager.m_city_to : cityTo;
+			local cargoC = unfinished ? roadBuildManager.m_cargo_class : cC;
 			local artic = unfinished ? roadBuildManager.m_articulated : articulated;
 			local best_routes = unfinished ? roadBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 
@@ -312,9 +312,9 @@ function LuDiAIAfterFix::ManageRoadvehRoutes() {
 		if (lastRoadManagedManagement != 0) break;
 		lastRoadManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local cityFrom = roadRouteManager.m_townRouteArray[i].m_cityFrom;
-		local cityTo = roadRouteManager.m_townRouteArray[i].m_cityTo;
-		local cargoC = roadRouteManager.m_townRouteArray[i].m_cargoClass;
+		local cityFrom = roadRouteManager.m_townRouteArray[i].m_city_from;
+		local cityTo = roadRouteManager.m_townRouteArray[i].m_city_to;
+		local cargoC = roadRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (roadRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			roadRouteManager.m_townRouteArray.remove(i);
 			roadTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);
@@ -333,7 +333,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRoadRoute() {
 		local stationFrom = roadBuildManager.m_stationFrom;
 		local stationTo = roadBuildManager.m_stationTo;
 		local depotTile = roadBuildManager.m_depotTile;
-		local stationType = roadBuildManager.m_cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
+		local stationType = roadBuildManager.m_cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
 
 		if (stationFrom == -1 || stationTo == -1) {
 			local stationList = AIStationList(stationType);

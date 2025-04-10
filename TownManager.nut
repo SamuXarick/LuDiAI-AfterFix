@@ -1,22 +1,22 @@
 class TownPair {
-	m_cityFrom = null;
-	m_cityTo = null;
-	m_cargoClass = null;
+	m_city_from = null;
+	m_city_to = null;
+	m_cargo_class = null;
 
 	constructor(cityFrom, cityTo, cargoClass = null) {
-		m_cityFrom = cityFrom;
-		m_cityTo = cityTo;
-		m_cargoClass = cargoClass;
+		m_city_from = cityFrom;
+		m_city_to = cityTo;
+		m_cargo_class = cargoClass;
 	}
 
 	function IsEqual(cityFrom, cityTo, cargoClass = null) {
-		if (m_cargoClass != cargoClass) return false;
+		if (m_cargo_class != cargoClass) return false;
 
-		if (m_cityFrom == cityFrom && m_cityTo == cityTo) {
+		if (m_city_from == cityFrom && m_city_to == cityTo) {
 			return true;
 		}
 
-		if (m_cityFrom == cityTo && m_cityTo == cityFrom) {
+		if (m_city_from == cityTo && m_city_to == cityFrom) {
 			return true;
 		}
 	}

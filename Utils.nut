@@ -307,7 +307,7 @@ class Utils
 			/* if any other station is nearby, except my own airports, return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 				if (AITile.IsStationTile(tile)) {
-					if (AITile.GetOwner(tile) != ::caches.myCID) {
+					if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
 						return true;
 					} else {
 						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), stationType);
@@ -345,7 +345,7 @@ class Utils
 			/* if any other station is nearby, except my own airports, return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 				if (AITile.IsStationTile(tile)) {
-					if (AITile.GetOwner(tile) != ::caches.myCID) {
+					if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
 						return true;
 					} else {
 						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
@@ -362,32 +362,32 @@ class Utils
 
 	function IsTileMyRoadStation(tile, cargoClass)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 	}
 
 	function IsTileMyDock(tile)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
 	}
 
 	function IsTileMyStationWithoutRoadStation(tile, cargoClass)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && !AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 	}
 
 	function IsTileMyStationWithoutRoadStationOfAnyType(tile)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_BUS_STOP) && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_BUS_STOP) && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRUCK_STOP);
 	}
 
 	function IsTileMyStationWithoutDock(tile)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
 	}
 
 	function IsTileMyStationWithoutRailwayStation(tile)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
 	}
 
 	/**
@@ -975,7 +975,7 @@ class Utils
 
 		local loan_amount = AICompany.GetLoanAmount();
 		local max_loan_amount = AICompany.GetMaxLoanAmount();
-		local bank_balance = AICompany.GetBankBalance(::caches.myCID);
+		local bank_balance = AICompany.GetBankBalance(::caches.m_my_company_id);
 //		AILog.Info("loan_amount = " + loan_amount + "; max_loan_amount = " + max_loan_amount + "; bank_balance = " + bank_balance);
 //		AILog.Info("bank_balance + max_loan_amount - loan_amount >= money : " + (bank_balance + max_loan_amount - loan_amount) + " >= " + money + " : " + (bank_balance + max_loan_amount - loan_amount >= money));
 		return (bank_balance + max_loan_amount - loan_amount) >= money;
@@ -983,7 +983,7 @@ class Utils
 
 	function GetMoney(money)
 	{
-		local bank_balance = AICompany.GetBankBalance(::caches.myCID);
+		local bank_balance = AICompany.GetBankBalance(::caches.m_my_company_id);
 		if (bank_balance >= money) return;
 		local request_loan = money - bank_balance;
 		local loan_interval = AICompany.GetLoanInterval();
@@ -1000,7 +1000,7 @@ class Utils
 
 	function RepayLoan()
 	{
-		local bank_balance = AICompany.GetBankBalance(::caches.myCID);
+		local bank_balance = AICompany.GetBankBalance(::caches.m_my_company_id);
 		local loan_amount = AICompany.GetLoanAmount();
 		local repay_loan = loan_amount - bank_balance > 0 ? loan_amount - bank_balance : 0;
 		AICompany.SetMinimumLoanAmount(repay_loan);

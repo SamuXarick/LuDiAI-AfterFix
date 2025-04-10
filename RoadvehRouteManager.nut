@@ -29,7 +29,7 @@ class RoadRouteManager {
 
 	function TownRouteExists(cityFrom, cityTo, cargoClass) {
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(m_townRouteArray[i].m_cityFrom, m_townRouteArray[i].m_cityTo, m_townRouteArray[i].m_cargoClass)) {
+			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(m_townRouteArray[i].m_city_from, m_townRouteArray[i].m_city_to, m_townRouteArray[i].m_cargo_class)) {
 //				AILog.Info("TownRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
 				return 1;
 			}
@@ -44,7 +44,7 @@ class RoadRouteManager {
 
 		for (local i = 0; i < this.m_townRouteArray.len(); ++i) {
 			local maxRouteProfit = 0;
-			foreach (vehicle, _ in this.m_townRouteArray[i].m_vehicleList) {
+			foreach (vehicle, _ in this.m_townRouteArray[i].m_vehicle_list) {
 				local profit = AIVehicle.GetProfitLastYear(vehicle);
 				if (maxRouteProfit < profit) {
 					maxRouteProfit = profit;
@@ -70,12 +70,12 @@ class RoadRouteManager {
 		local cityToCount = 0;
 
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			if (m_townRouteArray[i].m_cityFrom == cityFrom || m_townRouteArray[i].m_cityFrom == cityTo) {
-				if (m_townRouteArray[i].m_cargoClass == cargoClass) ++cityFromCount;
+			if (m_townRouteArray[i].m_city_from == cityFrom || m_townRouteArray[i].m_city_from == cityTo) {
+				if (m_townRouteArray[i].m_cargo_class == cargoClass) ++cityFromCount;
 			}
 
-			if (m_townRouteArray[i].m_cityTo == cityTo || m_townRouteArray[i].m_cityTo == cityFrom) {
-				if (m_townRouteArray[i].m_cargoClass == cargoClass) ++cityToCount;
+			if (m_townRouteArray[i].m_city_to == cityTo || m_townRouteArray[i].m_city_to == cityFrom) {
+				if (m_townRouteArray[i].m_cargo_class == cargoClass) ++cityToCount;
 			}
 		}
 //		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + " ; cityFromCount = " + cityFromCount + " ; maxTownStationFrom = " + maxTownStationFrom + " ; cityTo = " + AITown.GetName(cityTo) + " ; cityToCount = " + cityToCount + " ; maxTownStationTo = " + maxTownStationTo);

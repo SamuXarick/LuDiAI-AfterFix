@@ -257,9 +257,9 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 			}
 
 			if (!unfinished) buildTimerRail = 0;
-			local from = unfinished ? railBuildManager.m_cityFrom : cityFrom;
-			local to = unfinished ? railBuildManager.m_cityTo : cityTo;
-			local cargoC = unfinished ? railBuildManager.m_cargoClass : cC;
+			local from = unfinished ? railBuildManager.m_city_from : cityFrom;
+			local to = unfinished ? railBuildManager.m_city_to : cityTo;
+			local cargoC = unfinished ? railBuildManager.m_cargo_class : cC;
 			local best_routes = unfinished ? railBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 			local rt = unfinished ? railBuildManager.m_railtype : best_railtype;
 
@@ -815,9 +815,9 @@ function LuDiAIAfterFix::ManageTrainRoutes() {
 		if (lastRailManagedManagement != 0) break;
 		lastRailManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local cityFrom = railRouteManager.m_townRouteArray[i].m_cityFrom;
-		local cityTo = railRouteManager.m_townRouteArray[i].m_cityTo;
-		local cargoC = railRouteManager.m_townRouteArray[i].m_cargoClass;
+		local cityFrom = railRouteManager.m_townRouteArray[i].m_city_from;
+		local cityTo = railRouteManager.m_townRouteArray[i].m_city_to;
+		local cargoC = railRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (railRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			railRouteManager.m_townRouteArray.remove(i);
 			railTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);
@@ -930,7 +930,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute() {
 				allTilesMissing.AddList(allDepotsTiles);
 				allTilesMissing.RemoveList(allTilesFound);
 				for (local tile = allTilesMissing.Begin(); !allTilesMissing.IsEnd(); tile = allTilesMissing.Next()) {
-					if (tile == ::caches._depot_tile) continue; // skip this one
+					if (tile == ::caches.m_depot_tile) continue; // skip this one
 //					AILog.Info("Tile " + tile + " is missing");
 					RailRoute.ScheduleRemoveDepot(tile);
 				}

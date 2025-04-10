@@ -130,9 +130,9 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 			}
 
 			if (!unfinished) buildTimerWater = 0;
-			local from = unfinished ? shipBuildManager.m_cityFrom : cityFrom;
-			local to = unfinished ? shipBuildManager.m_cityTo : cityTo;
-			local cargoC = unfinished ? shipBuildManager.m_cargoClass : cC;
+			local from = unfinished ? shipBuildManager.m_city_from : cityFrom;
+			local to = unfinished ? shipBuildManager.m_city_to : cityTo;
+			local cargoC = unfinished ? shipBuildManager.m_cargo_class : cC;
 			local cheaper = unfinished ? shipBuildManager.m_cheaperRoute : cheaper_route;
 			local best_routes = unfinished ? shipBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 
@@ -280,9 +280,9 @@ function LuDiAIAfterFix::ManageShipRoutes() {
 		if (lastWaterManagedManagement != 0) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local cityFrom = shipRouteManager.m_townRouteArray[i].m_cityFrom;
-		local cityTo = shipRouteManager.m_townRouteArray[i].m_cityTo;
-		local cargoC = shipRouteManager.m_townRouteArray[i].m_cargoClass;
+		local cityFrom = shipRouteManager.m_townRouteArray[i].m_city_from;
+		local cityTo = shipRouteManager.m_townRouteArray[i].m_city_to;
+		local cargoC = shipRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (shipRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			shipRouteManager.m_townRouteArray.remove(i);
 			shipTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);

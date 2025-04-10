@@ -157,13 +157,13 @@ class RailStation {
 				case AIRail.RAILTRACK_NE_SW: {
 					local exit_tile_NE_1 = top_tile - 1;
 					local exit_tile_SW_1 = top_tile + length;
-					if (AIRail.IsRailTile(exit_tile_NE_1) && AITile.GetOwner(exit_tile_NE_1) == ::caches.myCID) {
+					if (AIRail.IsRailTile(exit_tile_NE_1) && AITile.GetOwner(exit_tile_NE_1) == ::caches.m_my_company_id) {
 						local tracks = AIRail.GetRailTracks(exit_tile_NE_1);
 						if ((tracks & AIRail.RAILTRACK_NE_SW) != 0) {
 							dir = RailStationDir.NE;
 							break;
 						}
-					} else if (AIRail.IsRailTile(exit_tile_SW_1) && AITile.GetOwner(exit_tile_SW_1) == ::caches.myCID) {
+					} else if (AIRail.IsRailTile(exit_tile_SW_1) && AITile.GetOwner(exit_tile_SW_1) == ::caches.m_my_company_id) {
 						local tracks = AIRail.GetRailTracks(exit_tile_SW_1);
 						if ((tracks & AIRail.RAILTRACK_NE_SW) != 0) {
 							dir = RailStationDir.SW;
@@ -176,13 +176,13 @@ class RailStation {
 				case AIRail.RAILTRACK_NW_SE: {
 					local exit_tile_NW_1 = top_tile - AIMap.GetMapSizeX();
 					local exit_tile_SE_1 = top_tile + length * AIMap.GetMapSizeX();
-					if (AIRail.IsRailTile(exit_tile_NW_1) && AITile.GetOwner(exit_tile_NW_1) == ::caches.myCID) {
+					if (AIRail.IsRailTile(exit_tile_NW_1) && AITile.GetOwner(exit_tile_NW_1) == ::caches.m_my_company_id) {
 						local tracks = AIRail.GetRailTracks(exit_tile_NW_1);
 						if ((tracks & AIRail.RAILTRACK_NW_SE) != 0) {
 							dir = RailStationDir.NW;
 							break;
 						}
-					} else if (AIRail.IsRailTile(exit_tile_SE_1) && AITile.GetOwner(exit_tile_SE_1) == ::caches.myCID) {
+					} else if (AIRail.IsRailTile(exit_tile_SE_1) && AITile.GetOwner(exit_tile_SE_1) == ::caches.m_my_company_id) {
 						local tracks = AIRail.GetRailTracks(exit_tile_SE_1);
 						if ((tracks & AIRail.RAILTRACK_NW_SE) != 0) {
 							dir = RailStationDir.SE;
@@ -400,14 +400,14 @@ class RailStruct {
 
 class RailBuildManager {
 
-	m_cityFrom = -1;
-	m_cityTo = -1;
+	m_city_from = -1;
+	m_city_to = -1;
 	m_stationFrom = -1;
 	m_stationTo = -1;
 	m_depotFrom = -1;
 	m_depotTo = -1;
 	m_bridgeTiles = [];
-	m_cargoClass = -1;
+	m_cargo_class = -1;
 	m_pathfinder = null;
 	m_pathfinderTries = 0;
 	m_pathfinderProfile = -1;
@@ -428,18 +428,18 @@ class RailBuildManager {
 	function BuildSignals(tileFrom, stationFromDir, tileTo, stationToDir);
 
 	function HasUnfinishedRoute() {
-		return m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1;
+		return m_city_from != -1 && m_city_to != -1 && m_cargo_class != -1;
 	}
 
 	function SetRouteFinished() {
-		m_cityFrom = -1;
-		m_cityTo = -1;
+		m_city_from = -1;
+		m_city_to = -1;
 		m_stationFrom = -1;
 		m_stationTo = -1;
 		m_depotFrom = -1;
 		m_depotTo = -1;
 		m_bridgeTiles = [];
-		m_cargoClass = -1;
+		m_cargo_class = -1;
 		m_builtWays = -1;
 		m_builtTiles = [[], []];
 		m_sentToDepotRailGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
@@ -651,9 +651,9 @@ class RailBuildManager {
 	}
 
 	function BuildRailRoute(cityFrom, cityTo, cargoClass, sentToDepotRailGroup, best_routes_built, railtype) {
-		m_cityFrom = cityFrom;
-		m_cityTo = cityTo;
-		m_cargoClass = cargoClass;
+		m_city_from = cityFrom;
+		m_city_to = cityTo;
+		m_cargo_class = cargoClass;
 		m_sentToDepotRailGroup = sentToDepotRailGroup;
 		m_best_routes_built = best_routes_built;
 		m_railtype = railtype;
@@ -667,7 +667,7 @@ class RailBuildManager {
 		}
 
 		if (m_stationFrom == -1) {
-			local stationFrom = BuildTownRailStation(m_cityFrom, m_cargoClass, m_cityTo, m_best_routes_built, m_railtype);
+			local stationFrom = BuildTownRailStation(m_city_from, m_cargo_class, m_city_to, m_best_routes_built, m_railtype);
 			if (stationFrom == null) {
 				SetRouteFinished();
 				return null;
@@ -687,7 +687,7 @@ class RailBuildManager {
 		}
 
 		if (m_stationTo == -1) {
-			local stationTo = BuildTownRailStation(m_cityTo, m_cargoClass, m_cityFrom, m_best_routes_built, m_railtype);
+			local stationTo = BuildTownRailStation(m_city_to, m_cargo_class, m_city_from, m_best_routes_built, m_railtype);
 			if (stationTo == null) {
 				RemoveFailedRouteStation(m_stationFrom, m_stationFromDir, m_depotFrom);
 				SetRouteFinished();
@@ -744,7 +744,7 @@ class RailBuildManager {
 		}
 
 		m_builtTiles = [[], []];
-		return RailRoute(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargoClass, m_sentToDepotRailGroup, m_railtype, m_stationFromDir, m_stationToDir);
+		return RailRoute(m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargo_class, m_sentToDepotRailGroup, m_railtype, m_stationFromDir, m_stationToDir);
 	}
 
 	function AreOtherRailwayStationsNearby(station) {
@@ -758,7 +758,7 @@ class RailBuildManager {
 
 			/* if another railway station of mine is nearby return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.myCID && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
+				if (AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN)) {
 					return true;
 				}
 			}
@@ -768,7 +768,7 @@ class RailBuildManager {
 			/* if any other station is nearby, except my own railway stations, return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
 				if (AITile.IsStationTile(tile)) {
-					if (AITile.GetOwner(tile) != ::caches.myCID) {
+					if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
 						return true;
 					} else {
 						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
@@ -1317,11 +1317,11 @@ class RailBuildManager {
 		/* can store rail tiles into array */
 
 		if (tileFrom != tileTo) {
-			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
+			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_city_from), AITown.GetLocation(m_city_to));
 			local max_pathfinderTries = 300 * route_dist;
 
 			/* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + tileFrom + ") and " + AITown.GetName(m_cityTo) + " (tile " + tileTo + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_city_from) + " (tile " + tileFrom + ") and " + AITown.GetName(m_city_to) + " (tile " + tileTo + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			/* Tell OpenTTD we want to build this railtype. */
 			AIRail.SetCurrentRailType(m_railtype);
@@ -1603,11 +1603,11 @@ class RailBuildManager {
 		/* can store rail tiles into array */
 
 		if (tileFrom != tileTo) {
-			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
+			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_city_from), AITown.GetLocation(m_city_to));
 			local max_pathfinderTries = 100 * route_dist;
 
 			/* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + tileFrom + ") and " + AITown.GetName(m_cityTo) + " (tile " + tileTo + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("t:Connecting " + AITown.GetName(m_city_from) + " (tile " + tileFrom + ") and " + AITown.GetName(m_city_to) + " (tile " + tileTo + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			/* Tell OpenTTD we want to build this railtype. */
 			AIRail.SetCurrentRailType(m_railtype);
@@ -2274,25 +2274,25 @@ class RailBuildManager {
 	}
 
 	function SaveBuildManager() {
-		if (m_cityFrom == null) m_cityFrom = -1;
-		if (m_cityTo == null) m_cityTo = -1;
+		if (m_city_from == null) m_city_from = -1;
+		if (m_city_to == null) m_city_to = -1;
 		if (m_stationFrom == null) m_stationFrom = -1;
 		if (m_stationTo == null) m_stationTo = -1;
 		if (m_depotFrom == null) m_depotFrom = -1;
 		if (m_depotTo == null) m_depotTo = -1;
 
-		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargoClass, m_railtype, m_best_routes_built, m_stationFromDir, m_stationToDir, m_builtTiles, m_pathfinderProfile, m_builtWays];
+		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargo_class, m_railtype, m_best_routes_built, m_stationFromDir, m_stationToDir, m_builtTiles, m_pathfinderProfile, m_builtWays];
 	}
 
 	function LoadBuildManager(data) {
-		m_cityFrom = data[0];
-		m_cityTo = data[1];
+		m_city_from = data[0];
+		m_city_to = data[1];
 		m_stationFrom = data[2];
 		m_stationTo = data[3];
 		m_depotFrom = data[4];
 		m_depotTo = data[5];
 		m_bridgeTiles = data[6];
-		m_cargoClass = data[7];
+		m_cargo_class = data[7];
 		m_railtype = data[8];
 		m_best_routes_built = data[9];
 		m_stationFromDir = data[10];

@@ -169,7 +169,7 @@ class WrightAI
 				tile_list[tile] = null;
 				continue;
 			}
-			if (AITile.GetOwner(tile) != ::caches.myCID) {
+			if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
 				tile_list[tile] = null;
 				continue;
 			}

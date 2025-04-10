@@ -3,21 +3,21 @@ require("AirRouteManager.nut");
 class AirRoute extends AirRouteManager
 {
 	/* These are saved */
-	m_cityFrom = null;
-	m_cityTo = null;
-	m_airportFrom = null;
-	m_airportTo = null;
-	m_cargoClass = null;
+	m_city_from = null;
+	m_city_to = null;
+	m_airport_from = null;
+	m_airport_to = null;
+	m_cargo_class = null;
 	m_group = null;
-	m_lastVehicleAdded = null;
-	m_lastVehicleRemoved = null;
-	m_renewVehicles = null;
-	m_sentToDepotAirGroup = null;
-	m_activeRoute = null;
+	m_last_vehicle_added = null;
+	m_last_vehicle_removed = null;
+	m_renew_vehicles = null;
+	m_sent_to_depot_air_group = null;
+	m_active_route = null;
 
 	/* These are unsaved */
 	m_engine = null;
-	m_vehicleList = null;
+	m_vehicle_list = null;
 	m_station_id_from = null;
 	m_station_id_to = null;
 	m_station_name_from = null;
@@ -30,19 +30,19 @@ class AirRoute extends AirRouteManager
 
 	constructor(city_from, city_to, airport_from, airport_to, cargo_class, sent_to_depot_air_group, is_loaded = false)
 	{
-		this.m_cityFrom = city_from;
-		this.m_cityTo = city_to;
-		this.m_airportFrom = airport_from;
-		this.m_airportTo = airport_to;
-		this.m_cargoClass = cargo_class;
+		this.m_city_from = city_from;
+		this.m_city_to = city_to;
+		this.m_airport_from = airport_from;
+		this.m_airport_to = airport_to;
+		this.m_cargo_class = cargo_class;
 		this.m_group = AIGroup.GROUP_INVALID;
-		this.m_sentToDepotAirGroup = sent_to_depot_air_group;
-		this.m_lastVehicleAdded = 0;
-		this.m_lastVehicleRemoved = AIDate.GetCurrentDate();
-		this.m_renewVehicles = true;
-		this.m_activeRoute = true;
+		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
+		this.m_last_vehicle_added = 0;
+		this.m_last_vehicle_removed = AIDate.GetCurrentDate();
+		this.m_renew_vehicles = true;
+		this.m_active_route = true;
 
-		this.m_vehicleList = AIList();
+		this.m_vehicle_list = AIList();
 		this.m_station_id_from = AIStation.GetStationID(airport_from);
 		this.m_station_id_to = AIStation.GetStationID(airport_to);
 		this.m_station_name_from = AIBaseStation.GetName(this.m_station_id_from);
@@ -63,20 +63,20 @@ class AirRoute extends AirRouteManager
 
 	function ValidateVehicleList()
 	{
-		foreach (v, _ in this.m_vehicleList) {
+		foreach (v, _ in this.m_vehicle_list) {
 			if (!AIVehicle.IsValidVehicle(v)) {
-				this.m_vehicleList[v] = null;
+				this.m_vehicle_list[v] = null;
 				continue;
 			}
 			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_AIR) {
 				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-				this.m_vehicleList[v] = null;
+				this.m_vehicle_list[v] = null;
 				continue;
 			}
 			local num_orders = AIOrder.GetOrderCount(v);
 			if (num_orders != 2) {
 				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-				this.m_vehicleList[v] = null;
+				this.m_vehicle_list[v] = null;
 				continue;
 			}
 			local order_from = false;
@@ -95,7 +95,7 @@ class AirRoute extends AirRouteManager
 			}
 			if (!order_from || !order_to) {
 				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-				this.m_vehicleList[v] = null;
+				this.m_vehicle_list[v] = null;
 				continue;
 			}
 		}
@@ -105,7 +105,7 @@ class AirRoute extends AirRouteManager
 	{
 		local sent_to_depot_list = AIList();
 		this.ValidateVehicleList();
-		foreach (vehicle, status in this.m_vehicleList) {
+		foreach (vehicle, status in this.m_vehicle_list) {
 			if (status == i) {
 				sent_to_depot_list[vehicle] = i;
 			}
@@ -122,7 +122,7 @@ class AirRoute extends AirRouteManager
 			this.m_airport_type_from == AIAirport.AT_HELIDEPOT || this.m_airport_type_to == AIAirport.AT_HELIDEPOT ||
 			this.m_airport_type_from == AIAirport.AT_HELISTATION || this.m_airport_type_to == AIAirport.AT_HELISTATION;
 
-		local hangar = helicopter ? this.m_airport_type_from == AIAirport.AT_HELIPORT ? AIAirport.GetHangarOfAirport(this.m_airportTo) : AIAirport.GetHangarOfAirport(this.m_airportFrom) : AIAirport.GetHangarOfAirport(this.m_airportFrom);
+		local hangar = helicopter ? this.m_airport_type_from == AIAirport.AT_HELIPORT ? AIAirport.GetHangarOfAirport(this.m_airport_to) : AIAirport.GetHangarOfAirport(this.m_airport_from) : AIAirport.GetHangarOfAirport(this.m_airport_from);
 
 		local engine_list = AIEngineList(AIVehicle.VT_AIR);
 		foreach (engine_id, _ in engine_list) {
@@ -165,14 +165,14 @@ class AirRoute extends AirRouteManager
 
 	function UpgradeEngine()
 	{
-		if (!this.m_activeRoute || !this.m_renewVehicles) return;
+		if (!this.m_active_route || !this.m_renew_vehicles) return;
 
 		this.m_engine = this.GetAircraftEngine();
 	}
 
 	function DeleteSellVehicle(vehicle)
 	{
-		this.m_vehicleList[vehicle] = null;
+		this.m_vehicle_list[vehicle] = null;
 		assert(AIVehicle.SellVehicle(vehicle));
 		Utils.RepayLoan();
 	}
@@ -180,18 +180,18 @@ class AirRoute extends AirRouteManager
 	function AddVehicle(return_vehicle = false, skip_order = false)
 	{
 		this.ValidateVehicleList();
-		if (this.m_vehicleList.Count() >= this.OptimalVehicleCount()) {
+		if (this.m_vehicle_list.Count() >= this.OptimalVehicleCount()) {
 			return null;
 		}
 
-		if (!this.m_renewVehicles) {
+		if (!this.m_renew_vehicles) {
 			return null;
 		}
 
 		/* Clone vehicle, share orders */
 		local clone_vehicle_id = AIVehicle.VEHICLE_INVALID;
 		local share_orders_vid = AIVehicle.VEHICLE_INVALID;
-		foreach (vehicle_id, _ in this.m_vehicleList) {
+		foreach (vehicle_id, _ in this.m_vehicle_list) {
 			if (this.m_engine != null && AIEngine.IsValidEngine(this.m_engine) && AIEngine.IsBuildable(this.m_engine)) {
 				if (AIVehicle.GetEngineType(vehicle_id) == this.m_engine) {
 					clone_vehicle_id = vehicle_id;
@@ -202,8 +202,8 @@ class AirRoute extends AirRouteManager
 			}
 		}
 
-		local hangar1 = this.m_airport_type_from == AIAirport.AT_HELIPORT ? AIAirport.GetHangarOfAirport(this.m_airportTo) : AIAirport.GetHangarOfAirport(this.m_airportFrom);
-		local hangar2 = this.m_airport_type_to == AIAirport.AT_HELIPORT ? AIAirport.GetHangarOfAirport(this.m_airportFrom) : AIAirport.GetHangarOfAirport(this.m_airportTo);
+		local hangar1 = this.m_airport_type_from == AIAirport.AT_HELIPORT ? AIAirport.GetHangarOfAirport(this.m_airport_to) : AIAirport.GetHangarOfAirport(this.m_airport_from);
+		local hangar2 = this.m_airport_type_to == AIAirport.AT_HELIPORT ? AIAirport.GetHangarOfAirport(this.m_airport_from) : AIAirport.GetHangarOfAirport(this.m_airport_to);
 		local best_hangar = skip_order == true ? hangar2 : hangar1;
 
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
@@ -215,10 +215,10 @@ class AirRoute extends AirRouteManager
 		}
 
 		if (AIVehicle.IsValidVehicle(new_vehicle)) {
-			this.m_vehicleList[new_vehicle] = 2;
+			this.m_vehicle_list[new_vehicle] = 2;
 			local vehicle_ready_to_start = false;
-			local order_1 = AIAirport.IsHangarTile(this.m_airportFrom) ? AIMap.GetTileIndex(AIMap.GetTileX(this.m_airportFrom), AIMap.GetTileY(this.m_airportFrom) + 1) : this.m_airportFrom;
-			local order_2 = AIAirport.IsHangarTile(this.m_airportTo) ? AIMap.GetTileIndex(AIMap.GetTileX(this.m_airportTo), AIMap.GetTileY(this.m_airportTo) + 1) : this.m_airportTo;
+			local order_1 = AIAirport.IsHangarTile(this.m_airport_from) ? AIMap.GetTileIndex(AIMap.GetTileX(this.m_airport_from), AIMap.GetTileY(this.m_airport_from) + 1) : this.m_airport_from;
+			local order_2 = AIAirport.IsHangarTile(this.m_airport_to) ? AIMap.GetTileIndex(AIMap.GetTileX(this.m_airport_to), AIMap.GetTileY(this.m_airport_to) + 1) : this.m_airport_to;
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
 					local load_mode = AIController.GetSetting("air_load_mode");
@@ -253,13 +253,13 @@ class AirRoute extends AirRouteManager
 				}
 			}
 			if (vehicle_ready_to_start) {
-				if (AIMap.DistanceSquare(best_hangar, this.m_airportFrom) > AIMap.DistanceSquare(best_hangar, this.m_airportTo)) {
+				if (AIMap.DistanceSquare(best_hangar, this.m_airport_from) > AIMap.DistanceSquare(best_hangar, this.m_airport_to)) {
 					AIOrder.SkipToOrder(new_vehicle, 1);
 				}
 				AIVehicle.StartStopVehicle(new_vehicle);
 //				AILog.Info("new_vehicle = " + AIVehicle.GetName(new_vehicle) + "; clone_vehicle_id = " + AIVehicle.GetName(clone_vehicle_id) + "; share_orders_vid = " + AIVehicle.GetName(share_orders_vid));
 
-				this.m_lastVehicleAdded = AIDate.GetCurrentDate();
+				this.m_last_vehicle_added = AIDate.GetCurrentDate();
 
 				if (AIGroup.IsValidGroup(this.m_group) && AIVehicle.GetGroupID(new_vehicle) != this.m_group) {
 					AIGroup.MoveVehicle(this.m_group, new_vehicle);
@@ -289,10 +289,10 @@ class AirRoute extends AirRouteManager
 		local optimal_vehicle_count = this.OptimalVehicleCount();
 
 		this.ValidateVehicleList();
-		local num_vehicles = this.m_vehicleList.Count();
+		local num_vehicles = this.m_vehicle_list.Count();
 		local num_vehicles_before = num_vehicles;
 		if (num_vehicles >= optimal_vehicle_count) {
-			if (this.m_lastVehicleAdded < 0) this.m_lastVehicleAdded *= -1;
+			if (this.m_last_vehicle_added < 0) this.m_last_vehicle_added *= -1;
 			return 0;
 		}
 
@@ -304,35 +304,35 @@ class AirRoute extends AirRouteManager
 		}
 
 		for (local i = 0; i < buy_vehicle_count; ++i) {
-			local old_last_vehicle_added = -this.m_lastVehicleAdded;
+			local old_last_vehicle_added = -this.m_last_vehicle_added;
 			if (!infrastructure && (old_last_vehicle_added > 0 && AIDate.GetCurrentDate() - old_last_vehicle_added <= 3)) {
 				break;
 			}
-			this.m_lastVehicleAdded = 0;
+			this.m_last_vehicle_added = 0;
 			local added_vehicle = this.AddVehicle(true, (num_vehicles % 2) == 1);
 			if (added_vehicle != null) {
 				num_vehicles++;
 				AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on new route from " + (num_vehicles % 2 == 1 ? this.m_station_name_to : this.m_station_name_from) + " to " + (num_vehicles % 2 == 1 ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + "/" + optimal_vehicle_count + " aircraft, " + this.m_fake_dist + " realfake tiles)");
 				if (buy_vehicle_count > 1) {
-					this.m_lastVehicleAdded *= -1;
+					this.m_last_vehicle_added *= -1;
 					if (!infrastructure) break;
 				}
 			} else {
 				break;
 			}
 		}
-		if (num_vehicles < optimal_vehicle_count && buy_vehicle_count > 1 && this.m_lastVehicleAdded >= 0) {
-			this.m_lastVehicleAdded = 0;
+		if (num_vehicles < optimal_vehicle_count && buy_vehicle_count > 1 && this.m_last_vehicle_added >= 0) {
+			this.m_last_vehicle_added = 0;
 		}
 		return num_vehicles - num_vehicles_before;
 	}
 
 	function SendMoveVehicleToDepot(vehicle_id)
 	{
-		if (AIVehicle.GetGroupID(vehicle_id) != this.m_sentToDepotAirGroup[0] && AIVehicle.GetGroupID(vehicle_id) != this.m_sentToDepotAirGroup[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
+		if (AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_air_group[0] && AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_air_group[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
-			local airport1_hangars = AIAirport.GetNumHangars(this.m_airportFrom) != 0;
-			local airport2_hangars = AIAirport.GetNumHangars(this.m_airportTo) != 0;
+			local airport1_hangars = AIAirport.GetNumHangars(this.m_airport_from) != 0;
+			local airport2_hangars = AIAirport.GetNumHangars(this.m_airport_to) != 0;
 			if (!(airport1_hangars && airport2_hangars)) {
 				if (airport1_hangars) {
 					AIOrder.SkipToOrder(vehicle_id, 0);
@@ -344,7 +344,7 @@ class AirRoute extends AirRouteManager
 				AILog.Info("Failed to send " + vehicle_name + " to depot. Will try again later.");
 				return false;
 			}
-			this.m_lastVehicleRemoved = AIDate.GetCurrentDate();
+			this.m_last_vehicle_removed = AIDate.GetCurrentDate();
 
 			AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sent to its depot!");
 
@@ -356,20 +356,20 @@ class AirRoute extends AirRouteManager
 
 	function SendNegativeProfitVehiclesToDepot()
 	{
-		if (this.m_lastVehicleAdded <= 0 || AIDate.GetCurrentDate() - this.m_lastVehicleAdded <= 30) return;
-//		AILog.Info("this.SendNegativeProfitVehiclesToDepot . this.m_lastVehicleAdded = " + this.m_lastVehicleAdded + "; " + AIDate.GetCurrentDate() + " - " + this.m_lastVehicleAdded + " = " + (AIDate.GetCurrentDate() - this.m_lastVehicleAdded) + " < 45" + " - " + this.m_station_name_from + " to " + this.m_station_name_to);
+		if (this.m_last_vehicle_added <= 0 || AIDate.GetCurrentDate() - this.m_last_vehicle_added <= 30) return;
+//		AILog.Info("this.SendNegativeProfitVehiclesToDepot . this.m_last_vehicle_added = " + this.m_last_vehicle_added + "; " + AIDate.GetCurrentDate() + " - " + this.m_last_vehicle_added + " = " + (AIDate.GetCurrentDate() - this.m_last_vehicle_added) + " < 45" + " - " + this.m_station_name_from + " to " + this.m_station_name_to);
 
-//		if (AIDate.GetCurrentDate() - this.m_lastVehicleRemoved <= 30) return;
+//		if (AIDate.GetCurrentDate() - this.m_last_vehicle_removed <= 30) return;
 
 		this.ValidateVehicleList();
 
-		foreach (vehicle, _ in this.m_vehicleList) {
+		foreach (vehicle, _ in this.m_vehicle_list) {
 			if (AIVehicle.GetAge(vehicle) > 730 && AIVehicle.GetProfitLastYear(vehicle) < 0) {
 				if (SendMoveVehicleToDepot(vehicle)) {
-					if (!AIGroup.MoveVehicle(this.m_sentToDepotAirGroup[0], vehicle)) {
-						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sentToDepotAirGroup[0]);
+					if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
+						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[0]);
 					} else {
-						this.m_vehicleList[vehicle] = 0;
+						this.m_vehicle_list[vehicle] = 0;
 					}
 					return;
 				}
@@ -381,7 +381,7 @@ class AirRoute extends AirRouteManager
 	{
 		this.ValidateVehicleList();
 		local vehicle_list = AIList();
-		foreach (vehicle, _ in this.m_vehicleList) {
+		foreach (vehicle, _ in this.m_vehicle_list) {
 			if (AIVehicle.GetAge(vehicle) > 730) {
 				vehicle_list[vehicle] = 0;
 			}
@@ -400,10 +400,10 @@ class AirRoute extends AirRouteManager
 			foreach (vehicle, _ in vehicle_list) {
 				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {
 					if (this.SendMoveVehicleToDepot(vehicle)) {
-						if (!AIGroup.MoveVehicle(this.m_sentToDepotAirGroup[0], vehicle)) {
-							AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sentToDepotAirGroup[0]);
+						if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
+							AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[0]);
 						} else {
-							this.m_vehicleList[vehicle] = 0;
+							this.m_vehicle_list[vehicle] = 0;
 						}
 					}
 				}
@@ -416,7 +416,7 @@ class AirRoute extends AirRouteManager
 		local sent_to_depot_list = this.SentToDepotList(0);
 
 		foreach (vehicle, _ in sent_to_depot_list) {
-			if (this.m_vehicleList.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
+			if (this.m_vehicle_list.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
 				local vehicle_name = AIVehicle.GetName(vehicle);
 				this.DeleteSellVehicle(vehicle);
 
@@ -427,7 +427,7 @@ class AirRoute extends AirRouteManager
 		sent_to_depot_list = this.SentToDepotList(1);
 
 		foreach (vehicle, _ in sent_to_depot_list) {
-			if (this.m_vehicleList.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
+			if (this.m_vehicle_list.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
 				local skip_to_order = AIOrder.ResolveOrderPosition(vehicle, AIOrder.ORDER_CURRENT);
 				this.DeleteSellVehicle(vehicle);
 
@@ -441,24 +441,24 @@ class AirRoute extends AirRouteManager
 
 	function AddRemoveVehicleToRoute(maxed_out_num_vehs)
 	{
-		if (!this.m_activeRoute) {
+		if (!this.m_active_route) {
 			return 0;
 		}
 
-		if (this.m_lastVehicleAdded <= 0) {
+		if (this.m_last_vehicle_added <= 0) {
 			return this.AddVehiclesToNewRoute();
 		}
 
-		if (!this.m_renewVehicles) {
+		if (!this.m_renew_vehicles) {
 			return 0;
 		}
 
-		if (AIDate.GetCurrentDate() - this.m_lastVehicleAdded < 90) {
+		if (AIDate.GetCurrentDate() - this.m_last_vehicle_added < 90) {
 			return 0;
 		}
 
 		this.ValidateVehicleList();
-		local num_vehicles = this.m_vehicleList.Count();
+		local num_vehicles = this.m_vehicle_list.Count();
 		local num_vehicles_before = num_vehicles;
 
 		local optimal_vehicle_count = this.OptimalVehicleCount();
@@ -468,7 +468,7 @@ class AirRoute extends AirRouteManager
 
 		local best_route_profit = null;
 		local youngest_route_aircraft = null;
-		foreach (v, _ in this.m_vehicleList) {
+		foreach (v, _ in this.m_vehicle_list) {
 			local age = AIVehicle.GetAge(v);
 			if (youngest_route_aircraft == null || age < youngest_route_aircraft) {
 				youngest_route_aircraft = age;
@@ -486,11 +486,11 @@ class AirRoute extends AirRouteManager
 
 			if (youngest_route_aircraft > 730 && num_vehicles > 2) {
 				/* Send the vehicles to depot if we didn't do so yet */
-				local airport1_hangars = AIAirport.GetNumHangars(this.m_airportFrom) != 0;
-				local airport2_hangars = AIAirport.GetNumHangars(this.m_airportTo) != 0;
-				foreach (vehicle, _ in this.m_vehicleList) {
-					if (AIVehicle.GetGroupID(vehicle) != this.m_sentToDepotAirGroup[0] && AIVehicle.GetState(vehicle) != AIVehicle.VS_CRASHED) {
-						if (AIVehicle.GetGroupID(vehicle) != this.m_sentToDepotAirGroup[1]) {
+				local airport1_hangars = AIAirport.GetNumHangars(this.m_airport_from) != 0;
+				local airport2_hangars = AIAirport.GetNumHangars(this.m_airport_to) != 0;
+				foreach (vehicle, _ in this.m_vehicle_list) {
+					if (AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_air_group[0] && AIVehicle.GetState(vehicle) != AIVehicle.VS_CRASHED) {
+						if (AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_air_group[1]) {
 							if (!(airport1_hangars && airport2_hangars)) {
 								if (airport1_hangars) {
 									AIOrder.SkipToOrder(vehicle, 0);
@@ -500,18 +500,18 @@ class AirRoute extends AirRouteManager
 							}
 							if (AIVehicle.SendVehicleToDepot(vehicle)) {
 								AILog.Info("Sending " + AIVehicle.GetName(vehicle) + " to hangar to close unprofitable route.");
-								if (!AIGroup.MoveVehicle(this.m_sentToDepotAirGroup[0], vehicle)) {
-									AILog.Error("Failed to move vehicle " + AIVehicle.GetName(vehicle) + " to group " + this.m_sentToDepotAirGroup[0]);
+								if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
+									AILog.Error("Failed to move vehicle " + AIVehicle.GetName(vehicle) + " to group " + this.m_sent_to_depot_air_group[0]);
 								} else {
-									this.m_vehicleList[vehicle] = 0;
+									this.m_vehicle_list[vehicle] = 0;
 								}
 							}
 						} else {
 							AILog.Info("Sending " + AIVehicle.GetName(vehicle) + " to hangar to close unprofitable route.");
-							if (!AIGroup.MoveVehicle(this.m_sentToDepotAirGroup[0], vehicle)) {
-								AILog.Error("Failed to move vehicle " + AIVehicle.GetName(vehicle) + " to group " + this.m_sentToDepotAirGroup[0]);
+							if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
+								AILog.Error("Failed to move vehicle " + AIVehicle.GetName(vehicle) + " to group " + this.m_sent_to_depot_air_group[0]);
 							} else {
-								this.m_vehicleList[vehicle] = 0;
+								this.m_vehicle_list[vehicle] = 0;
 							}
 						}
 					}
@@ -522,7 +522,7 @@ class AirRoute extends AirRouteManager
 
 		/* Do not build a new vehicle once one of the airports becomes unavailable (small airport) */
 		if (!infrastructure && (!AIAirport.IsValidAirportType(this.m_airport_type_from) || !AIAirport.IsValidAirportType(this.m_airport_type_to))) {
-			this.m_renewVehicles = false;
+			this.m_renew_vehicles = false;
 			return 0;
 		}
 
@@ -530,7 +530,7 @@ class AirRoute extends AirRouteManager
 		if (AIAirport.IsValidAirportType(AIAirport.AT_HELISTATION) || AIAirport.IsValidAirportType(AIAirport.AT_HELIDEPOT)) {
 			if (this.m_airport_type_from == AIAirport.AT_HELIPORT && this.m_airport_type_to != AIAirport.AT_HELISTATION && this.m_airport_type_to != AIAirport.AT_HELIDEPOT ||
 					this.m_airport_type_to == AIAirport.AT_HELIPORT && this.m_airport_type_from != AIAirport.AT_HELISTATION && this.m_airport_type_from != AIAirport.AT_HELIDEPOT) {
-				this.m_renewVehicles = false;
+				this.m_renew_vehicles = false;
 				return 0;
 			}
 		}
@@ -573,15 +573,15 @@ class AirRoute extends AirRouteManager
 
 	function RenewVehicles()
 	{
-		if (!this.m_renewVehicles) {
+		if (!this.m_renew_vehicles) {
 			return;
 		}
 
 		this.ValidateVehicleList();
 		local engine_price = AIEngine.GetPrice(this.m_engine);
-		local count = 1 + AIGroup.GetNumVehicles(this.m_sentToDepotAirGroup[1], AIVehicle.VT_AIR);
+		local count = 1 + AIGroup.GetNumVehicles(this.m_sent_to_depot_air_group[1], AIVehicle.VT_AIR);
 
-		foreach (vehicle, _ in this.m_vehicleList) {
+		foreach (vehicle, _ in this.m_vehicle_list) {
 //			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
 //			if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
 //				AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
@@ -589,10 +589,10 @@ class AirRoute extends AirRouteManager
 			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
 				if (SendMoveVehicleToDepot(vehicle)) {
 					count++;
-					if (!AIGroup.MoveVehicle(this.m_sentToDepotAirGroup[1], vehicle)) {
-						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sentToDepotAirGroup[1]);
+					if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[1], vehicle)) {
+						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[1]);
 					} else {
-						this.m_vehicleList[vehicle] = 1;
+						this.m_vehicle_list[vehicle] = 1;
 					}
 				}
 			}
@@ -602,12 +602,12 @@ class AirRoute extends AirRouteManager
 	function RemoveIfUnserviced()
 	{
 		this.ValidateVehicleList();
-		if (this.m_vehicleList.IsEmpty() && (((!AIEngine.IsValidEngine(this.m_engine) || !AIEngine.IsBuildable(this.m_engine)) && this.m_lastVehicleAdded == 0) ||
-				(AIDate.GetCurrentDate() - this.m_lastVehicleAdded >= 90) && this.m_lastVehicleAdded > 0)) {
-			this.m_activeRoute = false;
+		if (this.m_vehicle_list.IsEmpty() && (((!AIEngine.IsValidEngine(this.m_engine) || !AIEngine.IsBuildable(this.m_engine)) && this.m_last_vehicle_added == 0) ||
+				(AIDate.GetCurrentDate() - this.m_last_vehicle_added >= 90) && this.m_last_vehicle_added > 0)) {
+			this.m_active_route = false;
 
-			::scheduledRemovalsTable.Aircraft.rawset(this.m_airportFrom, 0);
-			::scheduledRemovalsTable.Aircraft.rawset(this.m_airportTo, 0);
+			::scheduledRemovalsTable.Aircraft.rawset(this.m_airport_from, 0);
+			::scheduledRemovalsTable.Aircraft.rawset(this.m_airport_to, 0);
 
 			if (AIGroup.IsValidGroup(this.m_group)) {
 				AIGroup.DeleteGroup(this.m_group);
@@ -620,8 +620,8 @@ class AirRoute extends AirRouteManager
 
 	function GroupVehicles()
 	{
-		foreach (vehicle, _ in this.m_vehicleList) {
-			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != this.m_sentToDepotAirGroup[0] && AIVehicle.GetGroupID(vehicle) != this.m_sentToDepotAirGroup[1]) {
+		foreach (vehicle, _ in this.m_vehicle_list) {
+			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_air_group[0] && AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_air_group[1]) {
 				if (!AIGroup.IsValidGroup(this.m_group)) {
 					this.m_group = AIVehicle.GetGroupID(vehicle);
 					break;
@@ -639,7 +639,7 @@ class AirRoute extends AirRouteManager
 				if (this.m_airport_type_from == AIAirport.AT_HELISTATION || this.m_airport_type_from == AIAirport.AT_HELIDEPOT || this.m_airport_type_from == AIAirport.AT_HELIPORT || this.m_airport_type_to == AIAirport.AT_HELISTATION || this.m_airport_type_to == AIAirport.AT_HELIDEPOT || this.m_airport_type_to == AIAirport.AT_HELIPORT) {
 					a = "H";
 				}
-				AIGroup.SetName(this.m_group, a + this.m_fake_dist + ": " + this.m_airportFrom + " - " + this.m_airportTo);
+				AIGroup.SetName(this.m_group, a + this.m_fake_dist + ": " + this.m_airport_from + " - " + this.m_airport_to);
 				AILog.Info("Created " + AIGroup.GetName(this.m_group) + " for air route from " + this.m_station_name_from + " to " + this.m_station_name_to);
 			}
 		}
@@ -647,7 +647,7 @@ class AirRoute extends AirRouteManager
 
 	function SaveRoute()
 	{
-		return [this.m_cityFrom, this.m_cityTo, this.m_airportFrom, this.m_airportTo, this.m_cargoClass, this.m_lastVehicleAdded, this.m_lastVehicleRemoved, this.m_activeRoute, this.m_sentToDepotAirGroup, this.m_group, this.m_renewVehicles];
+		return [this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_sent_to_depot_air_group, this.m_group, this.m_renew_vehicles];
 	}
 
 	function LoadRoute(data)
@@ -663,33 +663,33 @@ class AirRoute extends AirRouteManager
 
 		local route = AirRoute(city_from, city_to, airport_from, airport_to, cargo_class, sent_to_depot_air_group, true);
 
-		route.m_lastVehicleAdded = data[5];
-		route.m_lastVehicleRemoved = data[6];
-		route.m_activeRoute = data[7];
+		route.m_last_vehicle_added = data[5];
+		route.m_last_vehicle_removed = data[6];
+		route.m_active_route = data[7];
 		route.m_group = data[9];
-		route.m_renewVehicles = data[10];
+		route.m_renew_vehicles = data[10];
 
 		local vehicle_list = AIVehicleList_Station(route.m_station_id_from);
 		foreach (v, _ in vehicle_list) {
 			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
-				route.m_vehicleList[v] = 2;
+				route.m_vehicle_list[v] = 2;
 			}
 		}
 
-		vehicle_list = AIVehicleList_Group(route.m_sentToDepotAirGroup[0]);
+		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_air_group[0]);
 		foreach (v, _ in vehicle_list) {
 			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
-				if (route.m_vehicleList.HasItem(v)) {
-					route.m_vehicleList[v] = 0;
+				if (route.m_vehicle_list.HasItem(v)) {
+					route.m_vehicle_list[v] = 0;
 				}
 			}
 		}
 
-		vehicle_list = AIVehicleList_Group(route.m_sentToDepotAirGroup[1]);
+		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_air_group[1]);
 		foreach (v, _ in vehicle_list) {
 			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
-				if (route.m_vehicleList.HasItem(v)) {
-					route.m_vehicleList[v] = 1;
+				if (route.m_vehicle_list.HasItem(v)) {
+					route.m_vehicle_list[v] = 1;
 				}
 			}
 		}

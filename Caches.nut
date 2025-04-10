@@ -1,101 +1,100 @@
-class Caches {
-	myCID = AICompany.ResolveCompanyID(AICompany.COMPANY_SELF); // not saved
+class Caches
+{
+	/* These are saved */
+	m_pass_capacities_list = {};
+	m_mail_capacities_list = {};
+	m_secondary_capacities_list = {}; // secondary capacity for a pass/mail aircraft
+	m_depot_tile = AIMap.TILE_INVALID;
+	m_vehicle_lengths = {}; // vehicle length of rail engines
+	m_attach_list = {}; // engine/wagon attachment results of rail engines
+	m_costs_with_refit = {};
 
-	_depot_tile = AIMap.TILE_INVALID;
+	/* This is not saved */
+	m_my_company_id = AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
 
-	pass_capacities_list = {};
-	mail_capacities_list = {};
-	secondary_capacities_list = {}; // secondary capacity for a pass/mail aircraft
-	vehicle_lengths = {}; // vehicle length of rail engines
-	attach_list = {}; // engine/wagon attachment results of rail engines
-	costs_with_refit = {};
-
-	function GetBuildWithRefitCapacity(depot, engine, cargo_type);
-	function GetBuildWithRefitSecondaryCapacity(hangar, engine);
-	function GetCapacity(engine, cargo_type);
-	function GetSecondaryCapacity(engine);
-	function GetExistingRailDepot(railtype);
-	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID);
-	function CanAttachToEngine(wagon, engine, cargo_type, railtype, depot = AIMap.TILE_INVALID);
-	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID);
-
-	function GetBuildWithRefitCapacity(depot, engine, cargo_type) {
+	function GetBuildWithRefitCapacity(depot, engine, cargo_type)
+	{
 //		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AICargo.HasCargoClass(cargo_type, AICargo.CC_PASSENGERS)) {
-			if (!this.pass_capacities_list.rawin(engine)) {
-				this.pass_capacities_list.rawset(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo_type));
+			if (!this.m_pass_capacities_list.rawin(engine)) {
+				this.m_pass_capacities_list.rawset(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo_type));
 //				AILog.Info("Added engine " + AIEngine.GetName(engine) + ": " + AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo_type) + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_PASSENGERS)));
 			}
-			return this.pass_capacities_list.rawget(engine);
+			return this.m_pass_capacities_list.rawget(engine);
 		} else if (AICargo.HasCargoClass(cargo_type, AICargo.CC_MAIL)) {
-			if (!this.mail_capacities_list.rawin(engine)) {
-				this.mail_capacities_list.rawset(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo_type));
+			if (!this.m_mail_capacities_list.rawin(engine)) {
+				this.m_mail_capacities_list.rawset(engine, AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo_type));
 //				AILog.Info("Added engine " + AIEngine.GetName(engine) + ": " + AIVehicle.GetBuildWithRefitCapacity(depot, engine, cargo_type) + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_MAIL)));
 			}
-			return this.mail_capacities_list.rawget(engine);
+			return this.m_mail_capacities_list.rawget(engine);
 		}
 		throw "cargo_type " + cargo_type + "does not belong to either CargoClass AICargo.CC_PASSENGERS nor AICargo.CC_MAIL in GetBuildWithRefitCapacity";
 	}
 
-	function GetBuildWithRefitSecondaryCapacity(hangar, engine) {
+	function GetBuildWithRefitSecondaryCapacity(hangar, engine)
+	{
 //		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AIEngine.GetVehicleType(engine) != AIVehicle.VT_AIR) return 0;
 		if (!AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) return 0;
 
-		if (!this.secondary_capacities_list.rawin(engine)) {
+		if (!this.m_secondary_capacities_list.rawin(engine)) {
 			local pass_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.GetCargoType(AICargo.CC_PASSENGERS));
 			local mail_capacity = this.GetBuildWithRefitCapacity(hangar, engine, Utils.GetCargoType(AICargo.CC_MAIL));
-			this.secondary_capacities_list.rawset(engine, mail_capacity - pass_capacity);
+			this.m_secondary_capacities_list.rawset(engine, mail_capacity - pass_capacity);
 //			AILog.Info("Capacity for " + AIEngine.GetName(engine) + ": " + pass_capacity + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_PASSENGERS)) + ", " + (mail_capacity - pass_capacity) + " " + AICargo.GetCargoLabel(Utils.GetCargoType(AICargo.CC_MAIL)));
 		}
-		return this.secondary_capacities_list.rawget(engine);
+		return this.m_secondary_capacities_list.rawget(engine);
 	}
 
-	function GetCapacity(engine, cargo_type) {
+	function GetCapacity(engine, cargo_type)
+	{
 //		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AICargo.HasCargoClass(cargo_type, AICargo.CC_PASSENGERS)) {
-			if (!this.pass_capacities_list.rawin(engine)) {
+			if (!this.m_pass_capacities_list.rawin(engine)) {
 				return AIEngine.GetCapacity(engine);
 			}
-			return this.pass_capacities_list.rawget(engine);
+			return this.m_pass_capacities_list.rawget(engine);
 		} else if (AICargo.HasCargoClass(cargo_type, AICargo.CC_MAIL)) {
-			if (!this.mail_capacities_list.rawin(engine)) {
+			if (!this.m_mail_capacities_list.rawin(engine)) {
 				return AIEngine.GetCapacity(engine);
 			}
-			return this.mail_capacities_list.rawget(engine);
+			return this.m_mail_capacities_list.rawget(engine);
 		}
 		throw "cargo_type " + cargo_type + "does not belong to either CargoClass AICargo.CC_PASSENGERS nor AICargo.CC_MAIL in GetCapacity";
 	}
 
-	function GetSecondaryCapacity(engine) {
+	function GetSecondaryCapacity(engine)
+	{
 //		if (!AIEngine.IsBuildable(engine)) return 0;
 		if (AIEngine.GetVehicleType(engine) == AIVehicle.VT_ROAD) return 0;
 
-		if (!this.secondary_capacities_list.rawin(engine)) {
+		if (!this.m_secondary_capacities_list.rawin(engine)) {
 			return 0;
 		}
-		return this.secondary_capacities_list.rawget(engine);
+		return this.m_secondary_capacities_list.rawget(engine);
 	}
 
-	function GetExistingRailDepot(railtype) {
-		if (!AIRail.IsRailDepotTile(this._depot_tile) || AITile.GetOwner(this._depot_tile) != ::caches.myCID || AIRail.GetRailType(this._depot_tile) != railtype) {
-			this._depot_tile = AIMap.TILE_INVALID;
+	function GetExistingRailDepot(railtype)
+	{
+		if (!AIRail.IsRailDepotTile(this.m_depot_tile) || AITile.GetOwner(this.m_depot_tile) != ::caches.m_my_company_id || AIRail.GetRailType(this.m_depot_tile) != railtype) {
+			this.m_depot_tile = AIMap.TILE_INVALID;
 			local depot_list = AIDepotList(AITile.TRANSPORT_RAIL);
 			foreach (depot in depot_list) {
 				if (AIRail.GetRailType(depot) != railtype) continue;
-				this._depot_tile = depot;
+				this.m_depot_tile = depot;
 				break;
 			}
 		}
-		return this._depot_tile;
+		return this.m_depot_tile;
 	}
 
-	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID) {
+	function GetLength(engine, cargo, depot = AIMap.TILE_INVALID)
+	{
 		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine))
 		if (AIEngine.GetVehicleType(engine) != AIVehicle.VT_RAIL) return -1;
 
 		local railtype = AIEngine.GetRailType(engine);
-		if (!this.vehicle_lengths.rawin(engine)) {
+		if (!this.m_vehicle_lengths.rawin(engine)) {
 			local result = false;
 			if (!AIRail.IsRailDepotTile(depot)) {
 				depot = this.GetExistingRailDepot(railtype);
@@ -105,7 +104,7 @@ class Caches {
 				local v = TestBuildVehicleWithRefit().TryBuild(depot, engine, cargo);
 				if (AIVehicle.IsValidVehicle(v)) {
 					local vehicle_length = AIVehicle.GetLength(v);
-					this.vehicle_lengths.rawset(engine, vehicle_length);
+					this.m_vehicle_lengths.rawset(engine, vehicle_length);
 					AIVehicle.SellVehicle(v);
 					result = true;
 //				} else {
@@ -118,17 +117,18 @@ class Caches {
 				return 8;
 			}
 		}
-		return this.vehicle_lengths.rawget(engine);
+		return this.m_vehicle_lengths.rawget(engine);
 	}
 
-	function CanAttachToEngine(wagon, engine, cargo_type, railtype, depot = AIMap.TILE_INVALID) {
+	function CanAttachToEngine(wagon, engine, cargo_type, railtype, depot = AIMap.TILE_INVALID)
+	{
 		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine)) return false;
 		if (!AIEngine.IsWagon(wagon) || AIEngine.IsWagon(engine)) return false;
 
 		AIRail.SetCurrentRailType(railtype);
 		local cargo_engine_wagon = (cargo_type << 32) | (engine << 16) | wagon;
-		if (this.attach_list.rawin(cargo_engine_wagon)) {
-			return this.attach_list.rawget(cargo_engine_wagon);
+		if (this.m_attach_list.rawin(cargo_engine_wagon)) {
+			return this.m_attach_list.rawget(cargo_engine_wagon);
 		}
 
 		/* it's not in the list yet */
@@ -143,51 +143,51 @@ class Caches {
 //			local error_v = AIError.GetLastErrorString();
 			local price = cost.GetCosts();
 			local engine_cargo = (engine << 16) | cargo_type;
-			if (!this.costs_with_refit.rawin(engine_cargo)) {
-				this.costs_with_refit.rawset(engine_cargo, price);
+			if (!this.m_costs_with_refit.rawin(engine_cargo)) {
+				this.m_costs_with_refit.rawset(engine_cargo, price);
 			}
 			cost.ResetCosts();
 			if (AIVehicle.IsValidVehicle(v)) {
 				local v_cap = AIVehicle.GetCapacity(v, cargo_type);
 				if (AICargo.HasCargoClass(cargo_type, AICargo.CC_PASSENGERS)) {
-					if (!this.pass_capacities_list.rawin(engine)) {
-						this.pass_capacities_list.rawset(engine, v_cap);
+					if (!this.m_pass_capacities_list.rawin(engine)) {
+						this.m_pass_capacities_list.rawset(engine, v_cap);
 					}
 				} else if (AICargo.HasCargoClass(cargo_type, AICargo.CC_MAIL)) {
-					if (!this.mail_capacities_list.rawin(engine)) {
-						this.mail_capacities_list.rawset(engine, v_cap);
+					if (!this.m_mail_capacities_list.rawin(engine)) {
+						this.m_mail_capacities_list.rawset(engine, v_cap);
 					}
 				} else {
 					throw "cargo_type " + cargo_type + "does not belong to either CargoClass AICargo.CC_PASSENGERS nor AICargo.CC_MAIL in CanAttachToEngine";
 				}
-				if (!this.vehicle_lengths.rawin(engine)) {
+				if (!this.m_vehicle_lengths.rawin(engine)) {
 					local length = AIVehicle.GetLength(v);
-					this.vehicle_lengths.rawset(v, length);
+					this.m_vehicle_lengths.rawset(v, length);
 				}
 			}
 			local w = TestBuildVehicleWithRefit().TryBuild(depot, wagon, cargo_type);
 //			local error_w = AIError.GetLastErrorString();
 			price = cost.GetCosts();
 			local wagon_cargo = (wagon << 16) | cargo_type;
-			if (!this.costs_with_refit.rawin(wagon_cargo)) {
-				this.costs_with_refit.rawset(wagon_cargo, price);
+			if (!this.m_costs_with_refit.rawin(wagon_cargo)) {
+				this.m_costs_with_refit.rawset(wagon_cargo, price);
 			}
 			if (AIVehicle.IsValidVehicle(w)) {
 				local w_cap = AIVehicle.GetCapacity(w, cargo_type);
 				if (AICargo.HasCargoClass(cargo_type, AICargo.CC_PASSENGERS)) {
-					if (!this.pass_capacities_list.rawin(wagon)) {
-						this.pass_capacities_list.rawset(wagon, w_cap);
+					if (!this.m_pass_capacities_list.rawin(wagon)) {
+						this.m_pass_capacities_list.rawset(wagon, w_cap);
 					}
 				} else if (AICargo.HasCargoClass(cargo_type, AICargo.CC_MAIL)) {
-					if (!this.mail_capacities_list.rawin(wagon)) {
-						this.mail_capacities_list.rawset(wagon, w_cap);
+					if (!this.m_mail_capacities_list.rawin(wagon)) {
+						this.m_mail_capacities_list.rawset(wagon, w_cap);
 					}
 				} else {
 					throw "cargo_type " + cargo_type + "does not belong to either CargoClass AICargo.CC_PASSENGERS nor AICargo.CC_MAIL in CanAttachToEngine";
 				}
-				if (!this.vehicle_lengths.rawin(wagon)) {
+				if (!this.m_vehicle_lengths.rawin(wagon)) {
 					local length = AIVehicle.GetLength(w);
-					this.vehicle_lengths.rawset(w, length);
+					this.m_vehicle_lengths.rawset(w, length);
 				}
 			}
 			if (AIVehicle.IsValidVehicle(v) && AIVehicle.IsValidVehicle(w)) {
@@ -212,17 +212,18 @@ class Caches {
 			return true;
 		}
 
-		if (result != null) this.attach_list.rawset(cargo_engine_wagon, result);
+		if (result != null) this.m_attach_list.rawset(cargo_engine_wagon, result);
 //		AILog.Info(AIEngine.GetName(engine) + " -- " + AIEngine.GetName(wagon) + " ? " + result);
 		return result == true;
 	}
 
-	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID) {
+	function GetCostWithRefit(engine, cargo, depot = AIMap.TILE_INVALID)
+	{
 		if (!AIEngine.IsValidEngine(engine) || !AIEngine.IsBuildable(engine)) return -1;
 
 		local railtype = AIEngine.GetRailType(engine);
 		local engine_cargo = (engine << 16) | cargo;
-		if (!this.costs_with_refit.rawin(engine_cargo)) {
+		if (!this.m_costs_with_refit.rawin(engine_cargo)) {
 			local veh_type = AIEngine.GetVehicleType(engine);
 			if (veh_type == AIVehicle.VT_RAIL) {
 				local price = -1;
@@ -237,7 +238,7 @@ class Caches {
 					if (price <= 0) {
 //						AILog.Error("Retrieved a price of zero for a vehicle with refit");
 					} else {
-						this.costs_with_refit.rawset(engine_cargo, price);
+						this.m_costs_with_refit.rawset(engine_cargo, price);
 					}
 				}
 				return price;
@@ -245,20 +246,22 @@ class Caches {
 				throw "veh_type " + veh_type + "unexpected in GetCostWithRefit";
 			}
 		}
-		return this.costs_with_refit.rawget(engine_cargo);
+		return this.m_costs_with_refit.rawget(engine_cargo);
 	}
 
-	function SaveCaches() {
-		return [_depot_tile, pass_capacities_list, mail_capacities_list, secondary_capacities_list, vehicle_lengths, attach_list, costs_with_refit];
+	function SaveCaches()
+	{
+		return [this.m_depot_tile, this.m_pass_capacities_list, this.m_mail_capacities_list, this.m_secondary_capacities_list, this.m_vehicle_lengths, this.m_attach_list, this.m_costs_with_refit];
 	}
 
-	function LoadCaches(data) {
-		_depot_tile = data[0];
-		pass_capacities_list = data[1];
-		mail_capacities_list = data[2];
-		secondary_capacities_list = data[3];
-		vehicle_lengths = data[4];
-		attach_list = data[5];
-		costs_with_refit = data[6];
+	function LoadCaches(data)
+	{
+		this.m_depot_tile = data[0];
+		this.m_pass_capacities_list = data[1];
+		this.m_mail_capacities_list = data[2];
+		this.m_secondary_capacities_list = data[3];
+		this.m_vehicle_lengths = data[4];
+		this.m_attach_list = data[5];
+		this.m_costs_with_refit = data[6];
 	}
-}
+};

@@ -116,9 +116,9 @@ function LuDiAIAfterFix::BuildAirRoute(cityFrom, unfinished)
 //			}
 
 			if (!unfinished) buildTimerAir = 0;
-			local from = unfinished ? airBuildManager.m_cityFrom : cityFrom;
-			local to = unfinished ? airBuildManager.m_cityTo : cityTo;
-			local cargoC = unfinished ? airBuildManager.m_cargoClass : cC;
+			local from = unfinished ? airBuildManager.m_city_from : cityFrom;
+			local to = unfinished ? airBuildManager.m_city_to : cityTo;
+			local cargoC = unfinished ? airBuildManager.m_cargo_class : cC;
 			local best_routes = unfinished ? airBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 4) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 			local all_routes = (((allRoutesBuilt >> 4) & 3) & (1 << (cargoC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0;
 
@@ -173,7 +173,7 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 //	for (local i = lastAirManagedArray; i >= 0; --i) {
 //		if (lastAirManagedManagement != 7) break;
 //		lastAirManagedArray--;
-//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(airRouteManager.m_townRouteArray[i].m_airportFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(airRouteManager.m_townRouteArray[i].m_airportTo)));
+//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(airRouteManager.m_townRouteArray[i].m_airport_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(airRouteManager.m_townRouteArray[i].m_airport_to)));
 //		if (InterruptAirManagement(cur_date)) return;
 //	}
 //	ResetAirManagementVariables();
@@ -269,9 +269,9 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		if (lastAirManagedManagement != 0) break;
 		lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local cityFrom = airRouteManager.m_townRouteArray[i].m_cityFrom;
-		local cityTo = airRouteManager.m_townRouteArray[i].m_cityTo;
-		local cargoC = airRouteManager.m_townRouteArray[i].m_cargoClass;
+		local cityFrom = airRouteManager.m_townRouteArray[i].m_city_from;
+		local cityTo = airRouteManager.m_townRouteArray[i].m_city_to;
+		local cargoC = airRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (airRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			airRouteManager.m_townRouteArray.remove(i);
 			airTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);

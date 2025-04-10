@@ -20,13 +20,13 @@ class RoadTile {
 
 class RoadBuildManager {
 
-	m_cityFrom = -1;
-	m_cityTo = -1;
+	m_city_from = -1;
+	m_city_to = -1;
 	m_stationFrom = -1;
 	m_stationTo = -1;
 	m_depotTile = -1;
 	m_bridgeTiles = [];
-	m_cargoClass = -1;
+	m_cargo_class = -1;
 	m_articulated = -1;
 	m_pathfinder = null;
 	m_pathfinderTries = 0;
@@ -43,17 +43,17 @@ class RoadBuildManager {
 	function BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built);
 
 	function HasUnfinishedRoute() {
-		return m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1;
+		return m_city_from != -1 && m_city_to != -1 && m_cargo_class != -1;
 	}
 
 	function SetRouteFinished() {
-		m_cityFrom = -1;
-		m_cityTo = -1;
+		m_city_from = -1;
+		m_city_to = -1;
 		m_stationFrom = -1;
 		m_stationTo = -1;
 		m_depotTile = -1;
 		m_bridgeTiles = [];
-		m_cargoClass = -1;
+		m_cargo_class = -1;
 		m_articulated = -1;
 		m_builtTiles = [];
 		m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
@@ -62,9 +62,9 @@ class RoadBuildManager {
 	}
 
 	function BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built) {
-		m_cityFrom = cityFrom;
-		m_cityTo = cityTo;
-		m_cargoClass = cargoClass;
+		m_city_from = cityFrom;
+		m_city_to = cityTo;
+		m_cargo_class = cargoClass;
 		m_articulated = articulated;
 		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
 		m_best_routes_built = best_routes_built;
@@ -77,7 +77,7 @@ class RoadBuildManager {
 		}
 
 		if (m_stationFrom == -1) {
-			m_stationFrom = BuildTownRoadStation(m_cityFrom, m_cargoClass, null, m_cityTo, m_articulated, m_best_routes_built);
+			m_stationFrom = BuildTownRoadStation(m_city_from, m_cargo_class, null, m_city_to, m_articulated, m_best_routes_built);
 			if (m_stationFrom == null) {
 				SetRouteFinished();
 				return null;
@@ -85,7 +85,7 @@ class RoadBuildManager {
 		}
 
 		if (m_stationTo == -1) {
-			m_stationTo = BuildTownRoadStation(m_cityTo, m_cargoClass, null, m_cityFrom, m_articulated, m_best_routes_built);
+			m_stationTo = BuildTownRoadStation(m_city_to, m_cargo_class, null, m_city_from, m_articulated, m_best_routes_built);
 			if (m_stationTo == null) {
 				if (m_stationFrom != null) {
 //					local drivethrough = AIRoad.IsDriveThroughRoadStationTile(m_stationFrom);
@@ -187,7 +187,7 @@ class RoadBuildManager {
 		}
 
 		m_builtTiles = [];
-		return RoadRoute(m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_sentToDepotRoadGroup);
+		return RoadRoute(m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargo_class, m_sentToDepotRoadGroup);
 	}
 
 	function BuildTownRoadStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built) {
@@ -786,7 +786,7 @@ class RoadBuildManager {
 		/* can store road tiles into array */
 
 		if (fromTile != toTile) {
-			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
+			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_city_from), AITown.GetLocation(m_city_to));
 			assert(m_pathfinderProfile != -1);
 			local max_pathfinderTries = route_dist;
 			if (m_pathfinderProfile == 0) {
@@ -798,7 +798,7 @@ class RoadBuildManager {
 			}
 
 			/* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("r:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("r:Connecting " + AITown.GetName(m_city_from) + " (tile " + fromTile + ") and " + AITown.GetName(m_city_to) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			/* Tell OpenTTD we want to build normal road (no tram tracks). */
 			AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
@@ -1259,24 +1259,24 @@ class RoadBuildManager {
 	}
 
 	function SaveBuildManager() {
-		if (m_cityFrom == null) m_cityFrom = -1;
-		if (m_cityTo == null) m_cityTo = -1;
+		if (m_city_from == null) m_city_from = -1;
+		if (m_city_to == null) m_city_to = -1;
 		if (m_stationFrom == null) m_stationFrom = -1;
 		if (m_stationTo == null) m_stationTo = -1;
 		if (m_depotTile == null) m_depotTile = -1;
 		if (m_articulated == null) m_articulated = -1;
 
-		return [m_cityFrom, m_cityTo, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargoClass, m_articulated, m_best_routes_built, m_pathfinderProfile];
+		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargo_class, m_articulated, m_best_routes_built, m_pathfinderProfile];
 	}
 
 	function LoadBuildManager(data) {
-		m_cityFrom = data[0];
-		m_cityTo = data[1];
+		m_city_from = data[0];
+		m_city_to = data[1];
 		m_stationFrom = data[2];
 		m_stationTo = data[3];
 		m_depotTile = data[4];
 		m_bridgeTiles = data[5];
-		m_cargoClass = data[6];
+		m_cargo_class = data[6];
 		m_articulated = data[7];
 		m_best_routes_built = data[8];
 		m_pathfinderProfile = data[9];

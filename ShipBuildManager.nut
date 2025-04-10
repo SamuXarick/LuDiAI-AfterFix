@@ -26,12 +26,12 @@ class WaterTile {
 class ShipBuildManager {
 	COUNT_BETWEEN_BUOYS = 50;
 
-	m_cityFrom = -1;
-	m_cityTo = -1;
+	m_city_from = -1;
+	m_city_to = -1;
 	m_dockFrom = -1;
 	m_dockTo = -1;
 	m_depotTile = -1;
-	m_cargoClass = -1;
+	m_cargo_class = -1;
 	m_cheaperRoute = -1;
 	m_pathfinder = null;
 	m_pathfinderTries = 0;
@@ -47,16 +47,16 @@ class ShipBuildManager {
 	function BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built);
 
 	function HasUnfinishedRoute() {
-		return m_cityFrom != -1 && m_cityTo != -1 && m_cargoClass != -1;
+		return m_city_from != -1 && m_city_to != -1 && m_cargo_class != -1;
 	}
 
 	function SetRouteFinished() {
-		m_cityFrom = -1;
-		m_cityTo = -1;
+		m_city_from = -1;
+		m_city_to = -1;
 		m_dockFrom = -1;
 		m_dockTo = -1;
 		m_depotTile = -1;
-		m_cargoClass = -1;
+		m_cargo_class = -1;
 		m_cheaperRoute = -1;
 		m_builtTiles = [];
 		m_sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
@@ -64,9 +64,9 @@ class ShipBuildManager {
 	}
 
 	function BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built) {
-		m_cityFrom = cityFrom;
-		m_cityTo = cityTo;
-		m_cargoClass = cargoClass;
+		m_city_from = cityFrom;
+		m_city_to = cityTo;
+		m_cargo_class = cargoClass;
 		m_cheaperRoute = cheaperRoute;
 		m_sentToDepotWaterGroup = sentToDepotWaterGroup;
 		m_best_routes_built = best_routes_built;
@@ -78,7 +78,7 @@ class ShipBuildManager {
 		}
 
 		if (m_dockFrom == -1) {
-			m_dockFrom = BuildTownDock(m_cityFrom, m_cargoClass, m_cheaperRoute, m_best_routes_built);
+			m_dockFrom = BuildTownDock(m_city_from, m_cargo_class, m_cheaperRoute, m_best_routes_built);
 			if (m_dockFrom == null) {
 				SetRouteFinished();
 				return null;
@@ -86,7 +86,7 @@ class ShipBuildManager {
 		}
 
 		if (m_dockTo == -1) {
-			m_dockTo = BuildTownDock(m_cityTo, m_cargoClass, m_cheaperRoute, m_best_routes_built);
+			m_dockTo = BuildTownDock(m_city_to, m_cargo_class, m_cheaperRoute, m_best_routes_built);
 			if (m_dockTo == null) {
 				if (m_dockFrom != null) {
 					local counter = 0;
@@ -314,7 +314,7 @@ class ShipBuildManager {
 		}
 
 		m_builtTiles = [];
-		return ShipRoute(m_cityFrom, m_cityTo, m_dockFrom, m_dockTo, m_depotTile, m_cargoClass, m_sentToDepotWaterGroup);
+		return ShipRoute(m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depotTile, m_cargo_class, m_sentToDepotWaterGroup);
 	}
 
 	function BuildTownDock(town, cargoClass, cheaperRoute, best_routes_built) {
@@ -611,11 +611,11 @@ class ShipBuildManager {
 		/* can store canal tiles into array */
 
 		if (fromTile != toTile) {
-			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_cityFrom), AITown.GetLocation(m_cityTo));
+			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_city_from), AITown.GetLocation(m_city_to));
 			local max_pathfinderTries = 333 * route_dist;
 
 			/* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("s:Connecting " + AITown.GetName(m_cityFrom) + " (tile " + fromTile + ") and " + AITown.GetName(m_cityTo) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("s:Connecting " + AITown.GetName(m_city_from) + " (tile " + fromTile + ") and " + AITown.GetName(m_city_to) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
 
 			if (pathfinder == null) {
 				/* Create an instance of the pathfinder. */
@@ -1076,23 +1076,23 @@ class ShipBuildManager {
 	}
 
 	function SaveBuildManager() {
-		if (m_cityFrom == null) m_cityFrom = -1;
-		if (m_cityTo == null) m_cityTo = -1;
+		if (m_city_from == null) m_city_from = -1;
+		if (m_city_to == null) m_city_to = -1;
 		if (m_dockFrom == null) m_dockFrom = -1;
 		if (m_dockTo == null) m_dockTo = -1;
 		if (m_depotTile == null) m_depotTile = -1;
 		if (m_cheaperRoute == null) m_cheaperRoute = -1;
 
-		return [m_cityFrom, m_cityTo, m_dockFrom, m_dockTo, m_depotTile, m_cargoClass, m_cheaperRoute, m_best_routes_built, m_builtTiles];
+		return [m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depotTile, m_cargo_class, m_cheaperRoute, m_best_routes_built, m_builtTiles];
 	}
 
 	function LoadBuildManager(data) {
-		m_cityFrom = data[0];
-		m_cityTo = data[1];
+		m_city_from = data[0];
+		m_city_to = data[1];
 		m_dockFrom = data[2];
 		m_dockTo = data[3];
 		m_depotTile = data[4];
-		m_cargoClass = data[5];
+		m_cargo_class = data[5];
 		m_cheaperRoute = data[6];
 		m_best_routes_built = data[7];
 		m_builtTiles = data[8];
