@@ -44,7 +44,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			local dock_costs = AIMarine.GetBuildCost(AIMarine.BT_DOCK) * 2;
 			local depot_cost = AIMarine.GetBuildCost(AIMarine.BT_DEPOT);
 			estimated_costs += engine_costs + canal_costs + clear_costs + dock_costs + depot_cost;
-//			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + ", canal_costs = " + canal_costs + ", clear_costs = " + clear_costs + ", dock_costs = " + dock_costs + ", depot_cost = " + depot_cost + ", buoy_costs = " + buoy_costs);
+//			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + ", canal_costs = " + canal_costs + ", clear_costs = " + clear_costs + ", dock_costs = " + dock_costs + ", depot_cost = " + depot_cost);
 			if (!Utils.HasMoney(estimated_costs + reservedMoney - reservedMoneyWater)) {
 				/* Try a cheaper route */
 				if ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 1 || !Utils.HasMoney(estimated_costs - canal_costs - clear_costs + reservedMoney - reservedMoneyWater)) {
