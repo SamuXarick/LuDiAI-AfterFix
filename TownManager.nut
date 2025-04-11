@@ -60,10 +60,11 @@ class TownManager
 
 	function GetLastMonthProductionDiffRate(town_id, cargo_type)
 	{
+		local last_month_production = AITown.GetLastMonthProduction(town_id, cargo_type);
 		if (AIController.GetSetting("pick_mode") == 0) {
-			return (AITown.GetLastMonthProduction(town_id, cargo_type) - AITown.GetLastMonthSupplied(town_id, cargo_type)) * (100 - AITown.GetLastMonthTransportedPercentage(town_id, cargo_type)) / 100;
+			return (last_month_production - AITown.GetLastMonthSupplied(town_id, cargo_type)) * (100 - AITown.GetLastMonthTransportedPercentage(town_id, cargo_type)) / 100;
 		}
-		return AITown.GetLastMonthProduction(town_id, cargo_type);
+		return last_month_production;
 	}
 
 	function IsTownGrowing(town_id, cargo_type)
@@ -71,7 +72,7 @@ class TownManager
 //		return true;
 		if (!AIGameSettings.GetValue("town_growth_rate")) return true; // no town grows, just work with it
 
-		local cargo_type_required = AIList();
+		local cargo_types_required = AIList();
 		foreach (cargo_type2, _ in ::caches.m_cargo_type_list) {
 			local town_effect = AICargo.GetTownEffect(cargo_type2);
 
@@ -88,13 +89,13 @@ class TownManager
 				local cargo_goal = AITown.GetCargoGoal(town_id, town_effect);
 				if (cargo_goal != 0) {
 //					AILog.Info(" - An amount of " + cargo_goal + " " + AICargo.GetCargoLabel(cargo_type2) + " is required to grow " + AITown.GetName(town_id));
-					cargo_type_required[cargo_type2] = cargo_goal;
+					cargo_types_required[cargo_type2] = cargo_goal;
 				}
 			}
 		}
 //		AILog.Info(" ");
-		local num_cargo_types_required = cargo_type_required.Count();
-		local result = num_cargo_types_required == 0 || (cargo_type_required.HasItem(cargo_type) && num_cargo_types_required == 1);
+		local num_cargo_types_required = cargo_types_required.Count();
+		local result = num_cargo_types_required == 0 || (cargo_types_required.HasItem(cargo_type) && num_cargo_types_required == 1);
 
 //		AILog.Info("-- Result for town " + AITown.GetName(town_id) + ": " + result + " - " + num_cargo_types_required + " --");
 		return result;

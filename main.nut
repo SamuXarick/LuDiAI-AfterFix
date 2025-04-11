@@ -419,7 +419,7 @@ function LuDiAIAfterFix::PerformTownActions()
 				}
 			}
 
-			if (AIController.GetSetting("fund_buildings") && AITown.GetLastMonthProduction(town_id, cargo_type) <= (cC == AICargo.CC_PASSENGERS ? 70 : 35)) {
+			if (AIController.GetSetting("fund_buildings") && TownManager.GetLastMonthProductionDiffRate(town_id, cargo_type) <= TownManager.CARGO_TYPE_LIMIT[cC]) {
 				local action = AITown.TOWN_ACTION_FUND_BUILDINGS;
 				if (AITown.IsActionAvailable(town_id, action) && AITown.GetFundBuildingsDuration(town_id) == 0) {
 					local perform_action = true;
