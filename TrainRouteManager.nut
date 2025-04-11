@@ -11,8 +11,8 @@ class RailRouteManager {
 		m_best_routes_built = best_routes_built;
 	}
 
-	function BuildRoute(railBuildManager, cityFrom, cityTo, cargoClass, best_routes_built, railtype) {
-		local route = railBuildManager.BuildRailRoute(cityFrom, cityTo, cargoClass, m_sentToDepotRailGroup, best_routes_built, railtype);
+	function BuildRoute(railBuildManager, cityFrom, cityTo, cargoClass, best_routes_built, rail_type) {
+		local route = railBuildManager.BuildRailRoute(cityFrom, cityTo, cargoClass, m_sentToDepotRailGroup, best_routes_built, rail_type);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
 			railBuildManager.SetRouteFinished();

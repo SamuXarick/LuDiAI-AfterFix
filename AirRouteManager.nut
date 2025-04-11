@@ -6,19 +6,19 @@ class AirRouteManager
 	m_sent_to_depot_air_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
-	constructor(sentToDepotAirGroup, best_routes_built)
+	constructor(sent_to_depot_air_group, best_routes_built)
 	{
-		m_townRouteArray = [];
-		m_sent_to_depot_air_group = sentToDepotAirGroup;
-		m_best_routes_built = best_routes_built;
+		this.m_townRouteArray = [];
+		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
+		this.m_best_routes_built = best_routes_built;
 	}
 
-	function BuildRoute(airRouteManager, airBuildManager, airTownManager, cityFrom, cityTo, cargoClass, best_routes_built, all_routes_built)
+	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
 	{
-		local route = airBuildManager.BuildAirRoute(airRouteManager, airTownManager, cityFrom, cityTo, cargoClass, m_sent_to_depot_air_group, best_routes_built, all_routes_built);
+		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_air_group, best_routes_built, all_routes_built);
 		if (route != null && route != 0) {
-			m_townRouteArray.append(route);
-			airBuildManager.SetRouteFinished();
+			this.m_townRouteArray.append(route);
+			air_build_manager.SetRouteFinished();
 			return [1, route.m_airport_from, route.m_airport_to];
 		}
 
@@ -31,11 +31,11 @@ class AirRouteManager
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_AIR);
 	}
 
-	function TownRouteExists(cityFrom, cityTo, cargoClass)
+	function TownRouteExists(city_from, city_to, cargo_class)
 	{
-		foreach (route in m_townRouteArray) {
-			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(route.m_city_from, route.m_city_to, route.m_cargo_class)) {
-//				AILog.Info("TownRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
+		foreach (route in this.m_townRouteArray) {
+			if (TownPair(city_from, city_to, cargo_class).IsEqual(route.m_city_from, route.m_city_to, route.m_cargo_class)) {
+//				AILog.Info("TownRouteExists from " + AITown.GetName(city_from) + " to " + AITown.GetName(city_to));
 				return 1;
 			}
 		}
@@ -46,75 +46,75 @@ class AirRouteManager
 	/* the highest last years profit out of all vehicles */
 	function HighestProfitLastYear()
 	{
-		local maxAllRoutesProfit = null;
+		local max_all_routes_profit = null;
 
 		foreach (route in this.m_townRouteArray) {
-			local maxRouteProfit = 0;
+			local max_route_profit = 0;
 			foreach (vehicle, _ in route.m_vehicle_list) {
 				local profit = AIVehicle.GetProfitLastYear(vehicle);
-				if (maxRouteProfit < profit) {
-					maxRouteProfit = profit;
+				if (max_route_profit < profit) {
+					max_route_profit = profit;
 				}
 			}
 
-			if (maxAllRoutesProfit == null || maxRouteProfit > maxAllRoutesProfit) {
-				maxAllRoutesProfit = maxRouteProfit;
+			if (max_all_routes_profit == null || max_route_profit > max_all_routes_profit) {
+				max_all_routes_profit = max_route_profit;
 			}
 		}
 
-		return maxAllRoutesProfit;
+		return max_all_routes_profit;
 	}
 
-	/* won't build any new stations if 1 */
-	function HasMaxStationCount(cityFrom, cityTo, cargoClass)
+	/* won't build any new stations if true */
+	function HasMaxStationCount(city_from, city_to, cargo_class)
 	{
 //		return false;
 
-		local maxTownStationFrom = (1 + AITown.GetPopulation(cityFrom) / 1000).tointeger();
-		local maxTownStationTo = (1 + AITown.GetPopulation(cityTo) / 1000).tointeger();
+		local max_town_station_from = (1 + AITown.GetPopulation(city_from) / 1000).tointeger();
+		local max_town_station_to = (1 + AITown.GetPopulation(city_to) / 1000).tointeger();
 
-		local cityFromCount = 0;
-		local cityToCount = 0;
+		local city_from_count = 0;
+		local city_to_count = 0;
 
-		foreach (route in m_townRouteArray) {
-			if (route.m_city_from == cityFrom || route.m_city_from == cityTo) {
-				if (route.m_cargo_class == cargoClass) ++cityFromCount;
+		foreach (route in this.m_townRouteArray) {
+			if (route.m_city_from == city_from || route.m_city_from == city_to) {
+				if (route.m_cargo_class == cargo_class) ++city_from_count;
 			}
 
-			if (route.m_city_to == cityTo || route.m_city_to == cityFrom) {
-				if (route.m_cargo_class == cargoClass) ++cityToCount;
+			if (route.m_city_to == city_to || route.m_city_to == city_from) {
+				if (route.m_cargo_class == cargo_class) ++city_to_count;
 			}
 		}
-//		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + " ; cityFromCount = " + cityFromCount + " ; maxTownStationFrom = " + maxTownStationFrom + " ; cityTo = " + AITown.GetName(cityTo) + " ; cityToCount = " + cityToCount + " ; maxTownStationTo = " + maxTownStationTo);
+//		AILog.Info("city_from = " + AITown.GetName(city_from) + " ; city_from_count = " + city_from_count + " ; max_town_station_from = " + max_town_station_from + " ; city_to = " + AITown.GetName(city_to) + " ; city_to_count = " + city_to_count + " ; max_town_station_to = " + max_town_station_to);
 
-		return cityFromCount >= maxTownStationFrom || cityToCount >= maxTownStationTo;
+		return city_from_count >= max_town_station_from || city_to_count >= max_town_station_to;
 	}
 
 	function SaveRouteManager()
 	{
-		local array = [];
-		foreach (route in m_townRouteArray) {
-			array.append(route.SaveRoute());
+		local town_route_array = [];
+		foreach (route in this.m_townRouteArray) {
+			town_route_array.append(route.SaveRoute());
 		}
 
-		return [array, m_sent_to_depot_air_group, m_best_routes_built];
+		return [town_route_array, this.m_sent_to_depot_air_group, this.m_best_routes_built];
 	}
 
 	function LoadRouteManager(data)
 	{
-		if (m_townRouteArray == null) {
-			m_townRouteArray = [];
+		if (this.m_townRouteArray == null) {
+			this.m_townRouteArray = [];
 		}
 
-		local routearray = data[0];
+		local town_route_array = data[0];
 
-		foreach (load in routearray) {
+		foreach (load in town_route_array) {
 			local route = AirRoute.LoadRoute(load);
-			m_townRouteArray.append(route);
+			this.m_townRouteArray.append(route);
 		}
-		AILog.Info("Loaded " + m_townRouteArray.len() + " air routes.");
+		AILog.Info("Loaded " + this.m_townRouteArray.len() + " air routes.");
 
-		m_sent_to_depot_air_group = data[1];
-		m_best_routes_built = data[2];
+		this.m_sent_to_depot_air_group = data[1];
+		this.m_best_routes_built = data[2];
 	}
 };

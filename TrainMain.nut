@@ -1,6 +1,10 @@
-function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
-	if (unfinished || (railRouteManager.GetTrainCount() < max(MAX_TRAIN_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 6) & 3) != 3) {
+function LuDiAIAfterFix::BuildRailRoute()
+{
+	if (!AIController.GetSetting("rail_support")) return;
 
+	local unfinished = railBuildManager.HasUnfinishedRoute();
+	if (unfinished || (railRouteManager.GetTrainCount() < max(MAX_TRAIN_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 6) & 3) != 3) {
+		local cityFrom = null;
 		local cityTo = null;
 		local best_railtype;
 		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRail : (!unfinished ? cargoClassRail : (cargoClassRail == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
@@ -261,7 +265,7 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 			local to = unfinished ? railBuildManager.m_city_to : cityTo;
 			local cargoC = unfinished ? railBuildManager.m_cargo_class : cC;
 			local best_routes = unfinished ? railBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
-			local rt = unfinished ? railBuildManager.m_railtype : best_railtype;
+			local rt = unfinished ? railBuildManager.m_rail_type : best_railtype;
 
 			local start_date = AIDate.GetCurrentDate();
 			local routeResult = railRouteManager.BuildRoute(railBuildManager, from, to, cargoC, best_routes, rt);
@@ -278,9 +282,6 @@ function LuDiAIAfterFix::BuildRailRoute(cityFrom, unfinished) {
 				railTownManager.RemoveUsedCityPair(from, to, cC, false);
 				AILog.Error("t:" + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + " wasted!");
 			}
-
-//			cityFrom = cityTo; // use this line to look for a new town from the last town
-			cityFrom = null;
 		}
 	}
 }

@@ -1,6 +1,9 @@
-function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
-	if (unfinished || (shipRouteManager.GetShipCount() < max(MAX_SHIP_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 2) & 3) != 3) {
+function LuDiAIAfterFix::BuildWaterRoute() {
+	if (!AIController.GetSetting("water_support")) return;
 
+	local unfinished = shipBuildManager.HasUnfinishedRoute();
+	if (unfinished || (shipRouteManager.GetShipCount() < max(MAX_SHIP_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 2) & 3) != 3) {
+		local cityFrom = null;
 		local cityTo = null;
 		local cheaper_route = false;
 		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassWater : (!unfinished ? cargoClassWater : (cargoClassWater == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
@@ -151,9 +154,6 @@ function LuDiAIAfterFix::BuildWaterRoute(cityFrom, unfinished) {
 				shipTownManager.RemoveUsedCityPair(from, to, cC, false);
 				AILog.Error("s:" + buildTimerWater + " day" + (buildTimerWater != 1 ? "s" : "") + " wasted!");
 			}
-
-//			cityFrom = cityTo; // use this line to look for a new town from the last town
-			cityFrom = null;
 		}
 	}
 }

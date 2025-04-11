@@ -1,4 +1,5 @@
-class LuDiAIAfterFix extends AIInfo {
+class LuDiAIAfterFix extends AIInfo
+{
 	function GetAuthor()        { return "lukin_, Samu"; }
 	function GetName()          { return "LuDiAI AfterFix"; }
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
@@ -11,7 +12,8 @@ class LuDiAIAfterFix extends AIInfo {
 	function GetURL()           { return "https://www.tt-forums.net/viewtopic.php?f=65&t=83806"; }
 	function UseAsRandomAI()    { return true; }
 
-	function GetSettings() {
+	function GetSettings()
+	{
 		AddSetting({
 			name = "select_town_cargo",
 			description = "Town cargo",
@@ -252,6 +254,6 @@ class LuDiAIAfterFix extends AIInfo {
 			flags = AIInfo.CONFIG_BOOLEAN | AIInfo.CONFIG_INGAME,
 		});
 	}
-}
+};
 
 RegisterAI(LuDiAIAfterFix());

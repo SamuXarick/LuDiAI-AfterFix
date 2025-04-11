@@ -68,7 +68,8 @@ class DoubleRail
 	 * @param ignored_tiles An array of tiles that cannot occur in the final path.
 	 * @see AyStar::InitializePath()
 	 */
-	function InitializePath(sources, goals, ignored_tiles = []) {
+	function InitializePath(sources, goals, ignored_tiles = [])
+	{
 		local test_mode = AITestMode();
 //		local nsources = [];
 
@@ -976,7 +977,8 @@ function DoubleRail::_GetParents(path)
 	return parent_tiles;
 }
 
-enum SegmentDir {
+enum SegmentDir
+{
 	SW_NE,
 	SW_N_NE,
 	SW_E_NE,
@@ -1181,7 +1183,8 @@ function DoubleRail::_GetNodeID(segment, j, i)
 	return 1 << (j * 32 + i);
 }
 
-class Segment extends DoubleRail {
+class Segment extends DoubleRail
+{
 	m_segment_dir = null;
 	m_neighbours = null;
 	m_nodes = null;
@@ -1189,7 +1192,8 @@ class Segment extends DoubleRail {
 //	m_dir_from = null;
 //	m_dir_to = null;
 
-	constructor(prev_nodes, segment_dir, is_goal_segment = false) {
+	constructor(prev_nodes, segment_dir, is_goal_segment = false)
+	{
 		m_segment_dir = segment_dir;
 		m_neighbours = GetNeighbours(segment_dir);
 		m_nodes = typeof(prev_nodes) == "array" ? GetNodes(prev_nodes, segment_dir, is_goal_segment) : GetNextNodes(prev_nodes, segment_dir);
@@ -1198,17 +1202,8 @@ class Segment extends DoubleRail {
 //		m_dir_to = GetDirToOffset(segment_dir);
 	}
 
-	function GetName(segment_dir);
-	function GetNeighbours(segment_dir);
-	function GetTilesOffsets(segment_dir);
-	function GetDirFromOffset(segment_dir);
-	function GetDirToOffset(segment_dir);
-	function GetNodes(prev_tiles, segment_dir);
-	function GetNextNodes(path, segment_dir);
-	function IsCustomSegment();
-	function IsCustomSegmentDir(segment_dir);
-
-	function GetName(segment_dir) {
+	function GetName(segment_dir)
+	{
 		switch (segment_dir) {
 			case SegmentDir.SW_NE: return "SW_NE";
 			case SegmentDir.SW_N_NE: return "SW_N_NE";
@@ -1237,7 +1232,8 @@ class Segment extends DoubleRail {
 		}
 	}
 
-	function GetNeighbours(segment_dir) {
+	function GetNeighbours(segment_dir)
+	{
 		switch (segment_dir) {
 			case SegmentDir.SW_NE:
 			case SegmentDir.SW_N_NE:
@@ -1274,7 +1270,8 @@ class Segment extends DoubleRail {
 		}
 	}
 
-	function GetTilesOffsets(segment_dir) {
+	function GetTilesOffsets(segment_dir)
+	{
 		switch(segment_dir) {
 			case SegmentDir.SW_NE:
 				return [[AIMap.GetTileIndex(-1, 0)],
@@ -1359,7 +1356,8 @@ class Segment extends DoubleRail {
 		}
 	}
 
-	function GetDirFromOffset(segment_dir) {
+	function GetDirFromOffset(segment_dir)
+	{
 		switch (segment_dir) {
 			case SegmentDir.SW_NE:
 			case SegmentDir.SW_N_NE:
@@ -1395,7 +1393,8 @@ class Segment extends DoubleRail {
 		}
 	}
 
-	function GetDirToOffset(segment_dir) {
+	function GetDirToOffset(segment_dir)
+	{
 		switch (segment_dir) {
 			case SegmentDir.SW_NE:
 			case SegmentDir.SW_N_NE:
@@ -1431,7 +1430,8 @@ class Segment extends DoubleRail {
 		}
 	}
 
-	function GetNodes(prev_tiles, segment_dir, is_goal_segment = false) {
+	function GetNodes(prev_tiles, segment_dir, is_goal_segment = false)
+	{
 		local nodes = [[], []];
 		local offsets = Segment.GetTilesOffsets(segment_dir);
 
@@ -1465,7 +1465,8 @@ class Segment extends DoubleRail {
 		return nodes;
 	}
 
-	function GetNextNodes(path, segment_dir) {
+	function GetNextNodes(path, segment_dir)
+	{
 		local nodes = [[], []];
 
 		if (Segment.IsCustomSegmentDir(segment_dir)) {
@@ -1495,11 +1496,13 @@ class Segment extends DoubleRail {
 		return nodes;
 	}
 
-	function IsCustomSegment() {
+	function IsCustomSegment()
+	{
 		return this.m_segment_dir >= SegmentDir.SW_NE_CUSTOM;
 	}
 
-	function IsCustomSegmentDir(segment_dir) {
+	function IsCustomSegmentDir(segment_dir)
+	{
 		return segment_dir >= SegmentDir.SW_NE_CUSTOM;
 	}
-}
+};

@@ -13,7 +13,7 @@ class RailRoute extends RailRouteManager {
 	m_depotTo = null;
 	m_bridgeTiles = null;
 	m_cargo_class = null;
-	m_railtype = null;
+	m_rail_type = null;
 	m_stationFromDir = null;
 	m_stationToDir = null;
 
@@ -31,8 +31,8 @@ class RailRoute extends RailRouteManager {
 
 	m_vehicle_list = null;
 
-	constructor(cityFrom, cityTo, stationFrom, stationTo, depotFrom, depotTo, bridgeTiles, cargoClass, sentToDepotRailGroup, railtype, stationFromDir, stationToDir, isLoaded = 0) {
-		AIRail.SetCurrentRailType(railtype);
+	constructor(cityFrom, cityTo, stationFrom, stationTo, depotFrom, depotTo, bridgeTiles, cargoClass, sentToDepotRailGroup, rail_type, stationFromDir, stationToDir, isLoaded = 0) {
+		AIRail.SetCurrentRailType(rail_type);
 		m_city_from = cityFrom;
 		m_city_to = cityTo;
 		m_stationFrom = stationFrom;
@@ -41,7 +41,7 @@ class RailRoute extends RailRouteManager {
 		m_depotTo = depotTo;
 		m_bridgeTiles = bridgeTiles;
 		m_cargo_class = cargoClass;
-		m_railtype = railtype;
+		m_rail_type = rail_type;
 		m_stationFromDir = stationFromDir;
 		m_stationToDir = stationToDir;
 
@@ -131,7 +131,7 @@ class RailRoute extends RailRouteManager {
 		local wagonList = AIList();
 		for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
 			if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanPullCargo(engine, cargo) &&
-					AIEngine.CanRunOnRail(engine, m_railtype) && AIEngine.HasPowerOnRail(engine, m_railtype)) {
+					AIEngine.CanRunOnRail(engine, m_rail_type) && AIEngine.HasPowerOnRail(engine, m_rail_type)) {
 				if (AIEngine.CanRefitCargo(engine, cargo)) {
 					if (AIEngine.IsWagon(engine)) {
 						wagonList.AddItem(engine, 0);
@@ -152,7 +152,7 @@ class RailRoute extends RailRouteManager {
 		for (local engine = engineList.Begin(); !engineList.IsEnd(); engine = engineList.Next()) {
 			for (local wagon = wagonList.Begin(); !wagonList.IsEnd(); wagon = wagonList.Next()) {
 				local pair = [engine, wagon];
-				if (::caches.CanAttachToEngine(wagon, engine, cargo, m_railtype, m_depotFrom)) {
+				if (::caches.CanAttachToEngine(wagon, engine, cargo, m_rail_type, m_depotFrom)) {
 					engineWagonPairs.append(pair);
 				}
 			}
@@ -176,7 +176,7 @@ class RailRoute extends RailRouteManager {
 			local engine_max_speed = AIEngine.GetMaxSpeed(engine) == 0 ? 65535 : AIEngine.GetMaxSpeed(engine);
 			local wagon_max_speed = AIEngine.GetMaxSpeed(wagon) == 0 ? 65535 : AIEngine.GetMaxSpeed(wagon);
 			local train_max_speed = min(engine_max_speed, wagon_max_speed);
-			local railtype_max_speed = AIRail.GetMaxSpeed(m_railtype) == 0 ? 65535 : AIRail.GetMaxSpeed(m_railtype);
+			local railtype_max_speed = AIRail.GetMaxSpeed(m_rail_type) == 0 ? 65535 : AIRail.GetMaxSpeed(m_rail_type);
 			train_max_speed = min(railtype_max_speed, train_max_speed);
 			local days_in_transit = (m_routeDistance * 256 * 16) / (2 * 74 * train_max_speed);
 			days_in_transit += STATION_LOADING_INTERVAL;
@@ -212,7 +212,7 @@ class RailRoute extends RailRouteManager {
 	function UpgradeBridges() {
 		if (!m_active_route) return;
 
-		AIRail.SetCurrentRailType(m_railtype);
+		AIRail.SetCurrentRailType(m_rail_type);
 		foreach (tile in m_bridgeTiles) {
 			local north_tile = tile[0];
 			local south_tile = tile[1];
@@ -695,12 +695,12 @@ class RailRoute extends RailRouteManager {
 		local exit_tile_2 = station.GetExitTile(2);
 		local exit_tile_1 = station.GetExitTile(1);
 		local entry_tile_1 = station.GetEntryTile(1);
-		local railtype = AIRail.GetRailType(top_tile);
-		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, railtype, bot_tile));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, railtype, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, railtype, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, railtype, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, railtype, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+		local rail_type = AIRail.GetRailType(top_tile);
+		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, rail_type, bot_tile));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 	}
 
 	function ScheduleRemoveDepot(depot) {
@@ -708,11 +708,11 @@ class RailRoute extends RailRouteManager {
 		local depotRaila = abs(depot - depotFront) == 1 ? depotFront - AIMap.GetMapSizeX() : depotFront - 1;
 		local depotRailb = 2 * depotFront - depotRaila;
 		local depotRailc = 2 * depotFront - depot;
-		local railtype = AIRail.GetRailType(depot);
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, railtype, depot, depotRaila));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, railtype, depot, depotRailb));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, railtype, depot, depotRailc));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, railtype));
+		local rail_type = AIRail.GetRailType(depot);
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRaila));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailb));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailc));
+		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, rail_type));
 	}
 
 	function ScheduleRemoveTracks(frontTile, prevTile) {
@@ -720,7 +720,7 @@ class RailRoute extends RailRouteManager {
 		if (AIRail.IsRailTile(frontTile)) {
 			local dir = frontTile - prevTile;
 			local track = AIRail.GetRailTracks(frontTile);
-			local railtype = AIRail.GetRailType(frontTile);
+			local rail_type = AIRail.GetRailType(frontTile);
 			local bits = Utils.CountBits(track);
 			if (bits >= 1 && bits <= 2) {
 				switch (dir) {
@@ -803,29 +803,29 @@ class RailRoute extends RailRouteManager {
 				}
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(frontTile, railtype, prevTile, nextTile));
+				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(frontTile, rail_type, prevTile, nextTile));
 				ScheduleRemoveTracks(nextTile, frontTile);
 			}
 		} else if (AIBridge.IsBridgeTile(frontTile)) {
 			local dir = frontTile - prevTile;
 			local otherTile = AIBridge.GetOtherBridgeEnd(frontTile);
-			local railtype = AIRail.GetRailType(frontTile);
+			local rail_type = AIRail.GetRailType(frontTile);
 			if (((otherTile - frontTile) / AIMap.DistanceManhattan(otherTile, frontTile)) == dir) {
 				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, railtype, otherTile));
+				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, rail_type, otherTile));
 				ScheduleRemoveTracks(nextTile, otherTile);
 			}
 		} else if (AITunnel.IsTunnelTile(frontTile)) {
 			local dir = frontTile - prevTile;
 			local otherTile = AITunnel.GetOtherTunnelEnd(frontTile);
-			local railtype = AIRail.GetRailType(frontTile);
+			local rail_type = AIRail.GetRailType(frontTile);
 			if (((otherTile - frontTile) / AIMap.DistanceManhattan(otherTile, frontTile)) == dir) {
 				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, railtype, otherTile));
+				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, rail_type, otherTile));
 				ScheduleRemoveTracks(nextTile, otherTile);
 			}
 		}
@@ -884,7 +884,7 @@ class RailRoute extends RailRouteManager {
 	}
 
 	function SaveRoute() {
-		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sentToDepotRailGroup, m_group, m_railtype, m_stationFromDir, m_stationToDir];
+		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sentToDepotRailGroup, m_group, m_rail_type, m_stationFromDir, m_stationToDir];
 	}
 
 	function LoadRoute(data) {
@@ -898,14 +898,14 @@ class RailRoute extends RailRouteManager {
 		local bridgeTiles = data[6];
 
 		local cargoClass = data[7];
-		local railtype = data[13];
+		local rail_type = data[13];
 
 		local sentToDepotRailGroup = data[11];
 
 		local stationFromDir = data[14];
 		local stationToDir = data[15];
 
-		local route = RailRoute(cityFrom, cityTo, stationFrom, stationTo, depotFrom, depotTo, bridgeTiles, cargoClass, sentToDepotRailGroup, railtype, stationFromDir, stationToDir, 1);
+		local route = RailRoute(cityFrom, cityTo, stationFrom, stationTo, depotFrom, depotTo, bridgeTiles, cargoClass, sentToDepotRailGroup, rail_type, stationFromDir, stationToDir, 1);
 
 		route.m_last_vehicle_added = data[8];
 		route.m_last_vehicle_removed = data[9];
