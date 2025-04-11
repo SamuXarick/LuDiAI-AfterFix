@@ -122,11 +122,11 @@ function LuDiAIAfterFix::BuildAirRoute()
 			local arg_city_from = unfinished ? this.airBuildManager.m_city_from : city_from;
 			local arg_city_to = unfinished ? this.airBuildManager.m_city_to : city_to;
 			local arg_cargo_class = unfinished ? this.airBuildManager.m_cargo_class : cargo_class;
-			local best_routes = unfinished ? this.airBuildManager.m_best_routes_built : ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
-			local all_routes = (((this.allRoutesBuilt >> 4) & 3) & (1 << (arg_cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0;
+			local arg_best_routes_built = unfinished ? this.airBuildManager.m_best_routes_built : ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
+			local arg_all_routes_built = (((this.allRoutesBuilt >> 4) & 3) & (1 << (arg_cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0;
 
 			local start_date = AIDate.GetCurrentDate();
-			local route_result = this.airRouteManager.BuildRoute(this.airRouteManager, this.airBuildManager, this.airTownManager, arg_city_from, arg_city_to, arg_cargo_class, best_routes, all_routes);
+			local route_result = this.airRouteManager.BuildRoute(this.airRouteManager, this.airBuildManager, this.airTownManager, arg_city_from, arg_city_to, arg_cargo_class, arg_best_routes_built, arg_all_routes_built);
 			buildTimerAir += AIDate.GetCurrentDate() - start_date;
 			if (route_result[0] != null) {
 				if (route_result[0] != 0) {
@@ -146,14 +146,14 @@ function LuDiAIAfterFix::BuildAirRoute()
 
 function LuDiAIAfterFix::ResetAirManagementVariables()
 {
-	if (lastAirManagedArray < 0) lastAirManagedArray = this.airRouteManager.m_townRouteArray.len() - 1;
-	if (lastAirManagedManagement < 0) lastAirManagedManagement = 6;
+	if (this.lastAirManagedArray < 0) this.lastAirManagedArray = this.airRouteManager.m_townRouteArray.len() - 1;
+	if (this.lastAirManagedManagement < 0) this.lastAirManagedManagement = 6;
 }
 
 function LuDiAIAfterFix::InterruptAirManagement(cur_date)
 {
 	if (AIDate.GetCurrentDate() - cur_date > 1) {
-		if (lastAirManagedArray == -1) lastAirManagedManagement--;
+		if (this.lastAirManagedArray == -1) this.lastAirManagedManagement--;
 		return true;
 	}
 	return false;
@@ -168,106 +168,106 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 	}
 
 	local cur_date = AIDate.GetCurrentDate();
-	ResetAirManagementVariables();
+	this.ResetAirManagementVariables();
 
-//	for (local i = lastAirManagedArray; i >= 0; --i) {
-//		if (lastAirManagedManagement != 7) break;
-//		lastAirManagedArray--;
+//	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+//		if (this.lastAirManagedManagement != 7) break;
+//		this.lastAirManagedArray--;
 //		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(this.airRouteManager.m_townRouteArray[i].m_airport_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(this.airRouteManager.m_townRouteArray[i].m_airport_to)));
-//		if (InterruptAirManagement(cur_date)) return;
+//		if (this.InterruptAirManagement(cur_date)) return;
 //	}
-//	ResetAirManagementVariables();
-//	if (lastAirManagedManagement == 7) lastAirManagedManagement--;
+//	this.ResetAirManagementVariables();
+//	if (this.lastAirManagedManagement == 7) this.lastAirManagedManagement--;
 //
 //	local start_tick = AIController.GetTick();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 6) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 6) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". RenewVehicles");
 		this.airRouteManager.m_townRouteArray[i].RenewVehicles();
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 6) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 6) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 5) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 5) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SendNegativeProfitVehiclesToDepot");
 		this.airRouteManager.m_townRouteArray[i].SendNegativeProfitVehiclesToDepot();
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 5) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 5) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	local num_vehs = this.airRouteManager.GetAircraftCount();
 	local max_all_routes_profit = this.airRouteManager.HighestProfitLastYear();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 4) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 4) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
 		if (MAX_AIR_VEHICLES * 0.95 < num_vehs) {
 			this.airRouteManager.m_townRouteArray[i].SendLowProfitVehiclesToDepot(max_all_routes_profit);
 		}
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 4) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 4) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 3) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 3) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". UpgradeEngine");
 		this.airRouteManager.m_townRouteArray[i].UpgradeEngine();
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 3) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 3) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 2) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 2) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SellVehiclesInDepot");
 		this.airRouteManager.m_townRouteArray[i].SellVehiclesInDepot();
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 2) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 2) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	num_vehs = this.airRouteManager.GetAircraftCount();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 1) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 1) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
 		if (num_vehs < MAX_AIR_VEHICLES) {
 			num_vehs += this.airRouteManager.m_townRouteArray[i].AddRemoveVehicleToRoute(num_vehs < MAX_AIR_VEHICLES);
 		}
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 1) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 1) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastAirManagedArray; i >= 0; --i) {
-		if (lastAirManagedManagement != 0) break;
-		lastAirManagedArray--;
+	for (local i = this.lastAirManagedArray; i >= 0; --i) {
+		if (this.lastAirManagedManagement != 0) break;
+		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
 		local arg_city_from = this.airRouteManager.m_townRouteArray[i].m_city_from;
 		local arg_city_to = this.airRouteManager.m_townRouteArray[i].m_city_to;
@@ -276,10 +276,10 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 			this.airRouteManager.m_townRouteArray.remove(i);
 			this.airTownManager.ResetCityPair(arg_city_from, arg_city_to, arg_cargo_class, true);
 		}
-		if (InterruptAirManagement(cur_date)) return;
+		if (this.InterruptAirManagement(cur_date)) return;
 	}
-	ResetAirManagementVariables();
-	if (lastAirManagedManagement == 0) lastAirManagedManagement--;
+	this.ResetAirManagementVariables();
+	if (this.lastAirManagedManagement == 0) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }
