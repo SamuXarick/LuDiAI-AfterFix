@@ -11,7 +11,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 		if (!unfinished) {
 			cargoClassRail = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRail : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.GetCargoType(cC);
+			local cargo_type = Utils.GetCargoType(cC);
 
 			local railtypes = AIRailTypeList();
 //			for (local railtype = railtypes.Begin(); !railtypes.IsEnd(); railtype = railtypes.Next()) {
@@ -33,8 +33,8 @@ function LuDiAIAfterFix::BuildRailRoute()
 //				local engine_valid = AIEngine.IsValidEngine(engine);
 //				local engine_buildable = AIEngine.IsBuildable(engine);
 //				local engine_cargo_type = AIEngine.GetCargoType(engine);
-//				local engine_refit_cargo = AIEngine.CanRefitCargo(engine, cargo);
-//				local engine_pull_cargo = AIEngine.CanPullCargo(engine, cargo);
+//				local engine_refit_cargo = AIEngine.CanRefitCargo(engine, cargo_type);
+//				local engine_pull_cargo = AIEngine.CanPullCargo(engine, cargo_type);
 //				local engine_capacity = AIEngine.GetCapacity(engine);
 //				local engine_reliability = AIEngine.GetReliability(engine);
 //				local engine_max_speed = AIEngine.GetMaxSpeed(engine);
@@ -87,8 +87,8 @@ function LuDiAIAfterFix::BuildRailRoute()
 //				}
 //				AIController.Break(" ");
 				if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIRail.IsRailTypeAvailable(AIEngine.GetRailType(engine)) &&
-						AIEngine.CanPullCargo(engine, cargo)) {
-					if (AIEngine.CanRefitCargo(engine, cargo)) {
+						AIEngine.CanPullCargo(engine, cargo_type)) {
+					if (AIEngine.CanRefitCargo(engine, cargo_type)) {
 						if (AIEngine.IsWagon(engine)) {
 							wagonList.AddItem(engine, AIEngine.GetPrice(engine));
 						} else {
@@ -119,7 +119,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 					for (local railtype = railtypes.Begin(); !railtypes.IsEnd(); railtype = railtypes.Next()) {
 						if (AIEngine.CanRunOnRail(engine, railtype) && AIEngine.CanRunOnRail(wagon, railtype) &&
 								AIEngine.HasPowerOnRail(engine, railtype) && AIEngine.HasPowerOnRail(wagon, railtype) &&
-								::caches.CanAttachToEngine(wagon, engine, cargo, railtype)) {
+								::caches.CanAttachToEngine(wagon, engine, cargo_type, railtype)) {
 							if (!engineWagonPairs.HasItem(pair)) {
 								engineWagonPairs.AddItem(pair, 1 << railtype);
 							} else {
@@ -137,7 +137,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 			local max_train_length = AIGameSettings.GetValue("max_train_length");
 			local platform_length = min(RailRoute.MAX_PLATFORM_LENGTH, min(max_station_spread, max_train_length));
 
-			local bestpairinfo = LuDiAIAfterFix.GetBestTrainIncome(engineWagonPairs, cargo, RAIL_DAYS_IN_TRANSIT, platform_length);
+			local bestpairinfo = LuDiAIAfterFix.GetBestTrainIncome(engineWagonPairs, cargo_type, RAIL_DAYS_IN_TRANSIT, platform_length);
 			if (bestpairinfo[0][0] == -1) {
 //				cargoClassRail = cC;
 				return;
@@ -168,8 +168,8 @@ function LuDiAIAfterFix::BuildRailRoute()
 //			AILog.Info("bestpairinfo: best_engine = " + AIEngine.GetName(bestpairinfo[0][0]) + "; best_wagon = " + AIEngine.GetName(bestpairinfo[0][1]) + " * " + bestpairinfo[2] + "; best_railtype = " + AIRail.GetName(best_railtype) + "; best_capacity = " + bestpairinfo[3] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);
 
 			local estimated_costs = 0;
-			local engine_costs = ::caches.GetCostWithRefit(bestpairinfo[0][0], cargo) * 1;
-			local wagon_costs = ::caches.GetCostWithRefit(bestpairinfo[0][1], cargo) * bestpairinfo[2];
+			local engine_costs = ::caches.GetCostWithRefit(bestpairinfo[0][0], cargo_type) * 1;
+			local wagon_costs = ::caches.GetCostWithRefit(bestpairinfo[0][1], cargo_type) * bestpairinfo[2];
 			local rail_costs = AIRail.GetBuildCost(best_railtype, AIRail.BT_TRACK) * max_dist * 4;
 			local clear_costs = AITile.GetBuildCost(AITile.BT_CLEAR_ROUGH) * max_dist * 4;
 			local foundation_costs = AITile.GetBuildCost(AITile.BT_FOUNDATION) * max_dist * 2;
@@ -192,17 +192,17 @@ function LuDiAIAfterFix::BuildRailRoute()
 				cityFrom = railTownManager.GetUnusedCity(((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						railTownManager.m_usedCitiesList[cC].Clear();
+						railTownManager.m_used_cities_list[cC].Clear();
 					} else {
 						if ((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (6 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
-							railTownManager.m_usedCitiesList[cC].Clear();
-//							railTownManager.m_nearCityPairArray[cC].clear();
-							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " rail routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
+							railTownManager.m_used_cities_list[cC].Clear();
+//							railTownManager.m_near_city_pair_array[cC].clear();
+							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " rail routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 						} else {
-//							railTownManager.m_nearCityPairArray[cC].clear();
+//							railTownManager.m_near_city_pair_array[cC].clear();
 							if ((((allRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
-								AILog.Warning("All " + AICargo.GetCargoLabel(cargo) + " rail routes have been used!");
+								AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " rail routes have been used!");
 							}
 							allRoutesBuilt = allRoutesBuilt | (1 << (6 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
 						}
@@ -215,17 +215,17 @@ function LuDiAIAfterFix::BuildRailRoute()
 
 				railTownManager.FindNearCities(cityFrom, min_dist, max_dist, ((((bestRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 
-				if (!railTownManager.m_nearCityPairArray[cC].len()) {
+				if (!railTownManager.m_near_city_pair_array[cC].len()) {
 					AILog.Info("No near city available");
 					cityFrom = null;
 				}
 			}
 
 			if (cityFrom != null) {
-				for (local i = 0; i < railTownManager.m_nearCityPairArray[cC].len(); ++i) {
-					if (cityFrom == railTownManager.m_nearCityPairArray[cC][i][0]) {
-						if (!railRouteManager.TownRouteExists(cityFrom, railTownManager.m_nearCityPairArray[cC][i][1], cC)) {
-							cityTo = railTownManager.m_nearCityPairArray[cC][i][1];
+				for (local i = 0; i < railTownManager.m_near_city_pair_array[cC].len(); ++i) {
+					if (cityFrom == railTownManager.m_near_city_pair_array[cC][i][0]) {
+						if (!railRouteManager.TownRouteExists(cityFrom, railTownManager.m_near_city_pair_array[cC][i][1], cC)) {
+							cityTo = railTownManager.m_near_city_pair_array[cC][i][1];
 
 							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 6) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && railRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
 //								AILog.Info("railRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + railRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
@@ -279,14 +279,14 @@ function LuDiAIAfterFix::BuildRailRoute()
 			} else {
 				reservedMoney -= reservedMoneyRail;
 				reservedMoneyRail = 0;
-				railTownManager.RemoveUsedCityPair(from, to, cC, false);
+				railTownManager.ResetCityPair(from, to, cC, false);
 				AILog.Error("t:" + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + " wasted!");
 			}
 		}
 	}
 }
 
-function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, platform_length)
+function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo_type, days_in_transit, platform_length)
 {
 	local best_income = null;
 	local best_distance = 0;
@@ -302,7 +302,7 @@ function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, pl
 		foreach (pair, railtypesmask in pairList) {
 			local engine = pair >> 16;
 			local wagon = pair & 0xFFFF;
-			local optimized = LuDiAIAfterFix.GetTrainOptimalDaysInTransit(engine, wagon, railtypesmask, cargo, days_in_transit, length);
+			local optimized = LuDiAIAfterFix.GetTrainOptimalDaysInTransit(engine, wagon, railtypesmask, cargo_type, days_in_transit, length);
 			local income = optimized[0];
 			local distance = optimized[1];
 			local num_wagons = optimized[2];
@@ -323,12 +323,12 @@ function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, pl
 
 //	while (!queue.IsEmpty()) {
 //		local item = queue.Pop();
-//		AILog.Info("Length " + item[7] + ": " + AIEngine.GetName(item[0]) + " + " + item[4] + " * " + AIEngine.GetName(item[1]) + " (" + item[6].len() + " railtypes): " + item[5] + " " + AICargo.GetName(cargo) + ", " + item[3] + " dist, " + item[2] + " income");
+//		AILog.Info("Length " + item[7] + ": " + AIEngine.GetName(item[0]) + " + " + item[4] + " * " + AIEngine.GetName(item[1]) + " (" + item[6].len() + " railtypes): " + item[5] + " " + AICargo.GetName(cargo_type) + ", " + item[3] + " dist, " + item[2] + " income");
 //	}
 	return [best_pair, best_distance, best_num_wagons, best_capacity];
 }
 
-function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesmask, cargo, days_in_transit, platform_length)
+function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesmask, cargo_type, days_in_transit, platform_length)
 {
 	local engine_max_speed = AIEngine.GetMaxSpeed(engine) == 0 ? 65535 : AIEngine.GetMaxSpeed(engine);
 	local wagon_max_speed = AIEngine.GetMaxSpeed(wagon) == 0 ? 65535 : AIEngine.GetMaxSpeed(wagon);
@@ -367,12 +367,12 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 	local railtype_max_speed = AIRail.GetMaxSpeed(railtype) == 0 ? 65535 : AIRail.GetMaxSpeed(railtype);
 	train_max_speed = min(railtype_max_speed, train_max_speed);
 
-	local engine_length = ::caches.GetLength(engine, cargo);
-	local wagon_length = ::caches.GetLength(wagon, cargo);
+	local engine_length = ::caches.GetLength(engine, cargo_type);
+	local wagon_length = ::caches.GetLength(wagon, cargo_type);
 	local max_train_length = platform_length * 16;
 	local num_wagons = (max_train_length - engine_length) / wagon_length;
-	local engine_capacity = max(0, ::caches.GetCapacity(engine, cargo));
-	local wagon_capacity = max(0, ::caches.GetCapacity(wagon, cargo));
+	local engine_capacity = max(0, ::caches.GetCapacity(engine, cargo_type));
+	local wagon_capacity = max(0, ::caches.GetCapacity(wagon, cargo_type));
 	local train_capacity = engine_capacity + wagon_capacity * num_wagons;
 	local engine_running_cost = AIEngine.GetRunningCost(engine);
 	local wagon_running_cost = AIEngine.GetRunningCost(wagon);
@@ -380,10 +380,10 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 
 //	local engine_weight = AIEngine.GetWeight(engine);
 //	local wagon_weight = AIEngine.GetWeight(wagon);
-//	local freight_cargo = AICargo.IsFreight(cargo);
+//	local freight_cargo = AICargo.IsFreight(cargo_type);
 //	local freight_multiplier = AIGameSettings.GetValue("freight_trains");
-//	local engine_cargo_weight = AICargo.GetWeight(cargo, engine_capacity) * (freight_cargo ? freight_multiplier : 1);
-//	local wagon_cargo_weight = AICargo.GetWeight(cargo, wagon_capacity) * (freight_cargo ? freight_multiplier : 1);
+//	local engine_cargo_weight = AICargo.GetWeight(cargo_type, engine_capacity) * (freight_cargo ? freight_multiplier : 1);
+//	local wagon_cargo_weight = AICargo.GetWeight(cargo_type, wagon_capacity) * (freight_cargo ? freight_multiplier : 1);
 //	local train_cargo_weight = engine_weight + engine_cargo_weight + (wagon_weight + wagon_cargo_weight) * num_wagons;
 //	local engine_power = AIEngine.GetPower(engine);
 //	local engine_max_tractive_effort = AIEngine.GetMaxTractiveEffort(engine);
@@ -426,8 +426,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 //	AILog.Info("train_air_drag = " + train_air_drag);
 
 //	local engine_max_age = AIEngine.GetMaxAge(engine);
-//	local engine_price = ::caches.GetCostWithRefit(engine, cargo);
-//	local wagon_price = ::caches.GetCostWithRefit(wagon, cargo);
+//	local engine_price = ::caches.GetCostWithRefit(engine, cargo_type);
+//	local wagon_price = ::caches.GetCostWithRefit(wagon, cargo_type);
 //	local train_price = engine_price + wagon_price * num_wagons;
 //	local engine_reliability = AIEngine.GetReliability(engine);
 //	local reliability = min(65535, (engine_reliability << 16) / 100);
@@ -476,8 +476,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 //			AIController.Sleep(1);
 //		}
 //	}
-//	local income = (train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced / 16, days_in_transit) - train_running_cost * days_in_transit / 365 - days_in_transit * train_price / engine_max_age);
-//	local income = (train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced / 16, days_in_transit) * 365 * engine_max_age - train_running_cost * days_in_transit * engine_max_age - days_in_transit * train_price * 365) / (365 * engine_max_age);
+//	local income = (train_capacity * AICargo.GetCargoIncome(cargo_type, distance_advanced / 16, days_in_transit) - train_running_cost * days_in_transit / 365 - days_in_transit * train_price / engine_max_age);
+//	local income = (train_capacity * AICargo.GetCargoIncome(cargo_type, distance_advanced / 16, days_in_transit) * 365 * engine_max_age - train_running_cost * days_in_transit * engine_max_age - days_in_transit * train_price * 365) / (365 * engine_max_age);
 
 //	AILog.Info("engine = " + AIEngine.GetName(engine) + "; wagon = " + AIEngine.GetName(wagon) + " * " + num_wagons + "; days_in_transit = " + days_in_transit + "; distance_advanced = " + distance_advanced / 16 + "; income = " + income);
 //	AILog.Info("train_max_speed = " + train_max_speed + "; capacity = " + train_capacity + "; running cost = " + (train_running_cost * days_in_transit / 366) + "; train_price = " + (days_in_transit * train_price / engine_max_age) + "; engine_max_age = " + engine_max_age);
@@ -489,7 +489,7 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 	local multiplier = Utils.GetEngineReliabilityMultiplier(engine);
 	local distance_advanced = (train_max_speed * 2 * 74 * days_in_transit) / (256 * 16);
 	days_in_transit = days_in_transit + RailRoute.STATION_LOADING_INTERVAL;
-	local income = ((train_capacity * AICargo.GetCargoIncome(cargo, distance_advanced, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
+	local income = ((train_capacity * AICargo.GetCargoIncome(cargo_type, distance_advanced, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 	return [income, distance_advanced, num_wagons, train_capacity, best_railtypes];
 }
 
@@ -832,7 +832,7 @@ function LuDiAIAfterFix::ManageTrainRoutes()
 		local cargoC = railRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (railRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			railRouteManager.m_townRouteArray.remove(i);
-			railTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);
+			railTownManager.ResetCityPair(cityFrom, cityTo, cargoC, true);
 		}
 		if (InterruptRailManagement(cur_date)) return;
 	}

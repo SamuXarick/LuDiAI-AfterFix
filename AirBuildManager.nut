@@ -293,7 +293,7 @@ class AirBuildManager
 		return AirRoute(this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_sent_to_depot_air_group);
 	}
 
-	function BuildTownAirport(air_route_manager, air_town_manager, town, all_routes_built)
+	function BuildTownAirport(air_route_manager, air_town_manager, town_id, all_routes_built)
 	{
 		local infrastructure = AIGameSettings.GetValue("infrastructure_maintenance");
 		local pick_mode = AIController.GetSetting("pick_mode");
@@ -366,13 +366,13 @@ class AirBuildManager
 				large_min_dist = large_min_order_dist > large_max_dist * 3 / 4 ? !infrastructure && large_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : large_max_dist * 3 / 4 : large_min_order_dist;
 
 				air_town_manager.FindNearCities(this.m_city_from, large_min_dist, large_max_dist, this.m_best_routes_built, this.m_cargo_class, large_fake_dist);
-				if (!air_town_manager.m_nearCityPairArray[this.m_cargo_class].len()) {
+				if (!air_town_manager.m_near_city_pair_array[this.m_cargo_class].len()) {
 					large_available = false;
 				}
 			}
 
 			if (large_available) {
-				foreach (near_city_pair in air_town_manager.m_nearCityPairArray[this.m_cargo_class]) {
+				foreach (near_city_pair in air_town_manager.m_near_city_pair_array[this.m_cargo_class]) {
 					if (this.m_city_from == near_city_pair[0]) {
 						if (!air_route_manager.TownRouteExists(this.m_city_from, near_city_pair[1], this.m_cargo_class)) {
 							large_city_to = near_city_pair[1];
@@ -446,13 +446,13 @@ class AirBuildManager
 				small_min_dist = small_min_order_dist > small_max_dist * 3 / 4 ? !infrastructure && small_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : small_max_dist * 3 / 4 : small_min_order_dist;
 
 				air_town_manager.FindNearCities(this.m_city_from, small_min_dist, small_max_dist, this.m_best_routes_built, this.m_cargo_class, small_fake_dist);
-				if (!air_town_manager.m_nearCityPairArray[this.m_cargo_class].len()) {
+				if (!air_town_manager.m_near_city_pair_array[this.m_cargo_class].len()) {
 					small_available = false;
 				}
 			}
 
 			if (small_available) {
-				foreach (near_city_pair in air_town_manager.m_nearCityPairArray[this.m_cargo_class]) {
+				foreach (near_city_pair in air_town_manager.m_near_city_pair_array[this.m_cargo_class]) {
 					if (this.m_city_from == near_city_pair[0]) {
 						if (!air_route_manager.TownRouteExists(this.m_city_from, near_city_pair[1], this.m_cargo_class)) {
 							small_city_to = near_city_pair[1];
@@ -525,13 +525,13 @@ class AirBuildManager
 				heli_min_dist = heli_min_order_dist > heli_max_dist * 3 / 4 ? !infrastructure && heli_max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : heli_max_dist * 3 / 4 : heli_min_order_dist;
 
 				air_town_manager.FindNearCities(this.m_city_from, heli_min_dist, heli_max_dist, this.m_best_routes_built, this.m_cargo_class, heli_fake_dist);
-				if (!air_town_manager.m_nearCityPairArray[this.m_cargo_class].len()) {
+				if (!air_town_manager.m_near_city_pair_array[this.m_cargo_class].len()) {
 					heli_available = false;
 				}
 			}
 
 			if (heli_available) {
-				foreach (near_city_pair in air_town_manager.m_nearCityPairArray[this.m_cargo_class]) {
+				foreach (near_city_pair in air_town_manager.m_near_city_pair_array[this.m_cargo_class]) {
 					if (this.m_city_from == near_city_pair[0]) {
 						if (!air_route_manager.TownRouteExists(this.m_city_from, near_city_pair[1], this.m_cargo_class)) {
 							heli_city_to = near_city_pair[1];
@@ -579,7 +579,7 @@ class AirBuildManager
 			town_list.AddList(small_closest_towns);
 			town_list.AddList(heli_closest_towns);
 		} else {
-			town_list[town] = 0;
+			town_list[town_id] = 0;
 		}
 		foreach (t, _ in town_list) {
 			local town_tile = AITown.GetLocation(t);

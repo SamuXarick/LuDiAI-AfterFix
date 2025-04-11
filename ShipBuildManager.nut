@@ -314,15 +314,15 @@ class ShipBuildManager
 		return ShipRoute(m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depotTile, m_cargo_class, m_sentToDepotWaterGroup);
 	}
 
-	function BuildTownDock(town, cargoClass, cheaperRoute, best_routes_built)
+	function BuildTownDock(town_id, cargoClass, cheaperRoute, best_routes_built)
 	{
 		local cargoType = Utils.GetCargoType(cargoClass);
 		local radius = AIStation.GetCoverageRadius(AIStation.STATION_DOCK);
 
 		local tileList = AITileList();
 
-		/* build square around @town and find suitable tiles for docks */
-		local rectangleCoordinates = Utils.EstimateTownRectangle(town);
+		/* build square around @town_id and find suitable tiles for docks */
+		local rectangleCoordinates = Utils.EstimateTownRectangle(town_id);
 
 		tileList.AddRectangle(rectangleCoordinates[0], rectangleCoordinates[1]);
 
@@ -552,7 +552,7 @@ class ShipBuildManager
 						continue;
 					}
 					else {
-						AILog.Info("Dock built in " + AITown.GetName(town) + " at tile " + tile + "!");
+						AILog.Info("Dock built in " + AITown.GetName(town_id) + " at tile " + tile + "!");
 						return tile;
 					}
 				}

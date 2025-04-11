@@ -106,12 +106,12 @@ class ShipRoute extends ShipRouteManager
 
 	function GetEngineList(cargoClass)
 	{
-		local cargo = Utils.GetCargoType(cargoClass);
+		local cargo_type = Utils.GetCargoType(cargoClass);
 
 		local tempList = AIEngineList(AIVehicle.VT_WATER);
 		local engineList = AIList();
 		for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
-			if (AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, cargo)) {
+			if (AIEngine.IsBuildable(engine) && AIEngine.CanRefitCargo(engine, cargo_type)) {
 				engineList.AddItem(engine, 0);
 			}
 		}
@@ -124,7 +124,7 @@ class ShipRoute extends ShipRouteManager
 		local engineList = GetEngineList(cargoClass);
 		if (engineList.IsEmpty()) return m_engine == null ? -1 : m_engine;
 
-		local cargo = Utils.GetCargoType(cargoClass);
+		local cargo_type = Utils.GetCargoType(cargoClass);
 
 		local distance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 		local best_income = null;
@@ -134,8 +134,8 @@ class ShipRoute extends ShipRouteManager
 			local max_speed = AIEngine.GetMaxSpeed(engine);
 			local days_in_transit = (distance * 256 * 16) / (2 * 74 * max_speed);
 			local running_cost = AIEngine.GetRunningCost(engine);
-			local capacity = ::caches.GetBuildWithRefitCapacity(m_depotTile, engine, cargo);
-			local income = ((capacity * AICargo.GetCargoIncome(cargo, distance, days_in_transit) - running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
+			local capacity = ::caches.GetBuildWithRefitCapacity(m_depotTile, engine, cargo_type);
+			local income = ((capacity * AICargo.GetCargoIncome(cargo_type, distance, days_in_transit) - running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 //			AILog.Info("Engine: " + AIEngine.GetName(engine) + "; Capacity: " + capacity + "; Max Speed: " + max_speed + "; Days in transit: " + days_in_transit + "; Running Cost: " + running_cost + "; Distance: " + distance + "; Income: " + income);
 			if (best_income == null || income > best_income) {
 				best_income = income;

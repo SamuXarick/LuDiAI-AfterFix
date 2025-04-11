@@ -68,13 +68,13 @@ class WrightAI
 		return (broken_speed * 2 * 74 * days_in_transit / 256) / 16;
 	}
 
-	function GetBestEngineIncome(engine_list, cargo, days_int, aircraft = true, location_from = null, type_from = null)
+	function GetBestEngineIncome(engine_list, cargo_type, days_int, aircraft = true, location_from = null, type_from = null)
 	{
 		local best_income = null;
 		local best_distance = 0;
 		local best_engine = null;
 		foreach (engine, _ in engine_list) {
-			local optimized = GetEngineOptimalDaysInTransit(engine, cargo, days_int, aircraft, location_from, type_from);
+			local optimized = GetEngineOptimalDaysInTransit(engine, cargo_type, days_int, aircraft, location_from, type_from);
 			if (best_income == null || optimized[0] > best_income) {
 				best_income = optimized[0];
 				best_distance = optimized[1];
@@ -84,13 +84,13 @@ class WrightAI
 		return [best_engine, best_distance];
 	}
 
-	function GetEngineOptimalDaysInTransit(engine_id, cargo, days_int, aircraft, location_from = null, type_from = null)
+	function GetEngineOptimalDaysInTransit(engine_id, cargo_type, days_int, aircraft, location_from = null, type_from = null)
 	{
 		local infrastructure = AIGameSettings.GetValue("infrastructure_maintenance");
 		local distance_max_speed = aircraft ? GetEngineRealFakeDist(engine_id, 1000) : Utils.GetEngineTileDist(engine_id, 1000);
 		local distance_broken_speed = aircraft ? GetEngineBrokenRealFakeDist(engine_id, 1000) : distance_max_speed;
 		local running_cost = AIEngine.GetRunningCost(engine_id);
-		local primary_capacity = ::caches.GetCapacity(engine_id, cargo);
+		local primary_capacity = ::caches.GetCapacity(engine_id, cargo_type);
 		local secondary_capacity = (aircraft && AIController.GetSetting("select_town_cargo") == 2) ? ::caches.GetSecondaryCapacity(engine_id) : 0;
 
 		local days_in_transit = 0;
@@ -122,7 +122,7 @@ class WrightAI
 				local fake_dist = distance_max_speed * days / 1000;
 				max_count = (count_interval > 0 ? (fake_dist / count_interval) : max_count) + GetNumTerminals(aircraft_type, type_from) + GetNumTerminals(aircraft_type, type_from);
 			}
-			local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo, distance_max_speed * days / 1000, days);
+			local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo_type, distance_max_speed * days / 1000, days);
 			local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
 			local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
 			local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_max_speed * days / 1000, days) : 0;
@@ -134,7 +134,7 @@ class WrightAI
 			}
 //			AILog.Info("engine = " + AIEngine.GetName(engine_id) + " ; days_in_transit = " + days + " ; distance = " + (distance_max_speed * days / 1000) + " ; income = " + income_max_speed + " ; " + (aircraft ? "fake_dist" : "tiledist") + " = " + (aircraft ? GetEngineRealFakeDist(engine_id, days) : Utils.GetEngineTileDist(engine_id, days)) + " ; max_count = " + max_count);
 			if (breakdowns) {
-				local income_primary_broken_speed = primary_capacity * AICargo.GetCargoIncome(cargo, distance_broken_speed * days / 1000, days);
+				local income_primary_broken_speed = primary_capacity * AICargo.GetCargoIncome(cargo_type, distance_broken_speed * days / 1000, days);
 				local income_secondary_broken_speed = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_broken_speed * days / 1000, days) : 0;
 				local income_broken_speed = (income_primary_broken_speed + income_secondary_broken_speed - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count);
 				if (income_max_speed > 0 && income_broken_speed > 0 && income_max_speed > best_income) {

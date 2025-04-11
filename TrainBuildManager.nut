@@ -828,15 +828,15 @@ class RailBuildManager
 		return [AIMap.GetTileIndex(tile_top_x, tile_top_y), AIMap.GetTileIndex(tile_bot_x, tile_bot_y)];
 	}
 
-	function TownRailwayStationRadRect(max_width, max_height, radius, town)
+	function TownRailwayStationRadRect(max_width, max_height, radius, town_id)
 	{
-		local town_rectangle = Utils.EstimateTownRectangle(town);
+		local town_rectangle = Utils.EstimateTownRectangle(town_id);
 
 		local top_x = AIMap.GetTileX(town_rectangle[0]);
 		local top_y = AIMap.GetTileY(town_rectangle[0]);
 		local bot_x = AIMap.GetTileX(town_rectangle[1]);
 		local bot_y = AIMap.GetTileY(town_rectangle[1]);
-//		AILog.Info("top tile was " + top_x + "," + top_y + " bottom tile was " + bot_x + "," + bot_y + " ; town = " + AITown.GetName(town));
+//		AILog.Info("top tile was " + top_x + "," + top_y + " bottom tile was " + bot_x + "," + bot_y + " ; town_id = " + AITown.GetName(town_id));
 
 		for (local x = max_width; x > 1; x--) {
 			if (AIMap.IsValidTile(AIMap.GetTileIndex(top_x - 1, top_y))) {
@@ -870,7 +870,7 @@ class RailBuildManager
 				bot_y = bot_y + 1;
 			}
 		}
-//		AILog.Info("top tile now " + top_x + "," + top_y + " bottom tile now " + bot_x + "," + bot_y + " ; town = " + AITown.GetName(town));
+//		AILog.Info("top tile now " + top_x + "," + top_y + " bottom tile now " + bot_x + "," + bot_y + " ; town_id = " + AITown.GetName(town_id));
 		return [AIMap.GetTileIndex(top_x, top_y), AIMap.GetTileIndex(bot_x, bot_y)];
 	}
 
@@ -947,7 +947,7 @@ class RailBuildManager
 		return adjacentStation;
 	}
 
-	function WorstStationOrientations(station, station_tiles, town, otherTown)
+	function WorstStationOrientations(station, station_tiles, town_id, otherTown)
 	{
 		local shortest_dist_other_town = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
 
@@ -962,7 +962,7 @@ class RailBuildManager
 		local shortest_dist_town = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
 
 		foreach (tile, _ in station_tiles) {
-			local dist_town = AITown.GetDistanceManhattanToTile(town, tile);
+			local dist_town = AITown.GetDistanceManhattanToTile(town_id, tile);
 			if (dist_town < shortest_dist_town) {
 				shortest_dist_town = dist_town;
 				best_tile = tile;
@@ -970,8 +970,8 @@ class RailBuildManager
 		}
 
 		local worst_dirs = AIList();
-		local diff_x = AIMap.GetTileX(AITown.GetLocation(town)) - AIMap.GetTileX(best_tile);
-		local diff_y = AIMap.GetTileY(AITown.GetLocation(town)) - AIMap.GetTileY(best_tile);
+		local diff_x = AIMap.GetTileX(AITown.GetLocation(town_id)) - AIMap.GetTileX(best_tile);
+		local diff_y = AIMap.GetTileY(AITown.GetLocation(town_id)) - AIMap.GetTileY(best_tile);
 
 		if (diff_x < 0) worst_dirs.AddItem(RailStationDir.NE, 0);
 		if (diff_y < 0) worst_dirs.AddItem(RailStationDir.NW, 0);
@@ -981,7 +981,7 @@ class RailBuildManager
 		return [worst_dirs, shortest_dist_town, shortest_dist_other_town];
 	}
 
-	function BuildTownRailStation(town, cargoClass, otherTown, best_routes_built, rail_type)
+	function BuildTownRailStation(town_id, cargoClass, otherTown, best_routes_built, rail_type)
 	{
 		AIRail.SetCurrentRailType(rail_type);
 		local cargoType = Utils.GetCargoType(cargoClass);
@@ -991,15 +991,15 @@ class RailBuildManager
 		local max_train_length = AIGameSettings.GetValue("max_train_length");
 		local platform_length = min(RailRoute.MAX_PLATFORM_LENGTH, min(max_station_spread, max_train_length));
 		local num_platforms = RailRoute.MAX_NUM_PLATFORMS;
-		local distance_between_towns = AIMap.DistanceSquare(AITown.GetLocation(town), AITown.GetLocation(otherTown));
+		local distance_between_towns = AIMap.DistanceSquare(AITown.GetLocation(town_id), AITown.GetLocation(otherTown));
 
 		local tileList = AITileList();
-		/* build square around @town and find suitable tiles for railway station */
-		local rectangleCoordinates = TownRailwayStationRadRect(max(platform_length, num_platforms), max(platform_length, num_platforms), radius, town);
+		/* build square around @town_id and find suitable tiles for railway station */
+		local rectangleCoordinates = TownRailwayStationRadRect(max(platform_length, num_platforms), max(platform_length, num_platforms), radius, town_id);
 
 		tileList.AddRectangle(rectangleCoordinates[0], rectangleCoordinates[1]);
-//		AISign.BuildSign(rectangleCoordinates[0], AITown.GetName(town));
-//		AISign.BuildSign(rectangleCoordinates[1], AITown.GetName(town));
+//		AISign.BuildSign(rectangleCoordinates[0], AITown.GetName(town_id));
+//		AISign.BuildSign(rectangleCoordinates[1], AITown.GetName(town_id));
 
 		local stations = AIPriorityQueue();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
@@ -1008,7 +1008,7 @@ class RailBuildManager
 				local station_tiles = AITileList();
 				station_tiles.AddRectangle(station.GetTopTile(), station.GetBottomTile());
 
-				local worst_dirs = WorstStationOrientations(station, station_tiles, town, otherTown);
+				local worst_dirs = WorstStationOrientations(station, station_tiles, town_id, otherTown);
 				if (worst_dirs[0].HasItem(dir)) continue;
 
 				local in_range = true;
@@ -1017,9 +1017,9 @@ class RailBuildManager
 						in_range = false;
 						break;
 					}
-					local dist_to_town = AITown.GetDistanceSquareToTile(town, station_tile);
+					local dist_to_town = AITown.GetDistanceSquareToTile(town_id, station_tile);
 					local dist_to_otherTown = AITown.GetDistanceSquareToTile(otherTown, station_tile);
-					local farthest_town = dist_to_town < dist_to_otherTown ? otherTown : town;
+					local farthest_town = dist_to_town < dist_to_otherTown ? otherTown : town_id;
 					if (AITown.GetDistanceSquareToTile(farthest_town, station_tile) >= distance_between_towns) {
 						in_range = false;
 						break;
@@ -1072,7 +1072,7 @@ class RailBuildManager
 			local exit_tile_2 = station.GetExitTile(2);
 			local exit_tile_1 = station.GetExitTile(1);
 			local entry_tile_1 = station.GetEntryTile(1);
-			if (AITile.GetClosestTown(station.GetTopTile()) != town) continue;
+			if (AITile.GetClosestTown(station.GetTopTile()) != town_id) continue;
 
 			/* get adjacent tiles */
 			local station_tiles = AITileList();
@@ -1318,7 +1318,7 @@ class RailBuildManager
 								}
 							}
 							else {
-								AILog.Info("Railway station built in " + AITown.GetName(town) + " at tile " + top_tile + "!");
+								AILog.Info("Railway station built in " + AITown.GetName(town_id) + " at tile " + top_tile + "!");
 								return [top_tile, station.m_dir];
 							}
 						}

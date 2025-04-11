@@ -391,25 +391,22 @@ class Utils
 	}
 
 	/**
-	 * GetCargoType - Returns either mail cargo id, or passenger cargo id.
+	 * GetCargoType - Returns either mail cargo_type, or passenger cargo_type.
 	 * @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
 	 * @return - Cargo list.
 	 */
 	function GetCargoType(cargoClass)
 	{
-		local cargoList = AICargoList();
-		cargoList.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
-
 		local cargo_type = 0xFF;
-		for (local cargo = cargoList.Begin(); !cargoList.IsEnd(); cargo = cargoList.Next()) {
-			if (AICargo.HasCargoClass(cargo, cargoClass)) {
-				cargo_type = cargo;
+		for (local cargo_type2 = ::caches.m_cargo_type_list.Begin(); !::caches.m_cargo_type_list.IsEnd(); cargo_type2 = ::caches.m_cargo_type_list.Next()) {
+			if (AICargo.HasCargoClass(cargo_type2, cargoClass)) {
+				cargo_type = cargo_type2;
 				break;
 			}
 		}
 //		assert(AICargo.IsValidCargo(cargo_type));
 
-		/* both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should return the first available cargo */
+		/* both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should return the first available cargo_type */
 		return cargo_type;
 	}
 
@@ -874,9 +871,9 @@ class Utils
 		return tile_a + offset == tile_b;
 	}
 
-	function EstimateTownRectangle(town)
+	function EstimateTownRectangle(town_id)
 	{
-		local townLocation = AITown.GetLocation(town);
+		local townLocation = AITown.GetLocation(town_id);
 		local rectangleIncreaseKoeficient = 1;
 
 		local topCornerTile = townLocation;
@@ -895,7 +892,7 @@ class Utils
 							continue;
 						}
 
-						if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
 							topCornerTile = offsetTile;
 						}
 						else {
@@ -912,7 +909,7 @@ class Utils
 							continue;
 						}
 
-						if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
 							bottomCornerTile = offsetTile;
 						}
 						else {
@@ -929,7 +926,7 @@ class Utils
 							continue;
 						}
 
-						if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
 							bottomCornerTile = offsetTile;
 						}
 						else {
@@ -945,7 +942,7 @@ class Utils
 							++maxExpandedCounter;
 						}
 
-						if (AITown.IsWithinTownInfluence(town, offsetTile)) {
+						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
 							topCornerTile = offsetTile;
 						}
 						else {
@@ -1741,11 +1738,11 @@ class TestBuildVehicleWithRefit extends MoneyTest
 		return cost.GetCosts();
 	}
 
-	function TryBuild(depot, engine, cargo)
+	function TryBuild(depot, engine, cargo_type)
 	{
 		d = depot;
 		e = engine;
-		c = cargo;
+		c = cargo_type;
 		if (DoMoneyTest()) {
 			return v;
 		}
@@ -1808,16 +1805,16 @@ class TestPerformTownAction extends MoneyTest
 		return cost.GetCosts();
 	}
 
-	function TryPerform(town, action)
+	function TryPerform(town_id, action)
 	{
-		t = town;
+		t = town_id;
 		a = action;
 		return DoMoneyTest();
 	}
 
-	function TestCost(town, action)
+	function TestCost(town_id, action)
 	{
-		t = town;
+		t = town_id;
 		a = action;
 		return GetPrice();
 	}

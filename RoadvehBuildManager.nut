@@ -188,7 +188,7 @@ class RoadBuildManager
 		return RoadRoute(m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargo_class, m_sentToDepotRoadGroup);
 	}
 
-	function BuildTownRoadStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built)
+	function BuildTownRoadStation(town_id, cargoClass, stationTile, otherTown, articulated, best_routes_built)
 	{
 		local stationId = (stationTile == null) ? AIStation.STATION_NEW : AIStation.GetStationID(stationTile);
 		local vehicleType = (cargoClass == AICargo.CC_MAIL) ? AIRoad.ROADVEHTYPE_TRUCK : AIRoad.ROADVEHTYPE_BUS;
@@ -200,8 +200,8 @@ class RoadBuildManager
 		local tileList = AITileList();
 		if (stationTile == null) {
 			/* stationTile = AIStation.STATION_NEW; */
-			/* build square around @town and find suitable tiles for truck stops */
-			local rectangleCoordinates = Utils.EstimateTownRectangle(town);
+			/* build square around @town_id and find suitable tiles for truck stops */
+			local rectangleCoordinates = Utils.EstimateTownRectangle(town_id);
 
 			tileList.AddRectangle(rectangleCoordinates[0], rectangleCoordinates[1]);
 
@@ -275,7 +275,7 @@ class RoadBuildManager
 		}
 
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-			if (stationTile == null && AITile.GetClosestTown(tile) != town) continue;
+			if (stationTile == null && AITile.GetClosestTown(tile) != town_id) continue;
 
 			/* get adjacent tiles */
 			local adjTileList = Utils.GetAdjacentTiles(tile);
@@ -350,7 +350,7 @@ class RoadBuildManager
 						continue;
 					}
 
-					AILog.Info("Station built in " + AITown.GetName(town) + " at tile " + tile + "! case" + adjRoadCount);
+					AILog.Info("Station built in " + AITown.GetName(town_id) + " at tile " + tile + "! case" + adjRoadCount);
 //					AISign.BuildSign(tile, "" + adjRoadCount);
 					return tile;
 
@@ -433,7 +433,7 @@ class RoadBuildManager
 							}
 							else {
 								/* The road was successfully connected to the station */
-								AILog.Info("Station built in " + AITown.GetName(town) + " at tile " + tile + "! case" + adjRoadCount);
+								AILog.Info("Station built in " + AITown.GetName(town_id) + " at tile " + tile + "! case" + adjRoadCount);
 //								AISign.BuildSign(tile, "" + adjRoadCount);
 								return tile;
 							}
@@ -492,7 +492,7 @@ class RoadBuildManager
 								}
 								else {
 									/* The road was successfully connected to the station */
-									AILog.Info("Drivethrough station built in " + AITown.GetName(town) + " at tile " + tile + "! case" + adjRoadCount);
+									AILog.Info("Drivethrough station built in " + AITown.GetName(town_id) + " at tile " + tile + "! case" + adjRoadCount);
 //									AISign.BuildSign(tile, "" + adjRoadCount);
 									return tile;
 								}
@@ -603,7 +603,7 @@ class RoadBuildManager
 								}
 							}
 							else {
-								AILog.Info("Drivethrough station built in " + AITown.GetName(town) + " at tile " + tile + "! case" + adjRoadCount);
+								AILog.Info("Drivethrough station built in " + AITown.GetName(town_id) + " at tile " + tile + "! case" + adjRoadCount);
 //								AISign.BuildSign(tile, "" + adjRoadCount);
 								return tile;
 							}
@@ -673,7 +673,7 @@ class RoadBuildManager
 								}
 							}
 							else {
-								AILog.Info("Station built in " + AITown.GetName(town) + " at tile " + tile + "! case" + adjRoadCount);
+								AILog.Info("Station built in " + AITown.GetName(town_id) + " at tile " + tile + "! case" + adjRoadCount);
 //								AISign.BuildSign(tile, "" + adjRoadCount);
 								return tile;
 							}
@@ -764,7 +764,7 @@ class RoadBuildManager
 							}
 						}
 						else {
-							AILog.Info("Drivethrough station built in " + AITown.GetName(town) + " at tile " + tile + "! case" + adjRoadCount);
+							AILog.Info("Drivethrough station built in " + AITown.GetName(town_id) + " at tile " + tile + "! case" + adjRoadCount);
 //							AISign.BuildSign(tile, "" + adjRoadCount);
 							return tile;
 						}

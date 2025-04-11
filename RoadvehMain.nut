@@ -11,11 +11,11 @@ function LuDiAIAfterFix::BuildRoadRoute()
 		if (!unfinished) {
 			cargoClassRoad = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : (cC == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
-			local cargo = Utils.GetCargoType(cC);
+			local cargo_type = Utils.GetCargoType(cC);
 			local tempList = AIEngineList(AIVehicle.VT_ROAD);
 			local engineList = AIList();
 			for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
-				if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.GetRoadType(engine) == AIRoad.ROADTYPE_ROAD && AIEngine.CanRefitCargo(engine, cargo)) {
+				if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.GetRoadType(engine) == AIRoad.ROADTYPE_ROAD && AIEngine.CanRefitCargo(engine, cargo_type)) {
 					engineList.AddItem(engine, AIEngine.GetPrice(engine));
 				}
 			}
@@ -27,7 +27,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 
 			engineList.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
-			local bestengineinfo = WrightAI().GetBestEngineIncome(engineList, cargo, RoadRoute.START_VEHICLE_COUNT, false);
+			local bestengineinfo = WrightAI().GetBestEngineIncome(engineList, cargo_type, RoadRoute.START_VEHICLE_COUNT, false);
 			local max_distance = (ROAD_DAYS_IN_TRANSIT * 2 * 3 * 74 * AIEngine.GetMaxSpeed(bestengineinfo[0]) / 4) / (192 * 16);
 			local min_distance = max(20, max_distance * 2 / 3);
 //			AILog.Info("bestengineinfo: best_engine = " + AIEngine.GetName(bestengineinfo[0]) + "; best_distance = " + bestengineinfo[1] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);
@@ -66,17 +66,17 @@ function LuDiAIAfterFix::BuildRoadRoute()
 				cityFrom = roadTownManager.GetUnusedCity(((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 				if (cityFrom == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						roadTownManager.m_usedCitiesList[cC].Clear();
+						roadTownManager.m_used_cities_list[cC].Clear();
 					} else {
 						if ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							bestRoutesBuilt = bestRoutesBuilt | (1 << (0 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
-							roadTownManager.m_usedCitiesList[cC].Clear();
-//							roadTownManager.m_nearCityPairArray[cC].clear();
-							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo) + " road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
+							roadTownManager.m_used_cities_list[cC].Clear();
+//							roadTownManager.m_near_city_pair_array[cC].clear();
+							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 						} else {
-//							roadTownManager.m_nearCityPairArray[cC].clear();
+//							roadTownManager.m_near_city_pair_array[cC].clear();
 							if ((((allRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
-								AILog.Warning("All " + AICargo.GetCargoLabel(cargo) + " road routes have been used!");
+								AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " road routes have been used!");
 							}
 							allRoutesBuilt = allRoutesBuilt | (1 << (0 + (cC == AICargo.CC_PASSENGERS ? 0 : 1)));
 						}
@@ -89,17 +89,17 @@ function LuDiAIAfterFix::BuildRoadRoute()
 
 				roadTownManager.FindNearCities(cityFrom, min_dist, max_dist, ((((bestRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 
-				if (!roadTownManager.m_nearCityPairArray[cC].len()) {
+				if (!roadTownManager.m_near_city_pair_array[cC].len()) {
 					AILog.Info("No near city available");
 					cityFrom = null;
 				}
 			}
 
 			if (cityFrom != null) {
-				for (local i = 0; i < roadTownManager.m_nearCityPairArray[cC].len(); ++i) {
-					if (cityFrom == roadTownManager.m_nearCityPairArray[cC][i][0]) {
-						if (!roadRouteManager.TownRouteExists(cityFrom, roadTownManager.m_nearCityPairArray[cC][i][1], cC)) {
-							cityTo = roadTownManager.m_nearCityPairArray[cC][i][1];
+				for (local i = 0; i < roadTownManager.m_near_city_pair_array[cC].len(); ++i) {
+					if (cityFrom == roadTownManager.m_near_city_pair_array[cC][i][0]) {
+						if (!roadRouteManager.TownRouteExists(cityFrom, roadTownManager.m_near_city_pair_array[cC][i][1], cC)) {
+							cityTo = roadTownManager.m_near_city_pair_array[cC][i][1];
 
 							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 0) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
 //								AILog.Info("roadRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + roadRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
@@ -153,7 +153,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 			} else {
 				reservedMoney -= reservedMoneyRoad;
 				reservedMoneyRoad = 0;
-				roadTownManager.RemoveUsedCityPair(from, to, cC, false);
+				roadTownManager.ResetCityPair(from, to, cC, false);
 				AILog.Error("r:" + buildTimerRoad + " day" + (buildTimerRoad != 1 ? "s" : "") + " wasted!");
 			}
 		}
@@ -321,7 +321,7 @@ function LuDiAIAfterFix::ManageRoadvehRoutes()
 		local cargoC = roadRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (roadRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			roadRouteManager.m_townRouteArray.remove(i);
-			roadTownManager.RemoveUsedCityPair(cityFrom, cityTo, cargoC, true);
+			roadTownManager.ResetCityPair(cityFrom, cityTo, cargoC, true);
 		}
 		if (InterruptRoadManagement(cur_date)) return;
 	}

@@ -9,8 +9,14 @@ class Caches
 	m_attach_list = {}; // engine/wagon attachment results of rail engines
 	m_costs_with_refit = {};
 
-	/* This is not saved */
+	/* These are not saved */
 	m_my_company_id = AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
+	m_cargo_type_list = AICargoList();
+
+	constructor()
+	{
+		this.m_cargo_type_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
+	}
 
 	function GetBuildWithRefitCapacity(depot, engine, cargo_type)
 	{

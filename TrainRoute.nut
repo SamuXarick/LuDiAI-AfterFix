@@ -121,15 +121,15 @@ class RailRoute extends RailRouteManager
 
 	function GetEngineWagonPairs(cargoClass)
 	{
-		local cargo = Utils.GetCargoType(cargoClass);
+		local cargo_type = Utils.GetCargoType(cargoClass);
 
 		local tempList = AIEngineList(AIVehicle.VT_RAIL);
 		local engineList = AIList();
 		local wagonList = AIList();
 		for (local engine = tempList.Begin(); !tempList.IsEnd(); engine = tempList.Next()) {
-			if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanPullCargo(engine, cargo) &&
+			if (AIEngine.IsValidEngine(engine) && AIEngine.IsBuildable(engine) && AIEngine.CanPullCargo(engine, cargo_type) &&
 					AIEngine.CanRunOnRail(engine, m_rail_type) && AIEngine.HasPowerOnRail(engine, m_rail_type)) {
-				if (AIEngine.CanRefitCargo(engine, cargo)) {
+				if (AIEngine.CanRefitCargo(engine, cargo_type)) {
 					if (AIEngine.IsWagon(engine)) {
 						wagonList.AddItem(engine, 0);
 					} else {
@@ -149,7 +149,7 @@ class RailRoute extends RailRouteManager
 		for (local engine = engineList.Begin(); !engineList.IsEnd(); engine = engineList.Next()) {
 			for (local wagon = wagonList.Begin(); !wagonList.IsEnd(); wagon = wagonList.Next()) {
 				local pair = [engine, wagon];
-				if (::caches.CanAttachToEngine(wagon, engine, cargo, m_rail_type, m_depotFrom)) {
+				if (::caches.CanAttachToEngine(wagon, engine, cargo_type, m_rail_type, m_depotFrom)) {
 					engineWagonPairs.append(pair);
 				}
 			}
@@ -163,7 +163,7 @@ class RailRoute extends RailRouteManager
 		local engineWagonPairList = GetEngineWagonPairs(cargoClass);
 		if (engineWagonPairList.len() == 0) return m_engineWagonPair == null ? [-1, -1, -1, -1, -1] : m_engineWagonPair;
 
-		local cargo = Utils.GetCargoType(cargoClass);
+		local cargo_type = Utils.GetCargoType(cargoClass);
 
 		local best_income = null;
 		local best_pair = null;
@@ -179,18 +179,18 @@ class RailRoute extends RailRouteManager
 			local days_in_transit = (m_routeDistance * 256 * 16) / (2 * 74 * train_max_speed);
 			days_in_transit += STATION_LOADING_INTERVAL;
 
-			local engine_length = ::caches.GetLength(engine, cargo, m_depotFrom);
-			local wagon_length = ::caches.GetLength(wagon, cargo, m_depotFrom);
+			local engine_length = ::caches.GetLength(engine, cargo_type, m_depotFrom);
+			local wagon_length = ::caches.GetLength(wagon, cargo_type, m_depotFrom);
 			local max_train_length = m_platformLength * 16;
 			local num_wagons = (max_train_length - engine_length) / wagon_length;
-			local engine_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depotFrom, engine, cargo));
-			local wagon_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depotFrom, wagon, cargo));
+			local engine_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depotFrom, engine, cargo_type));
+			local wagon_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depotFrom, wagon, cargo_type));
 			local train_capacity = engine_capacity + wagon_capacity * num_wagons;
 			local engine_running_cost = AIEngine.GetRunningCost(engine);
 			local wagon_running_cost = AIEngine.GetRunningCost(wagon);
 			local train_running_cost = engine_running_cost + wagon_running_cost * num_wagons;
 
-			local income = ((train_capacity * AICargo.GetCargoIncome(cargo, m_routeDistance, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
+			local income = ((train_capacity * AICargo.GetCargoIncome(cargo_type, m_routeDistance, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 //			AILog.Info("EngineWagonPair: [" + AIEngine.GetName(engine) + " -- " + num_wagons + " * " + AIEngine.GetName(wagon) + "; Capacity: " + train_capacity + "; Max Speed: " + train_max_speed + "; Days in transit: " + days_in_transit + "; Running Cost: " + train_running_cost + "; Distance: " + m_routeDistance + "; Income: " + income);
 			if (best_income == null || income > best_income) {
 				best_income = income;
@@ -266,23 +266,23 @@ class RailRoute extends RailRouteManager
 		local depot = skip_order ? m_depotTo : m_depotFrom;
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
-			local cargo = Utils.GetCargoType(m_cargo_class);
+			local cargo_type = Utils.GetCargoType(m_cargo_class);
 			/* Check if we have money first to buy entire parts */
 			local cost = AIAccounting();
-			AITestMode() && AIVehicle.BuildVehicleWithRefit(depot, this.m_engineWagonPair[0], cargo);
+			AITestMode() && AIVehicle.BuildVehicleWithRefit(depot, this.m_engineWagonPair[0], cargo_type);
 			local num_wagons = this.m_engineWagonPair[2];
 			while (num_wagons > 0) {
-				AITestMode() && AIVehicle.BuildVehicleWithRefit(depot, this.m_engineWagonPair[1], cargo);
+				AITestMode() && AIVehicle.BuildVehicleWithRefit(depot, this.m_engineWagonPair[1], cargo_type);
 				num_wagons--;
 			}
 			if (Utils.HasMoney(cost.GetCosts())) {
-				new_vehicle = TestBuildVehicleWithRefit().TryBuild(depot, this.m_engineWagonPair[0], cargo);
+				new_vehicle = TestBuildVehicleWithRefit().TryBuild(depot, this.m_engineWagonPair[0], cargo_type);
 				if (AIVehicle.IsValidVehicle(new_vehicle)) {
 					local num_tries = this.m_engineWagonPair[2];
 					local wagon_chain = AIVehicle.VEHICLE_INVALID;
 					local num_wagons = 0;
 					while (num_tries > 0) {
-						local wagon = TestBuildVehicleWithRefit().TryBuild(depot, this.m_engineWagonPair[1], cargo);
+						local wagon = TestBuildVehicleWithRefit().TryBuild(depot, this.m_engineWagonPair[1], cargo_type);
 						if (AIVehicle.IsValidVehicle(wagon) || AIVehicle.IsValidVehicle(wagon_chain)) {
 //							AILog.Info("wagon or wagon_chain is valid");
 							if (!AIVehicle.IsValidVehicle(wagon_chain)) wagon_chain = wagon;

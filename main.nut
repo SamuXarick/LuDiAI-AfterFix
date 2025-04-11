@@ -361,74 +361,74 @@ function LuDiAIAfterFix::PerformTownActions()
 
 	local towncount = townList.Count();
 	if (AIController.GetSetting("build_statues") && statuecount < towncount) {
-		for (local town = townList.Begin(); !townList.IsEnd(); town = townList.Next()) {
+		for (local town_id = townList.Begin(); !townList.IsEnd(); town_id = townList.Next()) {
 			local action = AITown.TOWN_ACTION_BUILD_STATUE;
-			if (AITown.IsActionAvailable(town, action)) {
+			if (AITown.IsActionAvailable(town_id, action)) {
 				local perform_action = true;
-				local cost = TestPerformTownAction().TestCost(town, action);
+				local cost = TestPerformTownAction().TestCost(town_id, action);
 				if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
 					perform_action = false;
 				}
-				if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
+				if (perform_action && TestPerformTownAction().TryPerform(town_id, action)) {
 					statuecount++;
-					AILog.Warning("Built a statue in " + AITown.GetName(town) + " (" + statuecount + "/" + towncount + " " + AICargo.GetCargoLabel(cargo_type) + ")");
+					AILog.Warning("Built a statue in " + AITown.GetName(town_id) + " (" + statuecount + "/" + towncount + " " + AICargo.GetCargoLabel(cargo_type) + ")");
 				}
 			}
 		}
 	} else {
-		for (local town = stationTowns.Begin(); !stationTowns.IsEnd(); town = stationTowns.Next()) {
+		for (local town_id = stationTowns.Begin(); !stationTowns.IsEnd(); town_id = stationTowns.Next()) {
 			if (AIController.GetSetting("advertise")) {
-				local station_location = AIBaseStation.GetLocation(stationTowns.GetValue(town));
-				local distance = AITown.GetDistanceManhattanToTile(town, station_location);
+				local station_location = AIBaseStation.GetLocation(stationTowns.GetValue(town_id));
+				local distance = AITown.GetDistanceManhattanToTile(town_id, station_location);
 				if (distance <= 10) {
 					local action = AITown.TOWN_ACTION_ADVERTISE_SMALL;
-					if (AITown.IsActionAvailable(town, action)) {
+					if (AITown.IsActionAvailable(town_id, action)) {
 						local perform_action = true;
-						local cost = TestPerformTownAction().TestCost(town, action);
+						local cost = TestPerformTownAction().TestCost(town_id, action);
 						if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
 							perform_action = false;
 						}
-						if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
-							AILog.Warning("Initiated a small advertising campaign in " + AITown.GetName(town) + ".");
+						if (perform_action && TestPerformTownAction().TryPerform(town_id, action)) {
+							AILog.Warning("Initiated a small advertising campaign in " + AITown.GetName(town_id) + ".");
 						}
 					}
 				} else if (distance <= 15) {
 					local action = AITown.TOWN_ACTION_ADVERTISE_MEDIUM;
-					if (AITown.IsActionAvailable(town, action)) {
+					if (AITown.IsActionAvailable(town_id, action)) {
 						local perform_action = true;
-						local cost = TestPerformTownAction().TestCost(town, action);
+						local cost = TestPerformTownAction().TestCost(town_id, action);
 						if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
 							perform_action = false;
 						}
-						if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
-							AILog.Warning("Initiated a medium advertising campaign in " + AITown.GetName(town) + ".");
+						if (perform_action && TestPerformTownAction().TryPerform(town_id, action)) {
+							AILog.Warning("Initiated a medium advertising campaign in " + AITown.GetName(town_id) + ".");
 						}
 					}
 				} else if (distance <= 20) {
 					local action = AITown.TOWN_ACTION_ADVERTISE_LARGE;
-					if (AITown.IsActionAvailable(town, action)) {
+					if (AITown.IsActionAvailable(town_id, action)) {
 						local perform_action = true;
-						local cost = TestPerformTownAction().TestCost(town, action);
+						local cost = TestPerformTownAction().TestCost(town_id, action);
 						if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
 							perform_action = false;
 						}
-						if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
-							AILog.Warning("Initiated a large advertising campaign in " + AITown.GetName(town) + ".");
+						if (perform_action && TestPerformTownAction().TryPerform(town_id, action)) {
+							AILog.Warning("Initiated a large advertising campaign in " + AITown.GetName(town_id) + ".");
 						}
 					}
 				}
 			}
 
-			if (AIController.GetSetting("fund_buildings") && AITown.GetLastMonthProduction(town, cargo_type) <= (cC == AICargo.CC_PASSENGERS ? 70 : 35)) {
+			if (AIController.GetSetting("fund_buildings") && AITown.GetLastMonthProduction(town_id, cargo_type) <= (cC == AICargo.CC_PASSENGERS ? 70 : 35)) {
 				local action = AITown.TOWN_ACTION_FUND_BUILDINGS;
-				if (AITown.IsActionAvailable(town, action) && AITown.GetFundBuildingsDuration(town) == 0) {
+				if (AITown.IsActionAvailable(town_id, action) && AITown.GetFundBuildingsDuration(town_id) == 0) {
 					local perform_action = true;
-					local cost = TestPerformTownAction().TestCost(town, action);
+					local cost = TestPerformTownAction().TestCost(town_id, action);
 					if (cost == 0 || AICompany.GetLoanAmount() != 0 || AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
 						perform_action = false;
 					}
-					if (perform_action && TestPerformTownAction().TryPerform(town, action)) {
-						AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town) + ".");
+					if (perform_action && TestPerformTownAction().TryPerform(town_id, action)) {
+						AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town_id) + ".");
 					}
 				}
 			}
@@ -485,22 +485,22 @@ function LuDiAIAfterFix::FoundTown()
 			AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 			if (allRoutesBuilt != 0) {
 				allRoutesBuilt = 0;
-//				roadTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
-//				roadTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
-				roadTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
-				roadTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
-//				shipTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
-//				shipTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
-				shipTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
-				shipTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
-//				airTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
-//				airTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
-				airTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
-				airTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
-//				railTownManager.m_nearCityPairArray[AICargo.CC_PASSENGERS].clear();
-//				railTownManager.m_nearCityPairArray[AICargo.CC_MAIL].clear();
-				railTownManager.m_usedCitiesList[AICargo.CC_PASSENGERS].Clear();
-				railTownManager.m_usedCitiesList[AICargo.CC_MAIL].Clear();
+//				roadTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				roadTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				roadTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				roadTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//				shipTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				shipTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				shipTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				shipTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//				airTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				airTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				airTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				airTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//				railTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				railTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				railTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				railTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
 				AILog.Warning("Not all routes have been used at this time.");
 			}
 		}
