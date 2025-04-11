@@ -1,6 +1,7 @@
 require("RoadvehRouteManager.nut");
 
-class RoadRoute extends RoadRouteManager {
+class RoadRoute extends RoadRouteManager
+{
 	MIN_VEHICLE_START_COUNT = 5;
 	MAX_VEHICLE_COUNT_MODE = AIController.GetSetting("road_cap_mode");
 	START_VEHICLE_COUNT = 10;
@@ -27,7 +28,8 @@ class RoadRoute extends RoadRouteManager {
 
 	m_vehicle_list = null;
 
-	constructor(cityFrom, cityTo, stationFrom, stationTo, depotTile, bridgeTiles, cargoClass, sentToDepotRoadGroup, isLoaded = 0) {
+	constructor(cityFrom, cityTo, stationFrom, stationTo, depotTile, bridgeTiles, cargoClass, sentToDepotRoadGroup, isLoaded = 0)
+	{
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
 		m_city_from = cityFrom;
 		m_city_to = cityTo;
@@ -55,15 +57,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function UpgradeBridges();
-	function UpgradeEngine();
-	function AddVehicle(return_vehicle);
-	function AddVehiclesToNewRoute(cargoClass);
-	function GetEngineList(cargoClass);
-	function GetTruckEngine(cargoClass);
-	function AddRemoveVehicleToRoute();
-
-	function ValidateVehicleList() {
+	function ValidateVehicleList()
+	{
 		local stationFrom = AIStation.GetStationID(m_stationFrom);
 		local stationTo = AIStation.GetStationID(m_stationTo);
 
@@ -106,7 +101,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function SentToDepotList(i) {
+	function SentToDepotList(i)
+	{
 		local sent_to_depot_list = AIList();
 		ValidateVehicleList();
 		foreach (vehicle, status in m_vehicle_list) {
@@ -115,7 +111,8 @@ class RoadRoute extends RoadRouteManager {
 		return sent_to_depot_list;
 	}
 
-	function GetEngineList(cargoClass) {
+	function GetEngineList(cargoClass)
+	{
 		local cargo = Utils.GetCargoType(cargoClass);
 
 		local tempList = AIEngineList(AIVehicle.VT_ROAD);
@@ -157,7 +154,8 @@ class RoadRoute extends RoadRouteManager {
 		return engineList;
 	}
 
-	function GetTruckEngine(cargoClass) {
+	function GetTruckEngine(cargoClass)
+	{
 		local engineList = GetEngineList(cargoClass);
 		if (engineList.IsEmpty()) return m_engine == null ? -1 : m_engine;
 
@@ -183,13 +181,15 @@ class RoadRoute extends RoadRouteManager {
 		return best_engine == null ? -1 : best_engine;
 	}
 
-	function UpgradeEngine() {
+	function UpgradeEngine()
+	{
 		if (!m_active_route) return;
 
 		m_engine = GetTruckEngine(m_cargo_class);
 	}
 
-	function UpgradeBridges() {
+	function UpgradeBridges()
+	{
 		if (!m_active_route) return;
 
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
@@ -216,13 +216,15 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function DeleteSellVehicle(vehicle) {
+	function DeleteSellVehicle(vehicle)
+	{
 		m_vehicle_list.rawdelete(vehicle);
 		AIVehicle.SellVehicle(vehicle);
 		Utils.RepayLoan();
 	}
 
-	function AddVehicle(return_vehicle = false) {
+	function AddVehicle(return_vehicle = false)
+	{
 		ValidateVehicleList();
 		if (MAX_VEHICLE_COUNT_MODE != 2 && m_vehicle_list.len() >= OptimalVehicleCount()) {
 			return null;
@@ -334,7 +336,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function OptimalVehicleCount() {
+	function OptimalVehicleCount()
+	{
 		if (MAX_VEHICLE_COUNT_MODE == 0) return 25;
 
 		local stationDistance = AIMap.DistanceManhattan(m_stationFrom, m_stationTo);
@@ -372,7 +375,8 @@ class RoadRoute extends RoadRouteManager {
 		return vehicleCount;
 	}
 
-	function AddVehiclesToNewRoute(cargoClass) {
+	function AddVehiclesToNewRoute(cargoClass)
+	{
 		m_group = GroupVehicles();
 		local optimal_vehicle_count = OptimalVehicleCount();
 
@@ -422,7 +426,8 @@ class RoadRoute extends RoadRouteManager {
 		return numvehicles - numvehicles_before;
 	}
 
-	function SendMoveVehicleToDepot(vehicle_id) {
+	function SendMoveVehicleToDepot(vehicle_id)
+	{
 		if (AIVehicle.GetGroupID(vehicle_id) != m_sentToDepotRoadGroup[0] && AIVehicle.GetGroupID(vehicle_id) != m_sentToDepotRoadGroup[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
 			if (!AIVehicle.IsStoppedInDepot(vehicle_id) && !AIVehicle.SendVehicleToDepot(vehicle_id)) {
@@ -471,7 +476,8 @@ class RoadRoute extends RoadRouteManager {
 		return 0;
 	}
 
-	function SendNegativeProfitVehiclesToDepot() {
+	function SendNegativeProfitVehiclesToDepot()
+	{
 		if (m_last_vehicle_added <= 0 || AIDate.GetCurrentDate() - m_last_vehicle_added <= 30) return;
 //		AILog.Info("SendNegativeProfitVehiclesToDepot . m_last_vehicle_added = " + m_last_vehicle_added + "; " + AIDate.GetCurrentDate() + " - " + m_last_vehicle_added + " = " + (AIDate.GetCurrentDate() - m_last_vehicle_added) + " < 45" + " - " + AIBaseStation.GetName(AIStation.GetStationID(m_stationFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(m_stationTo)));
 
@@ -493,7 +499,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit) {
+	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit)
+	{
 		ValidateVehicleList();
 		local vehicleList = AIList();
 		foreach (vehicle, _ in this.m_vehicle_list) {
@@ -529,7 +536,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function SellVehiclesInDepot() {
+	function SellVehiclesInDepot()
+	{
 		local sent_to_depot_list = this.SentToDepotList(0);
 
 		for (local vehicle = sent_to_depot_list.Begin(); !sent_to_depot_list.IsEnd(); vehicle = sent_to_depot_list.Next()) {
@@ -557,7 +565,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function AddRemoveVehicleToRoute(maxed_out_num_vehs) {
+	function AddRemoveVehicleToRoute(maxed_out_num_vehs)
+	{
 		if (!m_active_route) {
 			return 0;
 		}
@@ -658,7 +667,8 @@ class RoadRoute extends RoadRouteManager {
 		return numvehicles - numvehicles_before;
 	}
 
-	function RenewVehicles() {
+	function RenewVehicles()
+	{
 		ValidateVehicleList();
 		local engine_price = AIEngine.GetPrice(this.m_engine);
 		local count = 1 + AIGroup.GetNumVehicles(m_sentToDepotRoadGroup[1], AIVehicle.VT_ROAD);
@@ -681,7 +691,8 @@ class RoadRoute extends RoadRouteManager {
 		}
 	}
 
-	function ExpandRoadStation() {
+	function ExpandRoadStation()
+	{
 		local result = 0;
 		if (!m_active_route) return result;
 
@@ -720,7 +731,8 @@ class RoadRoute extends RoadRouteManager {
 		return result;
 	}
 
-	function RemoveIfUnserviced() {
+	function RemoveIfUnserviced()
+	{
 		ValidateVehicleList();
 		if (this.m_vehicle_list.len() == 0 && (((!AIEngine.IsValidEngine(m_engine) || !AIEngine.IsBuildable(m_engine)) && m_last_vehicle_added == 0) ||
 				(AIDate.GetCurrentDate() - m_last_vehicle_added >= 90) && m_last_vehicle_added > 0)) {
@@ -749,7 +761,8 @@ class RoadRoute extends RoadRouteManager {
 		return false;
 	}
 
-	function GroupVehicles() {
+	function GroupVehicles()
+	{
 		foreach (vehicle, _ in this.m_vehicle_list) {
 			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != m_sentToDepotRoadGroup[0] && AIVehicle.GetGroupID(vehicle) != m_sentToDepotRoadGroup[1]) {
 				if (!AIGroup.IsValidGroup(m_group)) {
@@ -770,19 +783,18 @@ class RoadRoute extends RoadRouteManager {
 		return m_group;
 	}
 
-	function SaveRoute() {
+	function SaveRoute()
+	{
 		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_expandedFromCount, m_expandedToCount, m_sentToDepotRoadGroup, m_group];
 	}
 
-	function LoadRoute(data) {
+	function LoadRoute(data)
+	{
 		local cityFrom = data[0];
 		local cityTo = data[1];
 		local stationFrom = data[2];
 		local stationTo = data[3];
 		local depotTile = data[4];
-//		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + "; cityTo = " + AITown.GetName(cityTo) + "; stationFrom = " + AIBaseStation.GetName(AIStation.GetStationID(stationFrom)) + " (" + stationFrom + "); stationTo = " + AIBaseStation.GetName(AIStation.GetStationID(stationTo)) + " (" + stationTo + "); depotTile = " + depotTile);
-//		AILog.Info("distFromdepot = " + AIMap.DistanceManhattan(depotTile, stationFrom) + "; distTodepot = " + AIMap.DistanceManhattan(depotTile, stationTo) + "; route dist = " + AIMap.DistanceManhattan(stationFrom, stationTo));
-
 		local bridgeTiles = data[5];
 		local cargoClass = data[6];
 		local sentToDepotRoadGroup = data[12];
@@ -823,4 +835,4 @@ class RoadRoute extends RoadRouteManager {
 
 		return [route, bridgeTiles.len()];
 	}
-}
+};

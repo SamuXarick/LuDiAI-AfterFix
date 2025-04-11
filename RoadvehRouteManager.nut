@@ -1,17 +1,20 @@
 require("RoadvehBuildManager.nut");
 
-class RoadRouteManager {
+class RoadRouteManager
+{
 	m_townRouteArray = null;
 	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
-	constructor(sentToDepotRoadGroup, best_routes_built) {
+	constructor(sentToDepotRoadGroup, best_routes_built)
+	{
 		m_townRouteArray = [];
 		m_sentToDepotRoadGroup = sentToDepotRoadGroup;
 		m_best_routes_built = best_routes_built;
 	}
 
-	function BuildRoute(roadBuildManager, cityFrom, cityTo, cargoClass, articulated, best_routes_built) {
+	function BuildRoute(roadBuildManager, cityFrom, cityTo, cargoClass, articulated, best_routes_built)
+	{
 		local route = roadBuildManager.BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, m_sentToDepotRoadGroup, best_routes_built);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
@@ -23,23 +26,26 @@ class RoadRouteManager {
 	}
 
 
-	function GetRoadVehicleCount() {
+	function GetRoadVehicleCount()
+	{
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_ROAD);
 	}
 
-	function TownRouteExists(cityFrom, cityTo, cargoClass) {
+	function TownRouteExists(cityFrom, cityTo, cargoClass)
+	{
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
 			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(m_townRouteArray[i].m_city_from, m_townRouteArray[i].m_city_to, m_townRouteArray[i].m_cargo_class)) {
 //				AILog.Info("TownRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
-				return 1;
+				return true;
 			}
 		}
 
-		return 0;
+		return false;
 	}
 
 	/* the highest last years profit out of all vehicles */
-	function HighestProfitLastYear() {
+	function HighestProfitLastYear()
+	{
 		local maxAllRoutesProfit = null;
 
 		for (local i = 0; i < this.m_townRouteArray.len(); ++i) {
@@ -59,9 +65,10 @@ class RoadRouteManager {
 		return maxAllRoutesProfit;
 	}
 
-	/* won't build any new stations if 1 */
-	function HasMaxStationCount(cityFrom, cityTo, cargoClass) {
-//		return 0;
+	/* won't build any new stations if true */
+	function HasMaxStationCount(cityFrom, cityTo, cargoClass)
+	{
+//		return false;
 
 		local maxTownStationFrom = (1 + AITown.GetPopulation(cityFrom) / 1000).tointeger();
 		local maxTownStationTo = (1 + AITown.GetPopulation(cityTo) / 1000).tointeger();
@@ -81,13 +88,14 @@ class RoadRouteManager {
 //		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + " ; cityFromCount = " + cityFromCount + " ; maxTownStationFrom = " + maxTownStationFrom + " ; cityTo = " + AITown.GetName(cityTo) + " ; cityToCount = " + cityToCount + " ; maxTownStationTo = " + maxTownStationTo);
 
 		if ((cityFromCount >= maxTownStationFrom) || (cityToCount >= maxTownStationTo)) {
-			return 1;
+			return true;
 		}
 
-		return 0;
+		return false;
 	}
 
-	function SaveRouteManager() {
+	function SaveRouteManager()
+	{
 		local array = [];
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
 			array.append(m_townRouteArray[i].SaveRoute());
@@ -96,7 +104,8 @@ class RoadRouteManager {
 		return [array, m_sentToDepotRoadGroup, m_best_routes_built];
 	}
 
-	function LoadRouteManager(data) {
+	function LoadRouteManager(data)
+	{
 		if (m_townRouteArray == null) {
 			m_townRouteArray = [];
 		}
@@ -114,5 +123,4 @@ class RoadRouteManager {
 		m_sentToDepotRoadGroup = data[1];
 		m_best_routes_built = data[2];
 	}
-
-}
+};

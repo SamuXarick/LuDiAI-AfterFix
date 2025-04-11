@@ -1,15 +1,18 @@
-class TownPair {
+class TownPair
+{
 	m_city_from = null;
 	m_city_to = null;
 	m_cargo_class = null;
 
-	constructor(cityFrom, cityTo, cargoClass = null) {
+	constructor(cityFrom, cityTo, cargoClass = null)
+	{
 		m_city_from = cityFrom;
 		m_city_to = cityTo;
 		m_cargo_class = cargoClass;
 	}
 
-	function IsEqual(cityFrom, cityTo, cargoClass = null) {
+	function IsEqual(cityFrom, cityTo, cargoClass = null)
+	{
 		if (m_cargo_class != cargoClass) return false;
 
 		if (m_city_from == cityFrom && m_city_to == cityTo) {
@@ -21,19 +24,22 @@ class TownPair {
 		}
 	}
 
-	function IsTownPairDataEqual(town_pair_data) {
+	function IsTownPairDataEqual(town_pair_data)
+	{
 		return IsEqual(town_pair_data[0], town_pair_data[1]);
 	}
-}
+};
 
-class TownManager {
+class TownManager
+{
 	m_townList = null;
 	m_townCount = null;
 
 	m_nearCityPairArray = null;
 	m_usedCitiesList = null;
 
-	constructor() {
+	constructor()
+	{
 		m_townList = AIList();
 		m_townCount = 0;
 
@@ -45,15 +51,13 @@ class TownManager {
 		m_usedCitiesList.rawset(AICargo.CC_MAIL, AIList());
 	}
 
-	function GetUnusedCity(bestRoutesBuilt, cargoClass);
-	function FindNearCities(fromCity, minDistance, maxDistance, bestRoutesBuilt, cargoClass, fakedist);
-	function BuildTownList();
-
-	function GetLastMonthProductionDiffRate(town, cargo) {
+	function GetLastMonthProductionDiffRate(town, cargo)
+	{
 		return (AITown.GetLastMonthProduction(town, cargo) - AITown.GetLastMonthSupplied(town, cargo)) * (100 - AITown.GetLastMonthTransportedPercentage(town, cargo)) / 100;
 	}
 
-	function IsTownGrowing(town, cargo) {
+	function IsTownGrowing(town, cargo)
+	{
 //		return true;
 		if (!AIGameSettings.GetValue("town_growth_rate")) return true; // no town grows, just work with it
 
@@ -88,7 +92,8 @@ class TownManager {
 		return result;
 	}
 
-	function BuildTownList() {
+	function BuildTownList()
+	{
 		local townCount = AITown.GetTownCount();
 		if (townCount == m_townCount) return;
 
@@ -97,7 +102,8 @@ class TownManager {
 		m_townList = AITownList();
 	}
 
-	function GetUnusedCity(bestRoutesBuilt, cargoClass) {
+	function GetUnusedCity(bestRoutesBuilt, cargoClass)
+	{
 		BuildTownList();
 
 		if (m_townList.Count() == m_usedCitiesList[cargoClass].Count()) {
@@ -148,7 +154,8 @@ class TownManager {
 		return unusedTown;
 	}
 
-	function RemoveUsedCityPair(fromCity, toCity, cargoClass, usedCities) {
+	function RemoveUsedCityPair(fromCity, toCity, cargoClass, usedCities)
+	{
 //		AILog.Info(m_nearCityPairArray[cargoClass].len() + " found in the m_nearCityPairArray[" + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClass)) + "]");
 //		AILog.Info("Town pair " + AITown.GetName(fromCity) + " and " + AITown.GetName(toCity) + " (" + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClass)) + ") are being removed...");
 		for (local i = m_nearCityPairArray[cargoClass].len() - 1; i >= 0; --i) {
@@ -178,12 +185,14 @@ class TownManager {
 //		}
 	}
 
-	function DistanceFunction(fakedist, town, tile) {
+	function DistanceFunction(fakedist, town, tile)
+	{
 		if (fakedist) return AITown.GetDistanceSquareToTile(town, tile);
 		return AITown.GetDistanceManhattanToTile(town, tile);
 	}
 
-	function FindNearCities(fromCity, minDistance, maxDistance, bestRoutesBuilt, cargoClass, fakedist = 0) {
+	function FindNearCities(fromCity, minDistance, maxDistance, bestRoutesBuilt, cargoClass, fakedist = 0)
+	{
 //		AILog.Info("fromCity = " + fromCity + "; minDistance = " + minDistance + "; maxDistance = " + maxDistance + "; bestRoutesBuilt = " + bestRoutesBuilt + "; cargoClass = " + cargoClass + "; fakedist = " + fakedist);
 		BuildTownList();
 
@@ -306,11 +315,13 @@ class TownManager {
 		}
 	}
 
-	function SaveTownManager() {
+	function SaveTownManager()
+	{
 		return [m_nearCityPairArray, m_usedCitiesList];
 	}
 
-	function LoadTownManager(data) {
+	function LoadTownManager(data)
+	{
 		m_nearCityPairArray = data[0];
 		AILog.Info("Loaded " + m_nearCityPairArray[AICargo.CC_PASSENGERS].len() + " near city pairs Pass.");
 		AILog.Info("Loaded " + m_nearCityPairArray[AICargo.CC_MAIL].len() + " near city pairs Mail.");
@@ -319,4 +330,4 @@ class TownManager {
 		AILog.Info("Loaded " + m_usedCitiesList[AICargo.CC_PASSENGERS].Count() + " used cities Pass.");
 		AILog.Info("Loaded " + m_usedCitiesList[AICargo.CC_MAIL].Count() + " used cities Mail.");
 	}
-}
+};

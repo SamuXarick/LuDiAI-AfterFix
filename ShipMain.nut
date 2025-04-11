@@ -1,4 +1,5 @@
-function LuDiAIAfterFix::BuildWaterRoute() {
+function LuDiAIAfterFix::BuildWaterRoute()
+{
 	if (!AIController.GetSetting("water_support")) return;
 
 	local unfinished = shipBuildManager.HasUnfinishedRoute();
@@ -42,8 +43,7 @@ function LuDiAIAfterFix::BuildWaterRoute() {
 			local clear_costs = AITile.GetBuildCost(AITile.BT_CLEAR_ROUGH) * max_dist;
 			local dock_costs = AIMarine.GetBuildCost(AIMarine.BT_DOCK) * 2;
 			local depot_cost = AIMarine.GetBuildCost(AIMarine.BT_DEPOT);
-			local buoy_costs = AIMarine.GetBuildCost(AIMarine.BT_BUOY) * max_dist / ShipBuildManager.COUNT_BETWEEN_BUOYS;
-			estimated_costs += engine_costs + canal_costs + clear_costs + dock_costs + depot_cost + buoy_costs;
+			estimated_costs += engine_costs + canal_costs + clear_costs + dock_costs + depot_cost;
 //			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + ", canal_costs = " + canal_costs + ", clear_costs = " + clear_costs + ", dock_costs = " + dock_costs + ", depot_cost = " + depot_cost + ", buoy_costs = " + buoy_costs);
 			if (!Utils.HasMoney(estimated_costs + reservedMoney - reservedMoneyWater)) {
 				/* Try a cheaper route */
@@ -158,12 +158,14 @@ function LuDiAIAfterFix::BuildWaterRoute() {
 	}
 }
 
-function LuDiAIAfterFix::ResetWaterManagementVariables() {
+function LuDiAIAfterFix::ResetWaterManagementVariables()
+{
 	if (lastWaterManagedArray < 0) lastWaterManagedArray = shipRouteManager.m_townRouteArray.len() - 1;
 	if (lastWaterManagedManagement < 0) lastWaterManagedManagement = 6;
 }
 
-function LuDiAIAfterFix::InterruptWaterManagement(cur_date) {
+function LuDiAIAfterFix::InterruptWaterManagement(cur_date)
+{
 	if (AIDate.GetCurrentDate() - cur_date > 1) {
 		if (lastWaterManagedArray == -1) lastWaterManagedManagement--;
 		return true;
@@ -171,7 +173,8 @@ function LuDiAIAfterFix::InterruptWaterManagement(cur_date) {
 	return false;
 }
 
-function LuDiAIAfterFix::ManageShipRoutes() {
+function LuDiAIAfterFix::ManageShipRoutes()
+{
 	local max_ships = AIGameSettings.GetValue("max_ships");
 	if (max_ships != MAX_SHIP_VEHICLES) {
 		MAX_SHIP_VEHICLES = max_ships;
@@ -295,7 +298,8 @@ function LuDiAIAfterFix::ManageShipRoutes() {
 //	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }
 
-function LuDiAIAfterFix::CheckForUnfinishedWaterRoute() {
+function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
+{
 	if (shipBuildManager.HasUnfinishedRoute()) {
 		/* Look for potentially unregistered dock or ship depot tiles during save */
 		local dockFrom = shipBuildManager.m_dockFrom;

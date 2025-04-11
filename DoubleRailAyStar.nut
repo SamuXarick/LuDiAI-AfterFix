@@ -333,7 +333,7 @@ class AyStar.Path
 		this._prev = old_path;
 		this._segment = new_segment;
 		this._cost = cost_callback(old_path, new_segment, pf_instance);
-	};
+	}
 
 	/**
 	 * Return the segment where this (partial-)path ends.
@@ -353,7 +353,8 @@ class AyStar.Path
 	/**
 	 * Return the used tiles of this (partial-)path from the beginning up to this node.
 	 */
-	function GetUsedTiles() {
+	function GetUsedTiles()
+	{
 		local used_tiles = [];
 		local path = this;
 		do {
@@ -367,7 +368,8 @@ class AyStar.Path
 		return used_tiles;
 	}
 
-	function GetPreviousNode(cur_j, cur_i, depth = 1, return_path_and_cur_i = false) {
+	function GetPreviousNode(cur_j, cur_i, depth = 1, return_path_and_cur_i = false)
+	{
 		local node;
 		local cur_path = this;
 //		AILog.Info("1 - depth = " + depth + ", " + cur_path._segment.m_nodes[cur_j][cur_i][0]);

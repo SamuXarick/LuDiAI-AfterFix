@@ -305,7 +305,7 @@ class AyStar.Path
 		this._direction = new_direction;
 		this._cost = cost_callback(pf_instance, old_path, new_tile, new_direction);
 		this._used_tiles = new_used_tiles;
-	};
+	}
 
 	/**
 	 * Return the tile where this (partial-)path ends.
@@ -330,7 +330,8 @@ class AyStar.Path
 	/**
 	 * Return the used tiles of this (partial-)path from the beginning up to this node.
 	 */
-	function GetUsedTiles() {
+	function GetUsedTiles()
+	{
 		local used_tiles = [];
 		local path = this;
 		do {

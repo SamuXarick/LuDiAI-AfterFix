@@ -69,7 +69,8 @@ class SingleRail
 	 * @param ignored_tiles An array of tiles that cannot occur in the final path.
 	 * @see AyStar::InitializePath()
 	 */
-	function InitializePath(sources, goals, ignored_tiles = []) {
+	function InitializePath(sources, goals, ignored_tiles = [])
+	{
 		if (this._search_range) {
 			local pair = [];
 			local min_freeform = AIMap.IsValidTile(0) ? 0 : 1;

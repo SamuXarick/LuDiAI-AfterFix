@@ -1,4 +1,5 @@
-function LuDiAIAfterFix::BuildRoadRoute() {
+function LuDiAIAfterFix::BuildRoadRoute()
+{
 	if (!AIController.GetSetting("road_support")) return;
 
 	local unfinished = roadBuildManager.HasUnfinishedRoute();
@@ -159,12 +160,14 @@ function LuDiAIAfterFix::BuildRoadRoute() {
 	}
 }
 
-function LuDiAIAfterFix::ResetRoadManagementVariables() {
+function LuDiAIAfterFix::ResetRoadManagementVariables()
+{
 	if (lastRoadManagedArray < 0) lastRoadManagedArray = roadRouteManager.m_townRouteArray.len() - 1;
 	if (lastRoadManagedManagement < 0) lastRoadManagedManagement = 8;
 }
 
-function LuDiAIAfterFix::InterruptRoadManagement(cur_date) {
+function LuDiAIAfterFix::InterruptRoadManagement(cur_date)
+{
 	if (AIDate.GetCurrentDate() - cur_date > 1) {
 		if (lastRoadManagedArray == -1) lastRoadManagedManagement--;
 		return true;
@@ -172,7 +175,8 @@ function LuDiAIAfterFix::InterruptRoadManagement(cur_date) {
 	return false;
 }
 
-function LuDiAIAfterFix::ManageRoadvehRoutes() {
+function LuDiAIAfterFix::ManageRoadvehRoutes()
+{
 	local max_roadveh = AIGameSettings.GetValue("max_roadveh");
 	if (max_roadveh != MAX_ROAD_VEHICLES) {
 		MAX_ROAD_VEHICLES = max_roadveh;
@@ -327,7 +331,8 @@ function LuDiAIAfterFix::ManageRoadvehRoutes() {
 //	AILog.Info("Managed " + roadRouteManager.m_townRouteArray.len() + " road route" + (roadRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }
 
-function LuDiAIAfterFix::CheckForUnfinishedRoadRoute() {
+function LuDiAIAfterFix::CheckForUnfinishedRoadRoute()
+{
 	if (roadBuildManager.HasUnfinishedRoute()) {
 		/* Look for potentially unregistered road station or depot tiles during save */
 		local stationFrom = roadBuildManager.m_stationFrom;

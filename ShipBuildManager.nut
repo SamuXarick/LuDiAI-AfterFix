@@ -1,12 +1,14 @@
 require("CanalPathFinder.nut");
 
-enum WaterTileType {
+enum WaterTileType
+{
 	CANAL,
 	LOCK,
 	AQUEDUCT
-}
+};
 
-class WaterTile {
+class WaterTile
+{
 	m_tile = null;
 	m_type = null;
 
@@ -21,11 +23,10 @@ class WaterTile {
 			m_type = watertype,
 		};
 	}
-}
+};
 
-class ShipBuildManager {
-	COUNT_BETWEEN_BUOYS = 50;
-
+class ShipBuildManager
+{
 	m_city_from = -1;
 	m_city_to = -1;
 	m_dockFrom = -1;
@@ -39,18 +40,13 @@ class ShipBuildManager {
 	m_sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
-	function BuildTownDock(town, cargoClass, cheaperRoute, best_routes_built);
-	function PathfindBuildCanal(fromTile, toTile, silent_mode, pathfinder);
-	function BuildingShipDepotBlocksConnection(top_tile, bot_tile)
-	function BuildRouteShipDepot(canalArray);
-	function SaveBuildManager();
-	function BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built);
-
-	function HasUnfinishedRoute() {
+	function HasUnfinishedRoute()
+	{
 		return m_city_from != -1 && m_city_to != -1 && m_cargo_class != -1;
 	}
 
-	function SetRouteFinished() {
+	function SetRouteFinished()
+	{
 		m_city_from = -1;
 		m_city_to = -1;
 		m_dockFrom = -1;
@@ -63,7 +59,8 @@ class ShipBuildManager {
 		m_best_routes_built = null;
 	}
 
-	function BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built) {
+	function BuildWaterRoute(cityFrom, cityTo, cargoClass, cheaperRoute, sentToDepotWaterGroup, best_routes_built)
+	{
 		m_city_from = cityFrom;
 		m_city_to = cityTo;
 		m_cargo_class = cargoClass;
@@ -317,7 +314,8 @@ class ShipBuildManager {
 		return ShipRoute(m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depotTile, m_cargo_class, m_sentToDepotWaterGroup);
 	}
 
-	function BuildTownDock(town, cargoClass, cheaperRoute, best_routes_built) {
+	function BuildTownDock(town, cargoClass, cheaperRoute, best_routes_built)
+	{
 		local cargoType = Utils.GetCargoType(cargoClass);
 		local radius = AIStation.GetCoverageRadius(AIStation.STATION_DOCK);
 
@@ -607,7 +605,8 @@ class ShipBuildManager {
 	}
 
 	/* find canal way between fromTile and toTile */
-	function PathfindBuildCanal(fromTile, toTile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0) {
+	function PathfindBuildCanal(fromTile, toTile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0)
+	{
 		/* can store canal tiles into array */
 
 		if (fromTile != toTile) {
@@ -1020,7 +1019,8 @@ class ShipBuildManager {
 		return false;
 	}
 
-	function BuildRouteShipDepot(canalArray) {
+	function BuildRouteShipDepot(canalArray)
+	{
 		if (canalArray == null) {
 			return null;
 		}
@@ -1075,7 +1075,8 @@ class ShipBuildManager {
 		return depotTile;
 	}
 
-	function SaveBuildManager() {
+	function SaveBuildManager()
+	{
 		if (m_city_from == null) m_city_from = -1;
 		if (m_city_to == null) m_city_to = -1;
 		if (m_dockFrom == null) m_dockFrom = -1;
@@ -1086,7 +1087,8 @@ class ShipBuildManager {
 		return [m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depotTile, m_cargo_class, m_cheaperRoute, m_best_routes_built, m_builtTiles];
 	}
 
-	function LoadBuildManager(data) {
+	function LoadBuildManager(data)
+	{
 		m_city_from = data[0];
 		m_city_to = data[1];
 		m_dockFrom = data[2];
@@ -1097,4 +1099,4 @@ class ShipBuildManager {
 		m_best_routes_built = data[7];
 		m_builtTiles = data[8];
 	}
-}
+};

@@ -1,6 +1,7 @@
 require("TrainRouteManager.nut");
 
-class RailRoute extends RailRouteManager {
+class RailRoute extends RailRouteManager
+{
 	MAX_PLATFORM_LENGTH = 7;
 	MAX_NUM_PLATFORMS = 2;
 	STATION_LOADING_INTERVAL = 15;
@@ -31,7 +32,8 @@ class RailRoute extends RailRouteManager {
 
 	m_vehicle_list = null;
 
-	constructor(cityFrom, cityTo, stationFrom, stationTo, depotFrom, depotTo, bridgeTiles, cargoClass, sentToDepotRailGroup, rail_type, stationFromDir, stationToDir, isLoaded = 0) {
+	constructor(cityFrom, cityTo, stationFrom, stationTo, depotFrom, depotTo, bridgeTiles, cargoClass, sentToDepotRailGroup, rail_type, stationFromDir, stationToDir, isLoaded = 0)
+	{
 		AIRail.SetCurrentRailType(rail_type);
 		m_city_from = cityFrom;
 		m_city_to = cityTo;
@@ -63,15 +65,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function UpgradeBridges();
-	function UpgradeEngine();
-	function AddVehicle(return_vehicle, depot);
-	function AddVehiclesToNewRoute(cargoClass);
-	function GetEngineList(cargoClass);
-	function GetTrainEngine(cargoClass);
-	function AddRemoveVehicleToRoute();
-
-	function ValidateVehicleList() {
+	function ValidateVehicleList()
+	{
 		local stationFrom = AIStation.GetStationID(m_stationFrom);
 		local stationTo = AIStation.GetStationID(m_stationTo);
 
@@ -114,7 +109,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function SentToDepotList(i) {
+	function SentToDepotList(i)
+	{
 		local sent_to_depot_list = AIList();
 		ValidateVehicleList();
 		foreach (vehicle, status in m_vehicle_list) {
@@ -123,7 +119,8 @@ class RailRoute extends RailRouteManager {
 		return sent_to_depot_list;
 	}
 
-	function GetEngineWagonPairs(cargoClass) {
+	function GetEngineWagonPairs(cargoClass)
+	{
 		local cargo = Utils.GetCargoType(cargoClass);
 
 		local tempList = AIEngineList(AIVehicle.VT_RAIL);
@@ -161,7 +158,8 @@ class RailRoute extends RailRouteManager {
 		return engineWagonPairs;
 	}
 
-	function GetTrainEngineWagonPair(cargoClass) {
+	function GetTrainEngineWagonPair(cargoClass)
+	{
 		local engineWagonPairList = GetEngineWagonPairs(cargoClass);
 		if (engineWagonPairList.len() == 0) return m_engineWagonPair == null ? [-1, -1, -1, -1, -1] : m_engineWagonPair;
 
@@ -203,13 +201,15 @@ class RailRoute extends RailRouteManager {
 		return best_pair == null ? [-1, -1, -1, -1, -1] : best_pair;
 	}
 
-	function UpdateEngineWagonPair() {
+	function UpdateEngineWagonPair()
+	{
 		if (!m_active_route) return;
 
 		m_engineWagonPair = GetTrainEngineWagonPair(m_cargo_class);
 	}
 
-	function UpgradeBridges() {
+	function UpgradeBridges()
+	{
 		if (!m_active_route) return;
 
 		AIRail.SetCurrentRailType(m_rail_type);
@@ -235,13 +235,15 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function DeleteSellVehicle(vehicle) {
+	function DeleteSellVehicle(vehicle)
+	{
 		m_vehicle_list.rawdelete(vehicle);
 		AIVehicle.SellVehicle(vehicle);
 		Utils.RepayLoan();
 	}
 
-	function AddVehicle(return_vehicle = false, skip_order = false) {
+	function AddVehicle(return_vehicle = false, skip_order = false)
+	{
 		ValidateVehicleList();
 		if (m_vehicle_list.len() >= OptimalVehicleCount()) {
 			return null;
@@ -387,7 +389,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function OptimalVehicleCount() {
+	function OptimalVehicleCount()
+	{
 //		AILog.Info("m_routeDistance = " + m_routeDistance);
 		local max_speed = this.m_engineWagonPair[3];
 		local count_interval = max_speed * 74 * STATION_LOADING_INTERVAL / (256 * 16);
@@ -401,7 +404,8 @@ class RailRoute extends RailRouteManager {
 		return vehicleCount;
 	}
 
-	function AddVehiclesToNewRoute(cargoClass) {
+	function AddVehiclesToNewRoute(cargoClass)
+	{
 		m_group = GroupVehicles();
 		local optimal_vehicle_count = OptimalVehicleCount();
 
@@ -447,7 +451,8 @@ class RailRoute extends RailRouteManager {
 		return numvehicles - numvehicles_before;
 	}
 
-	function SendMoveVehicleToDepot(vehicle_id) {
+	function SendMoveVehicleToDepot(vehicle_id)
+	{
 		if (AIVehicle.GetGroupID(vehicle_id) != m_sentToDepotRailGroup[0] && AIVehicle.GetGroupID(vehicle_id) != m_sentToDepotRailGroup[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
 			if (!AIVehicle.IsStoppedInDepot(vehicle_id) && !AIVehicle.SendVehicleToDepot(vehicle_id)) {
@@ -464,7 +469,8 @@ class RailRoute extends RailRouteManager {
 		return 0;
 	}
 
-	function SendNegativeProfitVehiclesToDepot() {
+	function SendNegativeProfitVehiclesToDepot()
+	{
 		if (m_last_vehicle_added <= 0 || AIDate.GetCurrentDate() - m_last_vehicle_added <= 30) return;
 //		AILog.Info("SendNegativeProfitVehiclesToDepot . m_last_vehicle_added = " + m_last_vehicle_added + "; " + AIDate.GetCurrentDate() + " - " + m_last_vehicle_added + " = " + (AIDate.GetCurrentDate() - m_last_vehicle_added) + " < 45" + " - " + AIBaseStation.GetName(AIStation.GetStationID(m_stationFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(m_stationTo)));
 
@@ -486,7 +492,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit) {
+	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit)
+	{
 		ValidateVehicleList();
 		local vehicleList = AIList();
 		foreach (vehicle, _ in this.m_vehicle_list) {
@@ -522,7 +529,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function SellVehiclesInDepot() {
+	function SellVehiclesInDepot()
+	{
 		local sent_to_depot_list = this.SentToDepotList(0);
 
 		for (local vehicle = sent_to_depot_list.Begin(); !sent_to_depot_list.IsEnd(); vehicle = sent_to_depot_list.Next()) {
@@ -549,7 +557,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function AddRemoveVehicleToRoute(maxed_out_num_vehs) {
+	function AddRemoveVehicleToRoute(maxed_out_num_vehs)
+	{
 		if (!m_active_route) {
 			return 0;
 		}
@@ -643,7 +652,8 @@ class RailRoute extends RailRouteManager {
 		return numvehicles - numvehicles_before;
 	}
 
-	function RenewVehicles() {
+	function RenewVehicles()
+	{
 		ValidateVehicleList();
 		local engine_price = AIEngine.GetPrice(this.m_engineWagonPair[0]);
 		local wagon_price = AIEngine.GetPrice(this.m_engineWagonPair[1]) * this.m_engineWagonPair[2];
@@ -664,12 +674,14 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function GetPlatformLength() {
+	function GetPlatformLength()
+	{
 		local station = RailStation.CreateFromTile(m_stationFrom, m_stationFromDir);
 		return station.m_length;
 	}
 
-	function GetRouteDistance() {
+	function GetRouteDistance()
+	{
 		local stationFrom = RailStation.CreateFromTile(m_stationFrom, m_stationFromDir);
 		local stationFromPlatform1 = stationFrom.GetPlatformLine(1);
 		local entryFrom = stationFrom.GetEntryTile(stationFromPlatform1);
@@ -687,7 +699,8 @@ class RailRoute extends RailRouteManager {
 		return AIMap.DistanceManhattan(stationFromTile, stationToTile);
 	}
 
-	function ScheduleRemoveStation(stationTile, stationDir) {
+	function ScheduleRemoveStation(stationTile, stationDir)
+	{
 		local station = RailStation.CreateFromTile(stationTile, stationDir);
 		local top_tile = station.GetTopTile();
 		local bot_tile = station.GetBottomTile();
@@ -703,7 +716,8 @@ class RailRoute extends RailRouteManager {
 		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 	}
 
-	function ScheduleRemoveDepot(depot) {
+	function ScheduleRemoveDepot(depot)
+	{
 		local depotFront = AIRail.GetRailDepotFrontTile(depot);
 		local depotRaila = abs(depot - depotFront) == 1 ? depotFront - AIMap.GetMapSizeX() : depotFront - 1;
 		local depotRailb = 2 * depotFront - depotRaila;
@@ -715,7 +729,8 @@ class RailRoute extends RailRouteManager {
 		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, rail_type));
 	}
 
-	function ScheduleRemoveTracks(frontTile, prevTile) {
+	function ScheduleRemoveTracks(frontTile, prevTile)
+	{
 		local nextTile = AIMap.TILE_INVALID;
 		if (AIRail.IsRailTile(frontTile)) {
 			local dir = frontTile - prevTile;
@@ -831,7 +846,8 @@ class RailRoute extends RailRouteManager {
 		}
 	}
 
-	function RemoveIfUnserviced() {
+	function RemoveIfUnserviced()
+	{
 		ValidateVehicleList();
 		if (this.m_vehicle_list.len() == 0 && (((!AIEngine.IsValidEngine(m_engineWagonPair[0]) || !AIEngine.IsBuildable(m_engineWagonPair[0]) || !AIEngine.IsValidEngine(m_engineWagonPair[1]) || !AIEngine.IsBuildable(m_engineWagonPair[1])) && m_last_vehicle_added == 0) ||
 				(AIDate.GetCurrentDate() - m_last_vehicle_added >= 90) && m_last_vehicle_added > 0)) {
@@ -862,7 +878,8 @@ class RailRoute extends RailRouteManager {
 		return false;
 	}
 
-	function GroupVehicles() {
+	function GroupVehicles()
+	{
 		foreach (vehicle, _ in this.m_vehicle_list) {
 			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != m_sentToDepotRailGroup[0] && AIVehicle.GetGroupID(vehicle) != m_sentToDepotRailGroup[1]) {
 				if (!AIGroup.IsValidGroup(m_group)) {
@@ -883,11 +900,13 @@ class RailRoute extends RailRouteManager {
 		return m_group;
 	}
 
-	function SaveRoute() {
+	function SaveRoute()
+	{
 		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotFrom, m_depotTo, m_bridgeTiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sentToDepotRailGroup, m_group, m_rail_type, m_stationFromDir, m_stationToDir];
 	}
 
-	function LoadRoute(data) {
+	function LoadRoute(data)
+	{
 		local cityFrom = data[0];
 		local cityTo = data[1];
 		local stationFrom = data[2];
@@ -940,4 +959,4 @@ class RailRoute extends RailRouteManager {
 
 		return [route, bridgeTiles.len()];
 	}
-}
+};

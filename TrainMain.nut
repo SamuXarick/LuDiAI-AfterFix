@@ -286,7 +286,8 @@ function LuDiAIAfterFix::BuildRailRoute()
 	}
 }
 
-function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, platform_length) {
+function LuDiAIAfterFix::GetBestTrainIncome(pairList, cargo, days_in_transit, platform_length)
+{
 	local best_income = null;
 	local best_distance = 0;
 	local best_pair = [-1, -1, [AIRail.RAILTYPE_INVALID]];
@@ -492,7 +493,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 	return [income, distance_advanced, num_wagons, train_capacity, best_railtypes];
 }
 
-// function LuDiAIAfterFix::CheckVehicleBreakdown(cur_speed, reliability, breakdown_ctr, breakdown_chance, breakdown_delay) {
+// function LuDiAIAfterFix::CheckVehicleBreakdown(cur_speed, reliability, breakdown_ctr, breakdown_chance, breakdown_delay)
+// {
 // 	local rel;
 // 	local no_servicing_if_no_breakdowns = AIGameSettings.GetValue("no_servicing_if_no_breakdowns");
 // 	local vehicle_breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
@@ -536,7 +538,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	return [reliability, breakdown_ctr, breakdown_chance, breakdown_delay];
 // }
 
-// function LuDiAIAfterFix::HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay) {
+// function LuDiAIAfterFix::HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay)
+// {
 // 	switch (breakdown_ctr) {
 // 		case 0:
 // 			return [false, breakdown_ctr, cur_speed, breakdown_delay];
@@ -559,7 +562,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	}
 // }
 
-// function LuDiAIAfterFix::TrainTick(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress) {
+// function LuDiAIAfterFix::TrainTick(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress)
+// {
 // 	tick_counter = (tick_counter + 1) & 0xFF;
 
 // 	local distance_advanced = 0;
@@ -585,7 +589,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	return [res, distance_advanced, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
 // }
 
-// function LuDiAIAfterFix::TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress) {
+// function LuDiAIAfterFix::TrainLocoHandler(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, tick_counter, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress)
+// {
 // 	local distance_advanced = 0;
 // 	local handle_breakdown = HandleBreakdown(breakdown_ctr, cur_speed, tick_counter, breakdown_delay);
 // 	local res = handle_breakdown[0];
@@ -619,7 +624,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	return [true, distance_advanced, breakdown_ctr, breakdown_delay, sub_speed, cur_speed, progress];
 // }
 
-// function LuDiAIAfterFix::UpdateSpeed(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, sub_speed, cur_speed, progress) {
+// function LuDiAIAfterFix::UpdateSpeed(train_max_speed, train_cargo_weight, engine_power, train_air_drag, engine_cargo_max_tractive_effort_N, sub_speed, cur_speed, progress)
+// {
 // 	local acceleration_model = AIGameSettings.GetValue("train_acceleration_model");
 
 // 	if (acceleration_model == 0) {
@@ -635,7 +641,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	}
 // }
 
-// function LuDiAIAfterFix::DoUpdateSpeed(accel, min_speed, max_speed, sub_speed, cur_speed, progress) {
+// function LuDiAIAfterFix::DoUpdateSpeed(accel, min_speed, max_speed, sub_speed, cur_speed, progress)
+// {
 // 	local spd = sub_speed + accel;
 // 	sub_speed = spd & 0xFF;
 
@@ -653,7 +660,8 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	return [scaled_spd, sub_speed, cur_speed];
 // }
 
-// function LuDiAIAfterFix::GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N) {
+// function LuDiAIAfterFix::GetAcceleration(cur_speed, train_cargo_weight, train_power_watts, train_air_drag, engine_cargo_max_tractive_effort_N)
+// {
 // 	local train_axle_resistance = 10 * train_cargo_weight;
 // 	local train_rolling_friction = 15 * (512 + cur_speed) / 512;
 // 	local air_drag_area = 14; // 28 in tunnels.
@@ -681,12 +689,14 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 // 	return force < resistance ? min(-1, accel) : max(1, accel);
 // }
 
-function LuDiAIAfterFix::ResetRailManagementVariables() {
+function LuDiAIAfterFix::ResetRailManagementVariables()
+{
 	if (lastRailManagedArray < 0) lastRailManagedArray = railRouteManager.m_townRouteArray.len() - 1;
 	if (lastRailManagedManagement < 0) lastRailManagedManagement = 7;
 }
 
-function LuDiAIAfterFix::InterruptRailManagement(cur_date) {
+function LuDiAIAfterFix::InterruptRailManagement(cur_date)
+{
 	if (AIDate.GetCurrentDate() - cur_date > 1) {
 		if (lastRailManagedArray == -1) lastRailManagedManagement--;
 		return true;
@@ -694,7 +704,8 @@ function LuDiAIAfterFix::InterruptRailManagement(cur_date) {
 	return false;
 }
 
-function LuDiAIAfterFix::ManageTrainRoutes() {
+function LuDiAIAfterFix::ManageTrainRoutes()
+{
 	local max_trains = AIGameSettings.GetValue("max_trains");
 	if (max_trains != MAX_TRAIN_VEHICLES) {
 		MAX_TRAIN_VEHICLES = max_trains;
@@ -831,7 +842,8 @@ function LuDiAIAfterFix::ManageTrainRoutes() {
 //	AILog.Info("Managed " + railRouteManager.m_townRouteArray.len() + " rail route" + (railRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }
 
-function LuDiAIAfterFix::CheckForUnfinishedRailRoute() {
+function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
+{
 	if (railBuildManager.HasUnfinishedRoute()) {
 		/* Look for potentially unregistered rail station or depot tiles during save */
 		local stationFrom = railBuildManager.m_stationFrom;

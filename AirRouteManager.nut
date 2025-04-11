@@ -36,11 +36,11 @@ class AirRouteManager
 		foreach (route in this.m_townRouteArray) {
 			if (TownPair(city_from, city_to, cargo_class).IsEqual(route.m_city_from, route.m_city_to, route.m_cargo_class)) {
 //				AILog.Info("TownRouteExists from " + AITown.GetName(city_from) + " to " + AITown.GetName(city_to));
-				return 1;
+				return true;
 			}
 		}
 
-		return 0;
+		return false;
 	}
 
 	/* the highest last years profit out of all vehicles */

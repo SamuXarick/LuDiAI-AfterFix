@@ -1,25 +1,27 @@
 require("RoadPathfinder.nut");
 
-enum RoadTileType {
+enum RoadTileType
+{
 	ROAD,
 	TUNNEL,
 	BRIDGE
-}
+};
 
-class RoadTile {
+class RoadTile
+{
 	m_tile = null;
 	m_type = null;
-	m_bridge_id = null;
+	m_bridge_type = null;
 
-	constructor(tile, type, bridgeId = -1) {
+	constructor(tile, type, bridge_type = -1) {
 		m_tile = tile;
 		m_type = type;
-		m_bridge_id = bridgeId;
+		m_bridge_type = bridge_type;
 	}
-}
+};
 
-class RoadBuildManager {
-
+class RoadBuildManager
+{
 	m_city_from = -1;
 	m_city_to = -1;
 	m_stationFrom = -1;
@@ -35,18 +37,13 @@ class RoadBuildManager {
 	m_sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
-	function BuildTownRoadStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built);
-	function PathfindBuildRoad(fromTile, toTile, silent_mode, pathfinder);
-	function FindSuitableRoadDepotTile(tile);
-	function BuildRouteRoadDepot(roadArray);
-	function SaveBuildManager();
-	function BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built);
-
-	function HasUnfinishedRoute() {
+	function HasUnfinishedRoute()
+	{
 		return m_city_from != -1 && m_city_to != -1 && m_cargo_class != -1;
 	}
 
-	function SetRouteFinished() {
+	function SetRouteFinished()
+	{
 		m_city_from = -1;
 		m_city_to = -1;
 		m_stationFrom = -1;
@@ -61,7 +58,8 @@ class RoadBuildManager {
 		m_pathfinderProfile = -1;
 	}
 
-	function BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built) {
+	function BuildRoadRoute(cityFrom, cityTo, cargoClass, articulated, sentToDepotRoadGroup, best_routes_built)
+	{
 		m_city_from = cityFrom;
 		m_city_to = cityTo;
 		m_cargo_class = cargoClass;
@@ -190,7 +188,8 @@ class RoadBuildManager {
 		return RoadRoute(m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargo_class, m_sentToDepotRoadGroup);
 	}
 
-	function BuildTownRoadStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built) {
+	function BuildTownRoadStation(town, cargoClass, stationTile, otherTown, articulated, best_routes_built)
+	{
 		local stationId = (stationTile == null) ? AIStation.STATION_NEW : AIStation.GetStationID(stationTile);
 		local vehicleType = (cargoClass == AICargo.CC_MAIL) ? AIRoad.ROADVEHTYPE_TRUCK : AIRoad.ROADVEHTYPE_BUS;
 //		local max_spread = AIController.GetSetting("station_spread") && AIGameSettings.GetValue("distant_join_stations");
@@ -782,7 +781,8 @@ class RoadBuildManager {
 	}
 
 	/* find road way between fromTile and toTile */
-	function PathfindBuildRoad(fromTile, toTile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0) {
+	function PathfindBuildRoad(fromTile, toTile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0)
+	{
 		/* can store road tiles into array */
 
 		if (fromTile != toTile) {
@@ -1095,7 +1095,8 @@ class RoadBuildManager {
 		return [builtTiles, null];
 	}
 
-	function FindSuitableRoadDepotTile(tile) {
+	function FindSuitableRoadDepotTile(tile)
+	{
 		if (!AIRoad.IsRoadTile(tile)) {
 			return null;
 		}
@@ -1125,7 +1126,8 @@ class RoadBuildManager {
 		return null;
 	}
 
-	function BuildRoadDepotOnTile(t) {
+	function BuildRoadDepotOnTile(t)
+	{
 		local square = AITileList();
 		square.AddRectangle(Utils.GetValidOffsetTile(t, -1, -1), Utils.GetValidOffsetTile(t, 1, 1));
 
@@ -1186,7 +1188,8 @@ class RoadBuildManager {
 		}
 	}
 
-	function BuildRouteRoadDepot(roadArray) {
+	function BuildRouteRoadDepot(roadArray)
+	{
 		if (roadArray == null) {
 			return null;
 		}
@@ -1258,7 +1261,8 @@ class RoadBuildManager {
 		return depotTile;
 	}
 
-	function SaveBuildManager() {
+	function SaveBuildManager()
+	{
 		if (m_city_from == null) m_city_from = -1;
 		if (m_city_to == null) m_city_to = -1;
 		if (m_stationFrom == null) m_stationFrom = -1;
@@ -1269,7 +1273,8 @@ class RoadBuildManager {
 		return [m_city_from, m_city_to, m_stationFrom, m_stationTo, m_depotTile, m_bridgeTiles, m_cargo_class, m_articulated, m_best_routes_built, m_pathfinderProfile];
 	}
 
-	function LoadBuildManager(data) {
+	function LoadBuildManager(data)
+	{
 		m_city_from = data[0];
 		m_city_to = data[1];
 		m_stationFrom = data[2];
@@ -1281,4 +1286,4 @@ class RoadBuildManager {
 		m_best_routes_built = data[8];
 		m_pathfinderProfile = data[9];
 	}
-}
+};
