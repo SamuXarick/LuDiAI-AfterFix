@@ -246,15 +246,6 @@ class Utils
 		return adjTiles;
 	};
 
-	function IsStationBuildableTile(tile)
-	{
-		if ((AITile.GetSlope(tile) == AITile.SLOPE_FLAT/* || !AITile.IsCoastTile(tile) || !AITile.HasTransportType(tile, AITile.TRANSPORT_WATER) || AICompany.GetLoanAmount() == 0*/) &&
-				(AITile.IsBuildable(tile) || AIRoad.IsRoadTile(tile) && !AIRoad.IsDriveThroughRoadStationTile(tile) && !AIRail.IsLevelCrossingTile(tile))) {
-			return true;
-		}
-		return false;
-	}
-
 	function IsDockBuildableTile(tile, cheaper_route)
 	{
 		local slope = AITile.GetSlope(tile);
@@ -278,48 +269,6 @@ class Utils
 		}
 
 		return [true, tile2];
-	}
-
-	function AreOtherStationsNearby(tile, cargo_class, stationId)
-	{
-		local stationType = cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
-
-		/* check if there are other stations squareSize squares nearby */
-		local squareSize = AIStation.GetCoverageRadius(stationType);
-		if (stationId == AIStation.STATION_NEW) {
-			squareSize = squareSize * 2;
-		}
-
-		local square = AITileList();
-		if (!AIController.GetSetting("is_friendly")) {
-			/* don't care about enemy stations when is_friendly is off */
-			square.AddRectangle(Utils.GetValidOffsetTile(tile, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(tile, squareSize, squareSize));
-
-			/* if another road station of mine is nearby return true */
-			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (Utils.IsTileMyRoadStation(tile, cargo_class)) { // negate second expression to merge your stations
-					return true;
-				}
-			}
-		} else {
-			square.AddRectangle(Utils.GetValidOffsetTile(tile, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(tile, squareSize, squareSize));
-
-			/* if any other station is nearby, except my own airports, return true */
-			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (AITile.IsStationTile(tile)) {
-					if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
-						return true;
-					} else {
-						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), stationType);
-						if (stationTiles.HasItem(tile)) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-
-		return false;
 	}
 
 	function AreOtherDocksNearby(tile_north, tile_south)
@@ -358,11 +307,6 @@ class Utils
 		}
 
 		return false;
-	}
-
-	function IsTileMyRoadStation(tile, cargo_class)
-	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 	}
 
 	function IsTileMyDock(tile)

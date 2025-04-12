@@ -711,7 +711,7 @@ class RoadRoute extends RoadRouteManager
 		local population = AITown.GetPopulation(this.m_city_from);
 
 		if (population / 1000 > this.m_expanded_from_count + 1) {
-			if (RoadBuildManager().BuildTownRoadStation(this.m_city_from, this.m_cargo_class, this.m_station_from, this.m_city_to, articulated, false)) {
+			if (RoadBuildManager().BuildTownRoadStation(this.m_city_from, this.m_cargo_class, this.m_station_from, this.m_city_to, articulated)) {
 				++this.m_expanded_from_count;
 				result = 1;
 				AILog.Info("Expanded " + AIBaseStation.GetName(AIStation.GetStationID(this.m_station_from)) + " road station.");
@@ -721,7 +721,7 @@ class RoadRoute extends RoadRouteManager
 		population = AITown.GetPopulation(this.m_city_to);
 
 		if (population / 1000 > this.m_expanded_to_count + 1) {
-			if (RoadBuildManager().BuildTownRoadStation(this.m_city_to, this.m_cargo_class, this.m_station_to, this.m_city_from, articulated, false)) {
+			if (RoadBuildManager().BuildTownRoadStation(this.m_city_to, this.m_cargo_class, this.m_station_to, this.m_city_from, articulated)) {
 				++this.m_expanded_to_count;
 				result = 1;
 				AILog.Info("Expanded " + AIBaseStation.GetName(AIStation.GetStationID(this.m_station_to)) + " road station.");
