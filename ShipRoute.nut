@@ -10,7 +10,7 @@ class ShipRoute extends ShipRouteManager
 	m_city_to = null;
 	m_dockFrom = null;
 	m_dockTo = null;
-	m_depotTile = null;
+	m_depot_tile = null;
 	m_cargo_class = null;
 
 	m_engine = null;
@@ -25,16 +25,16 @@ class ShipRoute extends ShipRouteManager
 
 	m_vehicle_list = null;
 
-	constructor(cityFrom, cityTo, dockFrom, dockTo, depotTile, cargoClass, sentToDepotWaterGroup, isLoaded = 0)
+	constructor(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sentToDepotWaterGroup, is_loaded = 0)
 	{
-		m_city_from = cityFrom;
-		m_city_to = cityTo;
+		m_city_from = city_from;
+		m_city_to = city_to;
 		m_dockFrom = dockFrom;
 		m_dockTo = dockTo;
-		m_depotTile = depotTile;
-		m_cargo_class = cargoClass;
+		m_depot_tile = depot_tile;
+		m_cargo_class = cargo_class;
 
-		m_engine = GetShipEngine(cargoClass);
+		m_engine = GetShipEngine(cargo_class);
 		m_group = AIGroup.GROUP_INVALID;
 		m_sentToDepotWaterGroup = sentToDepotWaterGroup;
 
@@ -45,15 +45,15 @@ class ShipRoute extends ShipRouteManager
 
 		m_vehicle_list = {};
 
-		if (!isLoaded) {
-			AddVehiclesToNewRoute(cargoClass);
+		if (!is_loaded) {
+			AddVehiclesToNewRoute(cargo_class);
 		}
 	}
 
 	function ValidateVehicleList()
 	{
-		local stationFrom = AIStation.GetStationID(m_dockFrom);
-		local stationTo = AIStation.GetStationID(m_dockTo);
+		local station_from = AIStation.GetStationID(m_dockFrom);
+		local station_to = AIStation.GetStationID(m_dockTo);
 
 		local removelist = AIList();
 		foreach (v, _ in m_vehicle_list) {
@@ -66,8 +66,8 @@ class ShipRoute extends ShipRouteManager
 						for (local o = 0; o < num_orders; o++) {
 							if (AIOrder.IsValidVehicleOrder(v, o) && !AIOrder.IsConditionalOrder(v, o)) {
 								local station_id = AIStation.GetStationID(AIOrder.GetOrderDestination(v, o));
-								if (station_id == stationFrom) order_from = true;
-								if (station_id == stationTo) order_to = true;
+								if (station_id == station_from) order_from = true;
+								if (station_id == station_to) order_to = true;
 							}
 						}
 						if (!order_from || !order_to) {
@@ -104,9 +104,9 @@ class ShipRoute extends ShipRouteManager
 		return sent_to_depot_list;
 	}
 
-	function GetEngineList(cargoClass)
+	function GetEngineList(cargo_class)
 	{
-		local cargo_type = Utils.GetCargoType(cargoClass);
+		local cargo_type = Utils.GetCargoType(cargo_class);
 
 		local tempList = AIEngineList(AIVehicle.VT_WATER);
 		local engineList = AIList();
@@ -119,12 +119,12 @@ class ShipRoute extends ShipRouteManager
 		return engineList;
 	}
 
-	function GetShipEngine(cargoClass)
+	function GetShipEngine(cargo_class)
 	{
-		local engineList = GetEngineList(cargoClass);
+		local engineList = GetEngineList(cargo_class);
 		if (engineList.IsEmpty()) return m_engine == null ? -1 : m_engine;
 
-		local cargo_type = Utils.GetCargoType(cargoClass);
+		local cargo_type = Utils.GetCargoType(cargo_class);
 
 		local distance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 		local best_income = null;
@@ -134,7 +134,7 @@ class ShipRoute extends ShipRouteManager
 			local max_speed = AIEngine.GetMaxSpeed(engine);
 			local days_in_transit = (distance * 256 * 16) / (2 * 74 * max_speed);
 			local running_cost = AIEngine.GetRunningCost(engine);
-			local capacity = ::caches.GetBuildWithRefitCapacity(m_depotTile, engine, cargo_type);
+			local capacity = ::caches.GetBuildWithRefitCapacity(m_depot_tile, engine, cargo_type);
 			local income = ((capacity * AICargo.GetCargoIncome(cargo_type, distance, days_in_transit) - running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 //			AILog.Info("Engine: " + AIEngine.GetName(engine) + "; Capacity: " + capacity + "; Max Speed: " + max_speed + "; Days in transit: " + days_in_transit + "; Running Cost: " + running_cost + "; Distance: " + distance + "; Income: " + income);
 			if (best_income == null || income > best_income) {
@@ -183,9 +183,9 @@ class ShipRoute extends ShipRouteManager
 
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
-			new_vehicle = TestBuildVehicleWithRefit().TryBuild(this.m_depotTile, this.m_engine, Utils.GetCargoType(m_cargo_class));
+			new_vehicle = TestBuildVehicleWithRefit().TryBuild(this.m_depot_tile, this.m_engine, Utils.GetCargoType(m_cargo_class));
 		} else {
-			new_vehicle = TestCloneVehicle().TryClone(this.m_depotTile, clone_vehicle_id, (AIVehicle.IsValidVehicle(share_orders_vid) && share_orders_vid == clone_vehicle_id) ? true : false);
+			new_vehicle = TestCloneVehicle().TryClone(this.m_depot_tile, clone_vehicle_id, (AIVehicle.IsValidVehicle(share_orders_vid) && share_orders_vid == clone_vehicle_id) ? true : false);
 		}
 
 		if (AIVehicle.IsValidVehicle(new_vehicle)) {
@@ -195,10 +195,10 @@ class ShipRoute extends ShipRouteManager
 			local load_mode = AIController.GetSetting("water_load_mode");
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
-					if (AIOrder.AppendOrder(new_vehicle, m_depotTile, depot_order_flags) &&
+					if (AIOrder.AppendOrder(new_vehicle, m_depot_tile, depot_order_flags) &&
 							AIOrder.AppendOrder(new_vehicle, m_dockFrom, AIOrder.OF_NONE) &&
 							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true) &&
-							AIOrder.AppendOrder(new_vehicle, m_depotTile, depot_order_flags) &&
+							AIOrder.AppendOrder(new_vehicle, m_depot_tile, depot_order_flags) &&
 							AIOrder.AppendOrder(new_vehicle, m_dockTo, AIOrder.OF_NONE) &&
 							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true)) {
 						vehicle_ready_to_start = true;
@@ -325,7 +325,7 @@ class ShipRoute extends ShipRouteManager
 		return 0;
 	}
 
-	function AddVehiclesToNewRoute(cargoClass)
+	function AddVehiclesToNewRoute(cargo_class)
 	{
 		m_group = GroupVehicles();
 		local optimal_vehicle_count = OptimalVehicleCount();
@@ -722,7 +722,7 @@ class ShipRoute extends ShipRouteManager
 			local dockTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_dockTo));
 			::scheduledRemovalsTable.Ship.rawset(m_dockTo, 0);
 
-			::scheduledRemovalsTable.Ship.rawset(m_depotTile, 0);
+			::scheduledRemovalsTable.Ship.rawset(m_depot_tile, 0);
 
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.DeleteGroup(m_group);
@@ -757,21 +757,21 @@ class ShipRoute extends ShipRouteManager
 
 	function SaveRoute()
 	{
-		return [m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depotTile, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sentToDepotWaterGroup, m_group];
+		return [m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depot_tile, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sentToDepotWaterGroup, m_group];
 	}
 
 	function LoadRoute(data)
 	{
-		local cityFrom = data[0];
-		local cityTo = data[1];
+		local city_from = data[0];
+		local city_to = data[1];
 		local dockFrom = data[2];
 		local dockTo = data[3];
-		local depotTile = data[4];
-		local cargoClass = data[5];
+		local depot_tile = data[4];
+		local cargo_class = data[5];
 
 		local sentToDepotWaterGroup = data[9];
 
-		local route = ShipRoute(cityFrom, cityTo, dockFrom, dockTo, depotTile, cargoClass, sentToDepotWaterGroup, 1);
+		local route = ShipRoute(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sentToDepotWaterGroup, 1);
 
 		route.m_last_vehicle_added = data[6];
 		route.m_last_vehicle_removed = data[7];

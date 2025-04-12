@@ -119,25 +119,25 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			}
 
 			if (!unfinished) buildTimerAir = 0;
-			local arg_city_from = unfinished ? this.airBuildManager.m_city_from : city_from;
-			local arg_city_to = unfinished ? this.airBuildManager.m_city_to : city_to;
-			local arg_cargo_class = unfinished ? this.airBuildManager.m_cargo_class : cargo_class;
-			local arg_best_routes_built = unfinished ? this.airBuildManager.m_best_routes_built : ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
-			local arg_all_routes_built = (((this.allRoutesBuilt >> 4) & 3) & (1 << (arg_cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0;
+			city_from = unfinished ? this.airBuildManager.m_city_from : city_from;
+			city_to = unfinished ? this.airBuildManager.m_city_to : city_to;
+			cargo_class = unfinished ? this.airBuildManager.m_cargo_class : cargo_class;
+			local best_routes_built = unfinished ? this.airBuildManager.m_best_routes_built : ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
+			local all_routes_built = (((this.allRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0;
 
 			local start_date = AIDate.GetCurrentDate();
-			local route_result = this.airRouteManager.BuildRoute(this.airRouteManager, this.airBuildManager, this.airTownManager, arg_city_from, arg_city_to, arg_cargo_class, arg_best_routes_built, arg_all_routes_built);
+			local route_result = this.airRouteManager.BuildRoute(this.airRouteManager, this.airBuildManager, this.airTownManager, city_from, city_to, cargo_class, best_routes_built, all_routes_built);
 			buildTimerAir += AIDate.GetCurrentDate() - start_date;
 			if (route_result[0] != null) {
 				if (route_result[0] != 0) {
 					this.reservedMoney -= this.reservedMoneyAir;
 					this.reservedMoneyAir = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(arg_cargo_class)) + " air route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + buildTimerAir + " day" + (buildTimerAir != 1 ? "s" : "") + ".");
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " air route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + buildTimerAir + " day" + (buildTimerAir != 1 ? "s" : "") + ".");
 				}
 			} else {
 				this.reservedMoney -= this.reservedMoneyAir;
 				this.reservedMoneyAir = 0;
-				if (arg_city_to != null) this.airTownManager.ResetCityPair(arg_city_from, arg_city_to, cargo_class, false);
+				if (city_to != null) this.airTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
 				AILog.Error("a:" + buildTimerAir + " day" + (buildTimerAir != 1 ? "s" : "") + " wasted!");
 			}
 		}
@@ -269,12 +269,12 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		if (this.lastAirManagedManagement != 0) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local arg_city_from = this.airRouteManager.m_townRouteArray[i].m_city_from;
-		local arg_city_to = this.airRouteManager.m_townRouteArray[i].m_city_to;
-		local arg_cargo_class = this.airRouteManager.m_townRouteArray[i].m_cargo_class;
+		local city_from = this.airRouteManager.m_townRouteArray[i].m_city_from;
+		local city_to = this.airRouteManager.m_townRouteArray[i].m_city_to;
+		local cargo_class = this.airRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (this.airRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			this.airRouteManager.m_townRouteArray.remove(i);
-			this.airTownManager.ResetCityPair(arg_city_from, arg_city_to, arg_cargo_class, true);
+			this.airTownManager.ResetCityPair(city_from, city_to, cargo_class, true);
 		}
 		if (this.InterruptAirManagement(cur_date)) return;
 	}

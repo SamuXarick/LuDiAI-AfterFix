@@ -11,12 +11,12 @@ class RailRouteManager {
 		m_best_routes_built = best_routes_built;
 	}
 
-	function BuildRoute(railBuildManager, cityFrom, cityTo, cargoClass, best_routes_built, rail_type) {
-		local route = railBuildManager.BuildRailRoute(cityFrom, cityTo, cargoClass, m_sentToDepotRailGroup, best_routes_built, rail_type);
+	function BuildRoute(railBuildManager, city_from, city_to, cargo_class, best_routes_built, rail_type) {
+		local route = railBuildManager.BuildRailRoute(city_from, city_to, cargo_class, m_sentToDepotRailGroup, best_routes_built, rail_type);
 		if (route != null && route != 0) {
 			m_townRouteArray.append(route);
 			railBuildManager.SetRouteFinished();
-			return [1, route.m_stationFrom, route.m_stationTo];
+			return [1, route.m_station_from, route.m_station_to];
 		}
 
 		return [route, null, null];
@@ -27,10 +27,10 @@ class RailRouteManager {
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_RAIL);
 	}
 
-	function TownRouteExists(cityFrom, cityTo, cargoClass) {
+	function TownRouteExists(city_from, city_to, cargo_class) {
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			if (TownPair(cityFrom, cityTo, cargoClass).IsEqual(m_townRouteArray[i].m_city_from, m_townRouteArray[i].m_city_to, m_townRouteArray[i].m_cargo_class)) {
-//				AILog.Info("TownRouteExists from " + AITown.GetName(cityFrom) + " to " + AITown.GetName(cityTo));
+			if (TownPair(city_from, city_to, cargo_class).IsEqual(m_townRouteArray[i].m_city_from, m_townRouteArray[i].m_city_to, m_townRouteArray[i].m_cargo_class)) {
+//				AILog.Info("TownRouteExists from " + AITown.GetName(city_from) + " to " + AITown.GetName(city_to));
 				return 1;
 			}
 		}
@@ -60,25 +60,25 @@ class RailRouteManager {
 	}
 
 	/* won't build any new stations if 1 */
-	function HasMaxStationCount(cityFrom, cityTo, cargoClass) {
+	function HasMaxStationCount(city_from, city_to, cargo_class) {
 //		return 0;
 
-		local maxTownStationFrom = (1 + AITown.GetPopulation(cityFrom) / 1000).tointeger();
-		local maxTownStationTo = (1 + AITown.GetPopulation(cityTo) / 1000).tointeger();
+		local maxTownStationFrom = (1 + AITown.GetPopulation(city_from) / 1000).tointeger();
+		local maxTownStationTo = (1 + AITown.GetPopulation(city_to) / 1000).tointeger();
 
 		local cityFromCount = 0;
 		local cityToCount = 0;
 
 		for (local i = 0; i < m_townRouteArray.len(); ++i) {
-			if (m_townRouteArray[i].m_city_from == cityFrom || m_townRouteArray[i].m_city_from == cityTo) {
-				if (m_townRouteArray[i].m_cargo_class == cargoClass) ++cityFromCount;
+			if (m_townRouteArray[i].m_city_from == city_from || m_townRouteArray[i].m_city_from == city_to) {
+				if (m_townRouteArray[i].m_cargo_class == cargo_class) ++cityFromCount;
 			}
 
-			if (m_townRouteArray[i].m_city_to == cityTo || m_townRouteArray[i].m_city_to == cityFrom) {
-				if (m_townRouteArray[i].m_cargo_class == cargoClass) ++cityToCount;
+			if (m_townRouteArray[i].m_city_to == city_to || m_townRouteArray[i].m_city_to == city_from) {
+				if (m_townRouteArray[i].m_cargo_class == cargo_class) ++cityToCount;
 			}
 		}
-//		AILog.Info("cityFrom = " + AITown.GetName(cityFrom) + " ; cityFromCount = " + cityFromCount + " ; maxTownStationFrom = " + maxTownStationFrom + " ; cityTo = " + AITown.GetName(cityTo) + " ; cityToCount = " + cityToCount + " ; maxTownStationTo = " + maxTownStationTo);
+//		AILog.Info("city_from = " + AITown.GetName(city_from) + " ; cityFromCount = " + cityFromCount + " ; maxTownStationFrom = " + maxTownStationFrom + " ; city_to = " + AITown.GetName(city_to) + " ; cityToCount = " + cityToCount + " ; maxTownStationTo = " + maxTownStationTo);
 
 		if ((cityFromCount >= maxTownStationFrom) || (cityToCount >= maxTownStationTo)) {
 			return 1;

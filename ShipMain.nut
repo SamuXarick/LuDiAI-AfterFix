@@ -4,8 +4,8 @@ function LuDiAIAfterFix::BuildWaterRoute()
 
 	local unfinished = shipBuildManager.HasUnfinishedRoute();
 	if (unfinished || (shipRouteManager.GetShipCount() < max(MAX_SHIP_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 2) & 3) != 3) {
-		local cityFrom = null;
-		local cityTo = null;
+		local city_from = null;
+		local city_to = null;
 		local cheaper_route = false;
 		local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassWater : (!unfinished ? cargoClassWater : (cargoClassWater == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
 		if (!unfinished) {
@@ -60,9 +60,9 @@ function LuDiAIAfterFix::BuildWaterRoute()
 				reservedMoney += reservedMoneyWater;
 			}
 
-			if (cityFrom == null) {
-				cityFrom = shipTownManager.GetUnusedCity(((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
-				if (cityFrom == null) {
+			if (city_from == null) {
+				city_from = shipTownManager.GetUnusedCity(((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
+				if (city_from == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
 						shipTownManager.m_used_cities_list[cC].Clear();
 					} else {
@@ -82,41 +82,41 @@ function LuDiAIAfterFix::BuildWaterRoute()
 				}
 			}
 
-			if (cityFrom != null) {
-//				AILog.Info("s:New city found: " + AITown.GetName(cityFrom));
+			if (city_from != null) {
+//				AILog.Info("s:New city found: " + AITown.GetName(city_from));
 
-				shipTownManager.FindNearCities(cityFrom, min_dist, max_dist, ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
+				shipTownManager.FindNearCities(city_from, min_dist, max_dist, ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cC);
 
 				if (!shipTownManager.m_near_city_pair_array[cC].len()) {
 					AILog.Info("No near city available");
-					cityFrom = null;
+					city_from = null;
 				}
 			}
 
-			if (cityFrom != null) {
+			if (city_from != null) {
 				for (local i = 0; i < shipTownManager.m_near_city_pair_array[cC].len(); ++i) {
-					if (cityFrom == shipTownManager.m_near_city_pair_array[cC][i][0]) {
-						if (!shipRouteManager.TownRouteExists(cityFrom, shipTownManager.m_near_city_pair_array[cC][i][1], cC)) {
-							cityTo = shipTownManager.m_near_city_pair_array[cC][i][1];
+					if (city_from == shipTownManager.m_near_city_pair_array[cC][i][0]) {
+						if (!shipRouteManager.TownRouteExists(city_from, shipTownManager.m_near_city_pair_array[cC][i][1], cC)) {
+							city_to = shipTownManager.m_near_city_pair_array[cC][i][1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && shipRouteManager.HasMaxStationCount(cityFrom, cityTo, cC)) {
-//								AILog.Info("shipRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + shipRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
-								cityTo = null;
+							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && shipRouteManager.HasMaxStationCount(city_from, city_to, cC)) {
+//								AILog.Info("shipRouteManager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cC + ") == " + shipRouteManager.HasMaxStationCount(city_from, city_to, cC));
+								city_to = null;
 								continue;
 							} else {
-//								AILog.Info("shipRouteManager.HasMaxStationCount(" + AITown.GetName(cityFrom) + ", " + AITown.GetName(cityTo) + ", " + cC + ") == " + shipRouteManager.HasMaxStationCount(cityFrom, cityTo, cC));
+//								AILog.Info("shipRouteManager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cC + ") == " + shipRouteManager.HasMaxStationCount(city_from, city_to, cC));
 								break;
 							}
 						}
 					}
 				}
 
-				if (cityTo == null) {
-					cityFrom = null;
+				if (city_to == null) {
+					city_from = null;
 				}
 			}
 
-			if (cityFrom == null && cityTo == null) {
+			if (city_from == null && city_to == null) {
 				reservedMoney -=reservedMoneyWater;
 				reservedMoneyWater = 0;
 			}
@@ -126,15 +126,15 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 		}
 
-		if (unfinished || cityFrom != null && cityTo != null) {
+		if (unfinished || city_from != null && city_to != null) {
 			if (!unfinished) {
-				AILog.Info("s:New city found: " + AITown.GetName(cityFrom));
-				AILog.Info("s:New near city found: " + AITown.GetName(cityTo));
+				AILog.Info("s:New city found: " + AITown.GetName(city_from));
+				AILog.Info("s:New near city found: " + AITown.GetName(city_to));
 			}
 
 			if (!unfinished) buildTimerWater = 0;
-			local from = unfinished ? shipBuildManager.m_city_from : cityFrom;
-			local to = unfinished ? shipBuildManager.m_city_to : cityTo;
+			local from = unfinished ? shipBuildManager.m_city_from : city_from;
+			local to = unfinished ? shipBuildManager.m_city_to : city_to;
 			local cargoC = unfinished ? shipBuildManager.m_cargo_class : cC;
 			local cheaper = unfinished ? shipBuildManager.m_cheaperRoute : cheaper_route;
 			local best_routes = unfinished ? shipBuildManager.m_best_routes_built : ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
@@ -283,12 +283,12 @@ function LuDiAIAfterFix::ManageShipRoutes()
 		if (lastWaterManagedManagement != 0) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local cityFrom = shipRouteManager.m_townRouteArray[i].m_city_from;
-		local cityTo = shipRouteManager.m_townRouteArray[i].m_city_to;
+		local city_from = shipRouteManager.m_townRouteArray[i].m_city_from;
+		local city_to = shipRouteManager.m_townRouteArray[i].m_city_to;
 		local cargoC = shipRouteManager.m_townRouteArray[i].m_cargo_class;
 		if (shipRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
 			shipRouteManager.m_townRouteArray.remove(i);
-			shipTownManager.ResetCityPair(cityFrom, cityTo, cargoC, true);
+			shipTownManager.ResetCityPair(city_from, city_to, cargoC, true);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
 	}
@@ -304,7 +304,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 		/* Look for potentially unregistered dock or ship depot tiles during save */
 		local dockFrom = shipBuildManager.m_dockFrom;
 		local dockTo = shipBuildManager.m_dockTo;
-		local depotTile = shipBuildManager.m_depotTile;
+		local depot_tile = shipBuildManager.m_depot_tile;
 		local stationType = AIStation.STATION_DOCK;
 
 		if (dockFrom == -1 || dockTo == -1) {
@@ -347,7 +347,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 			}
 		}
 
-		if (depotTile == -1) {
+		if (depot_tile == -1) {
 			local allDepotsTiles = AIDepotList(AITile.TRANSPORT_WATER);
 //			AILog.Info("allDepotsTiles has " + allDepotsTiles.Count() + " tiles");
 			local allTilesFound = AITileList();
@@ -358,7 +358,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 					break;
 				}
 				for (local i = shipRouteManager.m_townRouteArray.len() - 1; i >= 0; --i) {
-					if (shipRouteManager.m_townRouteArray[i].m_depotTile == tile) {
+					if (shipRouteManager.m_townRouteArray[i].m_depot_tile == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						allTilesFound.AddTile(tile);
 						break;

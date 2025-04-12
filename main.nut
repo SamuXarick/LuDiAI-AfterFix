@@ -68,7 +68,7 @@ class LuDiAIAfterFix extends AIController
 	railBuildManager = null;
 
 	sentToDepotAirGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-	sentToDepotRoadGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	sent_to_depot_road_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	sentToDepotRailGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
@@ -109,7 +109,7 @@ class LuDiAIAfterFix extends AIController
 		allRoutesBuilt = 0;
 		bestRoutesBuilt = 0
 
-		roadRouteManager = RoadRouteManager(this.sentToDepotRoadGroup, false);
+		roadRouteManager = RoadRouteManager(this.sent_to_depot_road_group, false);
 		roadBuildManager = RoadBuildManager();
 
 		shipRouteManager = ShipRouteManager(this.sentToDepotWaterGroup, false);
@@ -538,7 +538,7 @@ function LuDiAIAfterFix::Save()
 	table.rawset("all_routes_built", allRoutesBuilt);
 
 	table.rawset("sent_to_depot_air_group", sentToDepotAirGroup);
-	table.rawset("sent_to_depot_road_group", sentToDepotRoadGroup);
+	table.rawset("sent_to_depot_road_group", sent_to_depot_road_group);
 	table.rawset("sent_to_depot_water_group", sentToDepotWaterGroup);
 	table.rawset("sent_to_depot_rail_group", sentToDepotRailGroup);
 
@@ -593,12 +593,12 @@ function LuDiAIAfterFix::Start()
 				}
 			}
 
-			for (local i = 0; i < sentToDepotRoadGroup.len(); ++i) {
-				if (!AIGroup.IsValidGroup(sentToDepotRoadGroup[i])) {
-					sentToDepotRoadGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_ROAD, AIGroup.GROUP_INVALID);
-					if (i == 0) AIGroup.SetName(sentToDepotRoadGroup[i], "0: Road vehicles to sell");
-					if (i == 1) AIGroup.SetName(sentToDepotRoadGroup[i], "1: Road vehicles to renew");
-					roadRouteManager.m_sentToDepotRoadGroup[i] = sentToDepotRoadGroup[i];
+			for (local i = 0; i < sent_to_depot_road_group.len(); ++i) {
+				if (!AIGroup.IsValidGroup(sent_to_depot_road_group[i])) {
+					sent_to_depot_road_group[i] = AIGroup.CreateGroup(AIVehicle.VT_ROAD, AIGroup.GROUP_INVALID);
+					if (i == 0) AIGroup.SetName(sent_to_depot_road_group[i], "0: Road vehicles to sell");
+					if (i == 1) AIGroup.SetName(sent_to_depot_road_group[i], "1: Road vehicles to renew");
+					roadRouteManager.m_sent_to_depot_road_group[i] = sent_to_depot_road_group[i];
 				}
 			}
 
@@ -687,11 +687,11 @@ function LuDiAIAfterFix::Start()
 			}
 
 			if (loadData[1].rawin("sent_to_depot_road_group")) {
-				sentToDepotRoadGroup = loadData[1].rawget("sent_to_depot_road_group");
+				sent_to_depot_road_group = loadData[1].rawget("sent_to_depot_road_group");
 			}
 
 			if (loadData[1].rawin("sent_to_depot_water_group")) {
-				sentToDepotRoadGroup = loadData[1].rawget("sent_to_depot_water_group");
+				sent_to_depot_road_group = loadData[1].rawget("sent_to_depot_water_group");
 			}
 
 			if (loadData[1].rawin("sent_to_depot_rail_group")) {

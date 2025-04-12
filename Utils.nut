@@ -280,9 +280,9 @@ class Utils
 		return [true, tile2];
 	}
 
-	function AreOtherStationsNearby(tile, cargoClass, stationId)
+	function AreOtherStationsNearby(tile, cargo_class, stationId)
 	{
-		local stationType = cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
+		local stationType = cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
 
 		/* check if there are other stations squareSize squares nearby */
 		local squareSize = AIStation.GetCoverageRadius(stationType);
@@ -297,7 +297,7 @@ class Utils
 
 			/* if another road station of mine is nearby return true */
 			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (Utils.IsTileMyRoadStation(tile, cargoClass)) { // negate second expression to merge your stations
+				if (Utils.IsTileMyRoadStation(tile, cargo_class)) { // negate second expression to merge your stations
 					return true;
 				}
 			}
@@ -360,9 +360,9 @@ class Utils
 		return false;
 	}
 
-	function IsTileMyRoadStation(tile, cargoClass)
+	function IsTileMyRoadStation(tile, cargo_class)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 	}
 
 	function IsTileMyDock(tile)
@@ -370,9 +370,9 @@ class Utils
 		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
 	}
 
-	function IsTileMyStationWithoutRoadStation(tile, cargoClass)
+	function IsTileMyStationWithoutRoadStation(tile, cargo_class)
 	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), cargoClass == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
+		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 	}
 
 	function IsTileMyStationWithoutRoadStationOfAnyType(tile)
@@ -392,14 +392,14 @@ class Utils
 
 	/**
 	 * GetCargoType - Returns either mail cargo_type, or passenger cargo_type.
-	 * @param cargoClass - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
+	 * @param cargo_class - either AICargo.CC_MAIL, or AICargo.CC_PASSENGERS
 	 * @return - Cargo list.
 	 */
-	function GetCargoType(cargoClass)
+	function GetCargoType(cargo_class)
 	{
 		local cargo_type = 0xFF;
 		for (local cargo_type2 = ::caches.m_cargo_type_list.Begin(); !::caches.m_cargo_type_list.IsEnd(); cargo_type2 = ::caches.m_cargo_type_list.Next()) {
-			if (AICargo.HasCargoClass(cargo_type2, cargoClass)) {
+			if (AICargo.HasCargoClass(cargo_type2, cargo_class)) {
 				cargo_type = cargo_type2;
 				break;
 			}
