@@ -34,9 +34,9 @@ class ShipBuildManager
 	m_depot_tile = -1;
 	m_cargo_class = -1;
 	m_cheaperRoute = -1;
-	m_pathfinder = null;
-	m_pathfinderTries = 0;
-	m_builtTiles = [];
+	m_pathfinder_instance = null;
+	m_pathfinder_tries = 0;
+	m_built_tiles = [];
 	m_sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 
@@ -54,7 +54,7 @@ class ShipBuildManager
 		m_depot_tile = -1;
 		m_cargo_class = -1;
 		m_cheaperRoute = -1;
-		m_builtTiles = [];
+		m_built_tiles = [];
 		m_sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 		m_best_routes_built = null;
 	}
@@ -171,9 +171,9 @@ class ShipBuildManager
 			if (slope == AITile.SLOPE_NW) offset = AIMap.GetTileIndex(0, 2);
 			local tile2To = m_dockTo + offset;
 
-			local canalArray = PathfindBuildCanal(tile2From, tile2To, false, m_pathfinder, m_builtTiles);
-			m_pathfinder = canalArray[1];
-			if (canalArray[0] == null && m_pathfinder != null) {
+			local canalArray = PathfindBuildCanal(tile2From, tile2To, false, m_pathfinder_instance, m_built_tiles);
+			m_pathfinder_instance = canalArray[1];
+			if (canalArray[0] == null && m_pathfinder_instance != null) {
 				return 0;
 			}
 			m_depot_tile = BuildRouteShipDepot(canalArray[0]);
@@ -310,7 +310,7 @@ class ShipBuildManager
 			return null;
 		}
 
-		m_builtTiles = [];
+		m_built_tiles = [];
 		return ShipRoute(m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depot_tile, m_cargo_class, m_sentToDepotWaterGroup);
 	}
 
@@ -614,7 +614,7 @@ class ShipBuildManager
 			local max_pathfinderTries = 333 * route_dist;
 
 			/* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("s:Connecting " + AITown.GetName(m_city_from) + " (tile " + fromTile + ") and " + AITown.GetName(m_city_to) + " (tile " + toTile + ") (iteration " + (m_pathfinderTries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("s:Connecting " + AITown.GetName(m_city_from) + " (tile " + fromTile + ") and " + AITown.GetName(m_city_to) + " (tile " + toTile + ") (iteration " + (m_pathfinder_tries + 1) + "/" + max_pathfinderTries + ")");
 
 			if (pathfinder == null) {
 				/* Create an instance of the pathfinder. */
@@ -644,12 +644,12 @@ class ShipBuildManager
 
 //			local count = 0;
 			do {
-				++m_pathfinderTries;
+				++m_pathfinder_tries;
 //				++count;
 				path = pathfinder.FindPath(1);
 
 				if (path == false) {
-					if (m_pathfinderTries < max_pathfinderTries) {
+					if (m_pathfinder_tries < max_pathfinderTries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							if (!silent_mode) AILog.Info("canal pathfinder: FindPath iterated: " + count);
 //							local signList = AISignList();
@@ -662,7 +662,7 @@ class ShipBuildManager
 					} else {
 						/* Timed out */
 						if (!silent_mode) AILog.Error("canal pathfinder: FindPath return false (timed out)");
-						m_pathfinderTries = 0;
+						m_pathfinder_tries = 0;
 						return [null, null];
 					}
 				}
@@ -670,13 +670,13 @@ class ShipBuildManager
 				if (path == null ) {
 					/* No path was found. */
 					if (!silent_mode) AILog.Error("canal pathfinder: FindPath return null (no path)");
-					m_pathfinderTries = 0;
+					m_pathfinder_tries = 0;
 					return [null, null];
 				}
 			} while (path == false);
 
-//			if (!silent_mode && m_pathfinderTries != count) AILog.Info("canal pathfinder: FindPath iterated: " + count);
-			if (!silent_mode) AILog.Info("Canal path found! FindPath iterated: " + m_pathfinderTries + ". Building canal... ");
+//			if (!silent_mode && m_pathfinder_tries != count) AILog.Info("canal pathfinder: FindPath iterated: " + count);
+			if (!silent_mode) AILog.Info("Canal path found! FindPath iterated: " + m_pathfinder_tries + ". Building canal... ");
 			if (!silent_mode) AILog.Info("canal pathfinder: FindPath cost: " + path.GetCost());
 			local canal_cost = cost_so_far;
 			/* If a path was found, build a canal over it. */
@@ -701,9 +701,9 @@ class ShipBuildManager
 										break;
 									} else {
 										if (Canal()._LockBlocksConnection(par.GetTile(), next_tile)) {
-											if (m_pathfinderTries < max_pathfinderTries && last_node != null) {
+											if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't build lock at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile() + " - LockBlocksConnection = true - Retrying...");
-												return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_builtTiles, canal_cost);
+												return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_built_tiles, canal_cost);
 											}
 										} else if (AIMarine.IsLockTile(next_tile) && Utils.GetLockMiddleTile(next_tile) == next_tile &&
 												AIMarine.IsLockTile(path.GetTile()) && Utils.GetOtherLockEnd(path.GetTile()) == par.GetTile()) {
@@ -711,9 +711,9 @@ class ShipBuildManager
 											built_last_node = false;
 											break;
 										} else if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY") {
-											if (m_pathfinderTries < max_pathfinderTries && last_node != null) {
+											if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't build lock at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile() + " - LockBlocksConnection = true - Retrying...");
-												return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_builtTiles, canal_cost);
+												return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_built_tiles, canal_cost);
 											}
 										}
 										++counter;
@@ -723,14 +723,14 @@ class ShipBuildManager
 								} while (counter < 500);
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build lock at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
-									m_pathfinderTries = 0;
+									m_pathfinder_tries = 0;
 									return [null, null];
 								}
 							} else {
 								built_last_node = false;
 							}
 							/* add lock piece into the canal array */
-							m_builtTiles.append(WaterTile.SetType(next_tile, WaterTileType.LOCK));
+							m_built_tiles.append(WaterTile.SetType(next_tile, WaterTileType.LOCK));
 							last_node = path.GetTile();
 							path = par;
 							par = path.GetParent();
@@ -751,9 +751,9 @@ class ShipBuildManager
 											built_last_node = false;
 											break;
 										} else if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_LAND_SLOPED_WRONG") {
-											if (m_pathfinderTries < max_pathfinderTries && last_node != null) {
+											if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't build aqueduct between tiles " + par.GetTile() + " and " + path.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-												return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_builtTiles, canal_cost);
+												return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_built_tiles, canal_cost);
 											}
 										}
 										++counter;
@@ -763,15 +763,15 @@ class ShipBuildManager
 								} while (counter < 500);
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build aqueduct between tiles " + par.GetTile() + " and " + path.GetTile() + " - " + AIError.GetLastErrorString());
-									m_pathfinderTries = 0;
+									m_pathfinder_tries = 0;
 									return [null, null];
 								}
 							} else {
 								built_last_node = false;
 							}
 							/* add aqueduct pieces into the canal array */
-							m_builtTiles.append(WaterTile.SetType(par.GetTile(), WaterTileType.AQUEDUCT));
-							m_builtTiles.append(WaterTile.SetType(path.GetTile(), WaterTileType.AQUEDUCT));
+							m_built_tiles.append(WaterTile.SetType(par.GetTile(), WaterTileType.AQUEDUCT));
+							m_built_tiles.append(WaterTile.SetType(path.GetTile(), WaterTileType.AQUEDUCT));
 							last_node = path.GetTile();
 							path = par;
 							par = path.GetParent();
@@ -789,9 +789,9 @@ class ShipBuildManager
 									break;
 								} else {
 									if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_FLAT_LAND_REQUIRED" || AIMarine.IsWaterDepotTile(path.GetTile()) || AIMarine.IsLockTile(path.GetTile()) || AIMarine.IsDockTile(path.GetTile()) || AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY" || AIError.GetLastErrorString() == "ERR_LOCAL_AUTHORITY_REFUSES") {
-										if (m_pathfinderTries < max_pathfinderTries && last_node != null) {
+										if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 											if (!silent_mode) AILog.Warning("Couldn't build canal 'path' at tile " + path.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-											return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_builtTiles, canal_cost);
+											return PathfindBuildCanal(fromTile, last_node, silent_mode, null, m_built_tiles, canal_cost);
 										}
 									} else if (AIError.GetLastErrorString() == "ERR_ALREADY_BUILT" && AIMarine.IsCanalTile(path.GetTile())) {
 //										if (!silent_mode) AILog.Warning("We found a canal already built at tile " + path.GetTile());
@@ -805,14 +805,14 @@ class ShipBuildManager
 							} while (counter < 500);
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build canal 'path' at tile " + path.GetTile() + " - " + AIError.GetLastErrorString());
-								m_pathfinderTries = 0;
+								m_pathfinder_tries = 0;
 								return [null, null];
 							}
 						} else {
 							built_last_node = false;
 						}
 						/* add canal piece into the canal array */
-						m_builtTiles.append(WaterTile.SetType(path.GetTile(), WaterTileType.CANAL));
+						m_built_tiles.append(WaterTile.SetType(path.GetTile(), WaterTileType.CANAL));
 					}
 				}
 				last_node = path.GetTile();
@@ -821,7 +821,7 @@ class ShipBuildManager
 			if (!silent_mode) AILog.Info("Canal built! Actual cost for building canal: " + canal_cost);
 		}
 
-		m_pathfinderTries = 0;
+		m_pathfinder_tries = 0;
 		return [builtTiles, null];
 	}
 
@@ -1084,7 +1084,7 @@ class ShipBuildManager
 		if (m_depot_tile == null) m_depot_tile = -1;
 		if (m_cheaperRoute == null) m_cheaperRoute = -1;
 
-		return [m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depot_tile, m_cargo_class, m_cheaperRoute, m_best_routes_built, m_builtTiles];
+		return [m_city_from, m_city_to, m_dockFrom, m_dockTo, m_depot_tile, m_cargo_class, m_cheaperRoute, m_best_routes_built, m_built_tiles];
 	}
 
 	function LoadBuildManager(data)
@@ -1097,6 +1097,6 @@ class ShipBuildManager
 		m_cargo_class = data[5];
 		m_cheaperRoute = data[6];
 		m_best_routes_built = data[7];
-		m_builtTiles = data[8];
+		m_built_tiles = data[8];
 	}
 };
