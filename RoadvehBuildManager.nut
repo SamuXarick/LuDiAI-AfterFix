@@ -40,34 +40,34 @@ class RoadBuildManager
 
 	function HasUnfinishedRoute()
 	{
-		return m_city_from != -1 && m_city_to != -1 && m_cargo_class != -1;
+		return this.m_city_from != -1 && this.m_city_to != -1 && this.m_cargo_class != -1;
 	}
 
 	function SetRouteFinished()
 	{
-		m_city_from = -1;
-		m_city_to = -1;
-		m_station_from = -1;
-		m_station_to = -1;
-		m_depot_tile = -1;
-		m_bridge_tiles = [];
-		m_cargo_class = -1;
-		m_articulated = -1;
-		m_built_tiles = [];
-		m_sent_to_depot_road_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-		m_best_routes_built = null;
-		m_pathfinder_profile = -1;
+		this.m_city_from = -1;
+		this.m_city_to = -1;
+		this.m_station_from = -1;
+		this.m_station_to = -1;
+		this.m_depot_tile = -1;
+		this.m_bridge_tiles = [];
+		this.m_cargo_class = -1;
+		this.m_articulated = -1;
+		this.m_built_tiles = [];
+		this.m_sent_to_depot_road_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+		this.m_best_routes_built = null;
+		this.m_pathfinder_profile = -1;
 	}
 
 	function BuildRoadRoute(city_from, city_to, cargo_class, articulated, sent_to_depot_road_group, best_routes_built)
 	{
-		m_city_from = city_from;
-		m_city_to = city_to;
-		m_cargo_class = cargo_class;
-		m_articulated = articulated;
-		m_sent_to_depot_road_group = sent_to_depot_road_group;
-		m_best_routes_built = best_routes_built;
-		if (m_pathfinder_profile == -1) m_pathfinder_profile = AIController.GetSetting("pf_profile");
+		this.m_city_from = city_from;
+		this.m_city_to = city_to;
+		this.m_cargo_class = cargo_class;
+		this.m_articulated = articulated;
+		this.m_sent_to_depot_road_group = sent_to_depot_road_group;
+		this.m_best_routes_built = best_routes_built;
+		if (this.m_pathfinder_profile == -1) this.m_pathfinder_profile = AIController.GetSetting("pf_profile");
 
 		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_ROAD);
 		if (num_vehicles >= AIGameSettings.GetValue("max_roadveh") || AIGameSettings.IsDisabledVehicleType(AIVehicle.VT_ROAD)) {
@@ -75,40 +75,40 @@ class RoadBuildManager
 			return 0;
 		}
 
-		if (m_station_from == -1) {
-			m_station_from = BuildTownRoadStation(m_city_from, m_cargo_class, null, m_city_to, m_articulated, m_best_routes_built);
-			if (m_station_from == null) {
+		if (this.m_station_from == -1) {
+			this.m_station_from = BuildTownRoadStation(this.m_city_from, this.m_cargo_class, null, this.m_city_to, this.m_articulated, this.m_best_routes_built);
+			if (this.m_station_from == null) {
 				SetRouteFinished();
 				return null;
 			}
 		}
 
-		if (m_station_to == -1) {
-			m_station_to = BuildTownRoadStation(m_city_to, m_cargo_class, null, m_city_from, m_articulated, m_best_routes_built);
-			if (m_station_to == null) {
-				if (m_station_from != null) {
-//					local drivethrough = AIRoad.IsDriveThroughRoadStationTile(m_station_from);
+		if (this.m_station_to == -1) {
+			this.m_station_to = BuildTownRoadStation(this.m_city_to, this.m_cargo_class, null, this.m_city_from, this.m_articulated, this.m_best_routes_built);
+			if (this.m_station_to == null) {
+				if (this.m_station_from != null) {
+//					local drivethrough = AIRoad.IsDriveThroughRoadStationTile(this.m_station_from);
 					local counter = 0;
 					do {
-						if (!TestRemoveRoadStation().TryRemove(m_station_from)) {
+						if (!TestRemoveRoadStation().TryRemove(this.m_station_from)) {
 							++counter;
 						}
 						else {
 //							if (drivethrough) {
-//								AILog.Warning("m_station_to; Removed drive through station tile at " + m_station_from);
+//								AILog.Warning("this.m_station_to; Removed drive through station tile at " + this.m_station_from);
 //							} else {
-//								AILog.Warning("m_station_to; Removed road station tile at " + m_station_from);
+//								AILog.Warning("this.m_station_to; Removed road station tile at " + this.m_station_from);
 //							}
 							break;
 						}
 						AIController.Sleep(1);
 					} while (counter < 500);
 					if (counter == 500) {
-						::scheduledRemovalsTable.Road.rawset(m_station_from, 0);
+						::scheduledRemovalsTable.Road.rawset(this.m_station_from, 0);
 //						if (drivethrough) {
-//							AILog.Error("Failed to remove drive through station tile at " + m_station_from + " - " + AIError.GetLastErrorString());
+//							AILog.Error("Failed to remove drive through station tile at " + this.m_station_from + " - " + AIError.GetLastErrorString());
 //						} else {
-//							AILog.Error("Failed to remove road station tile at " + m_station_from + " - " + AIError.GetLastErrorString());
+//							AILog.Error("Failed to remove road station tile at " + this.m_station_from + " - " + AIError.GetLastErrorString());
 //						}
 					}
 				}
@@ -117,66 +117,66 @@ class RoadBuildManager
 			}
 		}
 
-		if (m_depot_tile == -1) {
-			local roadArray = PathfindBuildRoad(m_station_from, m_station_to, false, m_pathfinder_instance, m_built_tiles);
-			m_pathfinder_instance = roadArray[1];
-			if (roadArray[0] == null && m_pathfinder_instance != null) {
+		if (this.m_depot_tile == -1) {
+			local roadArray = PathfindBuildRoad(this.m_station_from, this.m_station_to, false, this.m_pathfinder_instance, this.m_built_tiles);
+			this.m_pathfinder_instance = roadArray[1];
+			if (roadArray[0] == null && this.m_pathfinder_instance != null) {
 				return 0;
 			}
-			m_depot_tile = BuildRouteRoadDepot(roadArray[0]);
+			this.m_depot_tile = BuildRouteRoadDepot(roadArray[0]);
 		}
 
-		if (m_depot_tile == null) {
-			if (m_station_from != null) {
-//				local drivethrough = AIRoad.IsDriveThroughRoadStationTile(m_station_from);
+		if (this.m_depot_tile == null) {
+			if (this.m_station_from != null) {
+//				local drivethrough = AIRoad.IsDriveThroughRoadStationTile(this.m_station_from);
 				local counter = 0;
 				do {
-					if (!TestRemoveRoadStation().TryRemove(m_station_from)) {
+					if (!TestRemoveRoadStation().TryRemove(this.m_station_from)) {
 						++counter;
 					}
 					else {
 //						if (drivethrough) {
-//							AILog.Warning("m_depot_tile m_station_from; Removed drive through station tile at " + m_station_from);
+//							AILog.Warning("this.m_depot_tile this.m_station_from; Removed drive through station tile at " + this.m_station_from);
 //						} else {
-//							AILog.Warning("m_depot_tile m_station_from; Removed road station tile at " + m_station_from);
+//							AILog.Warning("this.m_depot_tile this.m_station_from; Removed road station tile at " + this.m_station_from);
 //						}
 						break;
 					}
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Road.rawset(m_station_from, 0);
+					::scheduledRemovalsTable.Road.rawset(this.m_station_from, 0);
 //					if (drivethrough) {
-//						AILog.Error("Failed to remove drive through station tile at " + m_station_from + " - " + AIError.GetLastErrorString());
+//						AILog.Error("Failed to remove drive through station tile at " + this.m_station_from + " - " + AIError.GetLastErrorString());
 //					} else {
-//						AILog.Error("Failed to remove road station tile at " + m_station_from + " - " + AIError.GetLastErrorString());
+//						AILog.Error("Failed to remove road station tile at " + this.m_station_from + " - " + AIError.GetLastErrorString());
 //					}
 				}
 			}
 
-			if (m_station_to != null) {
-//				local drivethrough = AIRoad.IsDriveThroughRoadStationTile(m_station_to);
+			if (this.m_station_to != null) {
+//				local drivethrough = AIRoad.IsDriveThroughRoadStationTile(this.m_station_to);
 				local counter = 0;
 				do {
-					if (!TestRemoveRoadStation().TryRemove(m_station_to)) {
+					if (!TestRemoveRoadStation().TryRemove(this.m_station_to)) {
 						++counter;
 					}
 					else {
 //						if (drivethrough) {
-//							AILog.Warning("m_depot_tile m_station_to; Removed drive through station tile at " + m_station_to);
+//							AILog.Warning("this.m_depot_tile this.m_station_to; Removed drive through station tile at " + this.m_station_to);
 //						} else {
-//							AILog.Warning("m_depot_tile m_station_to; Removed road station tile at " + m_station_to);
+//							AILog.Warning("this.m_depot_tile this.m_station_to; Removed road station tile at " + this.m_station_to);
 //						}
 						break;
 					}
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Road.rawset(m_station_to, 0);
+					::scheduledRemovalsTable.Road.rawset(this.m_station_to, 0);
 //					if (drivethrough) {
-//						AILog.Error("Failed to remove drive through station tile at " + m_station_to + " - " + AIError.GetLastErrorString());
+//						AILog.Error("Failed to remove drive through station tile at " + this.m_station_to + " - " + AIError.GetLastErrorString());
 //					} else {
-//						AILog.Error("Failed to remove road station tile at " + m_station_to + " - " + AIError.GetLastErrorString());
+//						AILog.Error("Failed to remove road station tile at " + this.m_station_to + " - " + AIError.GetLastErrorString());
 //					}
 				}
 			}
@@ -185,8 +185,8 @@ class RoadBuildManager
 			return null;
 		}
 
-		m_built_tiles = [];
-		return RoadRoute(m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile, m_bridge_tiles, m_cargo_class, m_sent_to_depot_road_group);
+		this.m_built_tiles = [];
+		return RoadRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile, this.m_bridge_tiles, this.m_cargo_class, this.m_sent_to_depot_road_group);
 	}
 
 	function BuildTownRoadStation(town_id, cargo_class, stationTile, otherTown, articulated, best_routes_built)
@@ -787,19 +787,19 @@ class RoadBuildManager
 		/* can store road tiles into array */
 
 		if (fromTile != toTile) {
-			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(m_city_from), AITown.GetLocation(m_city_to));
-			assert(m_pathfinder_profile != -1);
+			local route_dist = AIMap.DistanceManhattan(AITown.GetLocation(this.m_city_from), AITown.GetLocation(this.m_city_to));
+			assert(this.m_pathfinder_profile != -1);
 			local max_pathfinderTries = route_dist;
-			if (m_pathfinder_profile == 0) {
+			if (this.m_pathfinder_profile == 0) {
 				max_pathfinderTries = 1250 * route_dist;
-			} else if (m_pathfinder_profile == 1) {
+			} else if (this.m_pathfinder_profile == 1) {
 				max_pathfinderTries = 500 * route_dist;
 			} else {
 				max_pathfinderTries = 5000 * route_dist / 15 + 5000 * route_dist % 15;
 			}
 
 			/* Print the names of the towns we'll try to connect. */
-			if (!silent_mode) AILog.Info("r:Connecting " + AITown.GetName(m_city_from) + " (tile " + fromTile + ") and " + AITown.GetName(m_city_to) + " (tile " + toTile + ") (iteration " + (m_pathfinder_tries + 1) + "/" + max_pathfinderTries + ")");
+			if (!silent_mode) AILog.Info("r:Connecting " + AITown.GetName(this.m_city_from) + " (tile " + fromTile + ") and " + AITown.GetName(this.m_city_to) + " (tile " + toTile + ") (iteration " + (this.m_pathfinder_tries + 1) + "/" + max_pathfinderTries + ")");
 
 			/* Tell OpenTTD we want to build normal road (no tram tracks). */
 			AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
@@ -808,7 +808,7 @@ class RoadBuildManager
 				/* Create an instance of the pathfinder. */
 				pathfinder = Road();
 
-				switch(m_pathfinder_profile) {
+				switch(this.m_pathfinder_profile) {
 					case 0:
 						AILog.Info("road pathfinder: custom");
 /*defaults*/
@@ -871,12 +871,12 @@ class RoadBuildManager
 
 //			local count = 0;
 			do {
-				++m_pathfinder_tries;
+				++this.m_pathfinder_tries;
 //				++count;
 				path = pathfinder.FindPath(1);
 
 				if (path == false) {
-					if (m_pathfinder_tries < max_pathfinderTries) {
+					if (this.m_pathfinder_tries < max_pathfinderTries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							if (!silent_mode) AILog.Info("road pathfinder: FindPath iterated: " + count);
 //							local signList = AISignList();
@@ -889,7 +889,7 @@ class RoadBuildManager
 					} else {
 						/* Timed out */
 						if (!silent_mode) AILog.Error("road pathfinder: FindPath return false (timed out)");
-						m_pathfinder_tries = 0;
+						this.m_pathfinder_tries = 0;
 						return [null, null];
 					}
 				}
@@ -897,13 +897,13 @@ class RoadBuildManager
 				if (path == null ) {
 					/* No path was found. */
 					if (!silent_mode) AILog.Error("road pathfinder: FindPath return null (no path)");
-					m_pathfinder_tries = 0;
+					this.m_pathfinder_tries = 0;
 					return [null, null];
 				}
 			} while (path == false);
 
-//			if (!silent_mode && m_pathfinder_tries != count) AILog.Info("road pathfinder: FindPath iterated: " + count);
-			if (!silent_mode) AILog.Info("Road path found! FindPath iterated: " + m_pathfinder_tries + ". Building road... ");
+//			if (!silent_mode && this.m_pathfinder_tries != count) AILog.Info("road pathfinder: FindPath iterated: " + count);
+			if (!silent_mode) AILog.Info("Road path found! FindPath iterated: " + this.m_pathfinder_tries + ". Building road... ");
 			if (!silent_mode) AILog.Info("road pathfinder: FindPath cost: " + path.GetCost());
 			local road_cost = cost_so_far;
 			/* If a path was found, build a road over it. */
@@ -930,9 +930,9 @@ class RoadBuildManager
 										break;
 									}
 									else if (AIError.GetLastErrorString() == "ERR_LAND_SLOPED_WRONG" || AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY") {
-										if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
+										if (this.m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 											if (!silent_mode) AILog.Warning("Couldn't build road at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-											return PathfindBuildRoad(fromTile, last_node, silent_mode, null, m_built_tiles, road_cost);
+											return PathfindBuildRoad(fromTile, last_node, silent_mode, null, this.m_built_tiles, road_cost);
 										}
 									}
 									++counter;
@@ -948,21 +948,21 @@ class RoadBuildManager
 
 							if (counter == 500) {
 								if (!silent_mode) AILog.Warning("Couldn't build road at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
-								m_pathfinder_tries = 0;
+								this.m_pathfinder_tries = 0;
 								return [null, null];
 							}
 
 							/* add road piece into the road array */
-							m_built_tiles.append(RoadTile(path.GetTile(), RoadTileType.ROAD));
+							this.m_built_tiles.append(RoadTile(path.GetTile(), RoadTileType.ROAD));
 						}
 						else {
-							if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
+							if (this.m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 								if (!silent_mode) AILog.Warning("Won't build a road crossing a rail at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-								return PathfindBuildRoad(fromTile, last_node, silent_mode, null, m_built_tiles, road_cost);
+								return PathfindBuildRoad(fromTile, last_node, silent_mode, null, this.m_built_tiles, road_cost);
 							}
 							else {
 								if (!silent_mode) AILog.Warning("Won't build a road crossing a rail at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
-								m_pathfinder_tries = 0;
+								this.m_pathfinder_tries = 0;
 								return [null, null];
 							}
 						}
@@ -977,9 +977,9 @@ class RoadBuildManager
 									local costs = AIAccounting();
 									if (!TestDemolishTile().TryDemolish(path.GetTile())) {
 										if (AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY") {
-											if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
+											if (this.m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't demolish road at tile " + path.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-												return PathfindBuildRoad(fromTile, last_node, silent_mode, null, m_built_tiles, road_cost);
+												return PathfindBuildRoad(fromTile, last_node, silent_mode, null, this.m_built_tiles, road_cost);
 											}
 										}
 										++counter;
@@ -995,7 +995,7 @@ class RoadBuildManager
 
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't demolish road at tile " + path.GetTile() + " - " + AIError.GetLastErrorString());
-									m_pathfinder_tries = 0;
+									this.m_pathfinder_tries = 0;
 									return [null, null];
 								}
 							}
@@ -1009,9 +1009,9 @@ class RoadBuildManager
 											break;
 										}
 										else if (AIError.GetLastErrorString() == "ERR_ANOTHER_TUNNEL_IN_THE_WAY") {
-											if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
+											if (this.m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't build road tunnel at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-												return PathfindBuildRoad(fromTile, last_node, silent_mode, null, m_built_tiles, road_cost);
+												return PathfindBuildRoad(fromTile, last_node, silent_mode, null, this.m_built_tiles, road_cost);
 											}
 										}
 										++counter;
@@ -1027,11 +1027,11 @@ class RoadBuildManager
 
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build road tunnel at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
-									m_pathfinder_tries = 0;
+									this.m_pathfinder_tries = 0;
 									return [null, null];
 								}
 
-								m_built_tiles.append(RoadTile(path.GetTile(), RoadTileType.TUNNEL));
+								this.m_built_tiles.append(RoadTile(path.GetTile(), RoadTileType.TUNNEL));
 
 							}
 							else {
@@ -1047,7 +1047,7 @@ class RoadBuildManager
 									if (!TestBuildBridge().TryBuild(AIVehicle.VT_ROAD, bridge_list.Begin(), path.GetTile(), par.GetTile())) {
 										if (AIError.GetLastErrorString() == "ERR_ALREADY_BUILT" || AIBridge.IsBridgeTile(path.GetTile()) && (AIBridge.GetOtherBridgeEnd(path.GetTile()) == par.GetTile()) && last_node != null && AIRoad.AreRoadTilesConnected(path.GetTile(), last_node)) {
 //											if (!silent_mode) AILog.Warning("We found a road bridge already built at tiles " + path.GetTile() + " and " + par.GetTile());
-											m_bridge_tiles.append(path.GetTile() < par.GetTile() ? [path.GetTile(), par.GetTile()] : [par.GetTile(), path.GetTile()]);
+											this.m_bridge_tiles.append(path.GetTile() < par.GetTile() ? [path.GetTile(), par.GetTile()] : [par.GetTile(), path.GetTile()]);
 											break;
 										}
 										else if (AIError.GetLastErrorString() == "ERR_NOT_ENOUGH_CASH") {
@@ -1057,9 +1057,9 @@ class RoadBuildManager
 											bridge_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
 										}
 										else if (AIError.GetLastErrorString() == "ERR_AREA_NOT_CLEAR" || AIError.GetLastErrorString() == "ERR_OWNED_BY_ANOTHER_COMPANY") {
-											if (m_pathfinder_tries < max_pathfinderTries && last_node != null) {
+											if (this.m_pathfinder_tries < max_pathfinderTries && last_node != null) {
 												if (!silent_mode) AILog.Warning("Couldn't build road bridge at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString() + " - Retrying...");
-												return PathfindBuildRoad(fromTile, last_node, silent_mode, null, m_built_tiles, road_cost);
+												return PathfindBuildRoad(fromTile, last_node, silent_mode, null, this.m_built_tiles, road_cost);
 											}
 										}
 										++counter;
@@ -1067,7 +1067,7 @@ class RoadBuildManager
 									else {
 										road_cost += costs.GetCosts();
 //										if (!silent_mode) AILog.Warning("We built a road bridge at tiles " + path.GetTile() + " and " + par.GetTile() + ". ec: " + (path.GetCost() - par.GetCost()) + ", ac: " + costs.GetCosts());
-										m_bridge_tiles.append(path.GetTile() < par.GetTile() ? [path.GetTile(), par.GetTile()] : [par.GetTile(), path.GetTile()]);
+										this.m_bridge_tiles.append(path.GetTile() < par.GetTile() ? [path.GetTile(), par.GetTile()] : [par.GetTile(), path.GetTile()]);
 										break;
 									}
 
@@ -1076,12 +1076,12 @@ class RoadBuildManager
 
 								if (counter == 500) {
 									if (!silent_mode) AILog.Warning("Couldn't build road bridge at tiles " + path.GetTile() + " and " + par.GetTile() + " - " + AIError.GetLastErrorString());
-									m_pathfinder_tries = 0;
+									this.m_pathfinder_tries = 0;
 									return [null, null];
 								}
 
-								m_built_tiles.append(RoadTile(path.GetTile(), RoadTileType.BRIDGE, bridge_list.Begin()));
-								m_built_tiles.append(RoadTile(par.GetTile(), RoadTileType.ROAD));
+								this.m_built_tiles.append(RoadTile(path.GetTile(), RoadTileType.BRIDGE, bridge_list.Begin()));
+								this.m_built_tiles.append(RoadTile(par.GetTile(), RoadTileType.ROAD));
 							}
 						}
 					}
@@ -1092,7 +1092,7 @@ class RoadBuildManager
 			if (!silent_mode) AILog.Info("Road built! Actual cost for building road: " + road_cost);
 		}
 
-		m_pathfinder_tries = 0;
+		this.m_pathfinder_tries = 0;
 		return [builtTiles, null];
 	}
 
@@ -1215,14 +1215,14 @@ class RoadBuildManager
 
 		/* second attempt, build closer to the destination */
 		local tileList = AITileList();
-		tileList.AddRectangle(Utils.GetValidOffsetTile(m_station_to, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(m_station_to, squareSize, squareSize));
+		tileList.AddRectangle(Utils.GetValidOffsetTile(this.m_station_to, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(this.m_station_to, squareSize, squareSize));
 
 		local removelist = AITileList();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
 			if (!AIRoad.IsRoadTile(tile)) {
 				removelist.AddTile(tile);
 			} else {
-				tileList.SetValue(tile, AIMap.DistanceManhattan(tile, m_station_to));
+				tileList.SetValue(tile, AIMap.DistanceManhattan(tile, this.m_station_to));
 			}
 		}
 		tileList.RemoveList(removelist);
@@ -1238,14 +1238,14 @@ class RoadBuildManager
 		/* third attempt, build closer to the source */
 		tileList.Clear();
 
-		tileList.AddRectangle(Utils.GetValidOffsetTile(m_station_from, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(m_station_from, squareSize, squareSize));
+		tileList.AddRectangle(Utils.GetValidOffsetTile(this.m_station_from, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(this.m_station_from, squareSize, squareSize));
 
 		removelist.Clear();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
 			if (!AIRoad.IsRoadTile(tile)) {
 				removelist.AddTile(tile);
 			} else {
-				tileList.SetValue(tile, AIMap.DistanceManhattan(tile, m_station_from));
+				tileList.SetValue(tile, AIMap.DistanceManhattan(tile, this.m_station_from));
 			}
 		}
 		tileList.RemoveList(removelist);
@@ -1264,27 +1264,27 @@ class RoadBuildManager
 
 	function SaveBuildManager()
 	{
-		if (m_city_from == null) m_city_from = -1;
-		if (m_city_to == null) m_city_to = -1;
-		if (m_station_from == null) m_station_from = -1;
-		if (m_station_to == null) m_station_to = -1;
-		if (m_depot_tile == null) m_depot_tile = -1;
-		if (m_articulated == null) m_articulated = -1;
+		if (this.m_city_from == null) this.m_city_from = -1;
+		if (this.m_city_to == null) this.m_city_to = -1;
+		if (this.m_station_from == null) this.m_station_from = -1;
+		if (this.m_station_to == null) this.m_station_to = -1;
+		if (this.m_depot_tile == null) this.m_depot_tile = -1;
+		if (this.m_articulated == null) this.m_articulated = -1;
 
-		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile, m_bridge_tiles, m_cargo_class, m_articulated, m_best_routes_built, m_pathfinder_profile];
+		return [this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile, this.m_bridge_tiles, this.m_cargo_class, this.m_articulated, this.m_best_routes_built, this.m_pathfinder_profile];
 	}
 
 	function LoadBuildManager(data)
 	{
-		m_city_from = data[0];
-		m_city_to = data[1];
-		m_station_from = data[2];
-		m_station_to = data[3];
-		m_depot_tile = data[4];
-		m_bridge_tiles = data[5];
-		m_cargo_class = data[6];
-		m_articulated = data[7];
-		m_best_routes_built = data[8];
-		m_pathfinder_profile = data[9];
+		this.m_city_from = data[0];
+		this.m_city_to = data[1];
+		this.m_station_from = data[2];
+		this.m_station_to = data[3];
+		this.m_depot_tile = data[4];
+		this.m_bridge_tiles = data[5];
+		this.m_cargo_class = data[6];
+		this.m_articulated = data[7];
+		this.m_best_routes_built = data[8];
+		this.m_pathfinder_profile = data[9];
 	}
 };
