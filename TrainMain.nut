@@ -868,7 +868,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 			if (station_from != -1) allTilesFound.AddTile(station_from);
 			for (local tile = allStationsTiles.Begin(); !allStationsTiles.IsEnd(); tile = allStationsTiles.Next()) {
 				local found = false;
-				foreach (id, i in scheduledRemovalsTable.Train) {
+				foreach (id, i in ::scheduledRemovalsTable.Train) {
 					local t = i.m_tile;
 					local struct = i.m_struct;
 					if (struct == RailStructType.STATION) {
@@ -914,7 +914,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 			if (depotFrom != -1) allTilesFound.AddTile(depotFrom);
 			for (local tile = allDepotsTiles.Begin(); !allDepotsTiles.IsEnd(); tile = allDepotsTiles.Next()) {
 				local found = false;
-				foreach (id, i in scheduledRemovalsTable.Train) {
+				foreach (id, i in ::scheduledRemovalsTable.Train) {
 					local t = i.m_tile;
 					local struct = i.m_struct;
 					if (struct == RailStructType.DEPOT) {

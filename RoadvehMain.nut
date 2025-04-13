@@ -358,7 +358,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRoadRoute()
 				all_tiles_found.AddTile(station_from);
 			}
 			foreach (tile, _ in all_stations_tiles) {
-				if (scheduledRemovalsTable.Road.rawin(tile)) {
+				if (::scheduledRemovalsTable.Road.rawin(tile)) {
 //					AILog.Info("scheduledRemovalsTable.Road has tile " + tile);
 					all_tiles_found[tile] = 0;
 					break;
@@ -380,7 +380,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRoadRoute()
 				all_tiles_missing.RemoveList(all_tiles_found);
 				foreach (tile, _ in all_tiles_missing) {
 //					AILog.Info("Tile " + tile + " is missing");
-					scheduledRemovalsTable.Road.rawset(tile, 0);
+					::scheduledRemovalsTable.Road.rawset(tile, 0);
 				}
 			}
 		}
@@ -390,7 +390,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRoadRoute()
 //			AILog.Info("all_depots_tiles has " + all_depots_tiles.Count() + " tiles");
 			local all_tiles_found = AITileList();
 			foreach (tile, _ in all_depots_tiles) {
-				if (scheduledRemovalsTable.Road.HasItem(tile)) {
+				if (::scheduledRemovalsTable.Road.rawin(tile)) {
 //					AILog.Info("scheduledRemovalsTable.Road has tile " + tile);
 					all_tiles_found[tile] = 0;
 					break;
@@ -411,7 +411,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRoadRoute()
 				all_tiles_missing.RemoveList(all_tiles_found);
 				foreach (tile, _ in all_tiles_missing) {
 //					AILog.Info("Tile " + tile + " is missing");
-					scheduledRemovalsTable.Road.rawset(tile, 0);
+					::scheduledRemovalsTable.Road.rawset(tile, 0);
 				}
 			}
 		}

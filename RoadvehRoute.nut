@@ -693,7 +693,7 @@ class RoadRoute extends RoadRouteManager
 
 	function ExpandRoadStation()
 	{
-		local result = 0;
+		local result = false;
 		if (!this.m_active_route) return result;
 
 		ValidateVehicleList();
@@ -711,9 +711,9 @@ class RoadRoute extends RoadRouteManager
 		local population = AITown.GetPopulation(this.m_city_from);
 
 		if (population / 1000 > this.m_expanded_from_count + 1) {
-			if (RoadBuildManager().BuildTownRoadStation(this.m_city_from, this.m_cargo_class, this.m_station_from, this.m_city_to, articulated)) {
+			if (RoadBuildManager().BuildTownRoadStation(this.m_city_from, this.m_city_to, this.m_cargo_class, articulated, true, this.m_station_from) != null) {
 				++this.m_expanded_from_count;
-				result = 1;
+				result = true;
 				AILog.Info("Expanded " + AIBaseStation.GetName(AIStation.GetStationID(this.m_station_from)) + " road station.");
 			}
 		}
@@ -721,9 +721,9 @@ class RoadRoute extends RoadRouteManager
 		population = AITown.GetPopulation(this.m_city_to);
 
 		if (population / 1000 > this.m_expanded_to_count + 1) {
-			if (RoadBuildManager().BuildTownRoadStation(this.m_city_to, this.m_cargo_class, this.m_station_to, this.m_city_from, articulated)) {
+			if (RoadBuildManager().BuildTownRoadStation(this.m_city_to, this.m_city_from, this.m_cargo_class, articulated, true, this.m_station_to) != null) {
 				++this.m_expanded_to_count;
-				result = 1;
+				result = true;
 				AILog.Info("Expanded " + AIBaseStation.GetName(AIStation.GetStationID(this.m_station_to)) + " road station.");
 			}
 		}
