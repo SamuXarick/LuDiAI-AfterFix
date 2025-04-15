@@ -146,7 +146,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 
 function LuDiAIAfterFix::ResetAirManagementVariables()
 {
-	if (this.lastAirManagedArray < 0) this.lastAirManagedArray = this.airRouteManager.m_townRouteArray.len() - 1;
+	if (this.lastAirManagedArray < 0) this.lastAirManagedArray = this.airRouteManager.m_town_route_array.len() - 1;
 	if (this.lastAirManagedManagement < 0) this.lastAirManagedManagement = 6;
 }
 
@@ -173,7 +173,7 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 //	for (local i = this.lastAirManagedArray; i >= 0; --i) {
 //		if (this.lastAirManagedManagement != 7) break;
 //		this.lastAirManagedArray--;
-//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(this.airRouteManager.m_townRouteArray[i].m_airport_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(this.airRouteManager.m_townRouteArray[i].m_airport_to)));
+//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(this.airRouteManager.m_town_route_array[i].m_airport_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(this.airRouteManager.m_town_route_array[i].m_airport_to)));
 //		if (this.InterruptAirManagement(cur_date)) return;
 //	}
 //	this.ResetAirManagementVariables();
@@ -184,26 +184,26 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		if (this.lastAirManagedManagement != 6) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". RenewVehicles");
-		this.airRouteManager.m_townRouteArray[i].RenewVehicles();
+		this.airRouteManager.m_town_route_array[i].RenewVehicles();
 		if (this.InterruptAirManagement(cur_date)) return;
 	}
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 6) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = this.lastAirManagedArray; i >= 0; --i) {
 		if (this.lastAirManagedManagement != 5) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SendNegativeProfitVehiclesToDepot");
-		this.airRouteManager.m_townRouteArray[i].SendNegativeProfitVehiclesToDepot();
+		this.airRouteManager.m_town_route_array[i].SendNegativeProfitVehiclesToDepot();
 		if (this.InterruptAirManagement(cur_date)) return;
 	}
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 5) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	local num_vehs = this.airRouteManager.GetAircraftCount();
@@ -213,40 +213,40 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
 		if (MAX_AIR_VEHICLES * 0.95 < num_vehs) {
-			this.airRouteManager.m_townRouteArray[i].SendLowProfitVehiclesToDepot(max_all_routes_profit);
+			this.airRouteManager.m_town_route_array[i].SendLowProfitVehiclesToDepot(max_all_routes_profit);
 		}
 		if (this.InterruptAirManagement(cur_date)) return;
 	}
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 4) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = this.lastAirManagedArray; i >= 0; --i) {
 		if (this.lastAirManagedManagement != 3) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". UpgradeEngine");
-		this.airRouteManager.m_townRouteArray[i].UpgradeEngine();
+		this.airRouteManager.m_town_route_array[i].UpgradeEngine();
 		if (this.InterruptAirManagement(cur_date)) return;
 	}
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 3) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = this.lastAirManagedArray; i >= 0; --i) {
 		if (this.lastAirManagedManagement != 2) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SellVehiclesInDepot");
-		this.airRouteManager.m_townRouteArray[i].SellVehiclesInDepot();
+		this.airRouteManager.m_town_route_array[i].SellVehiclesInDepot();
 		if (this.InterruptAirManagement(cur_date)) return;
 	}
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 2) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	num_vehs = this.airRouteManager.GetAircraftCount();
@@ -255,25 +255,25 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
 		if (num_vehs < MAX_AIR_VEHICLES) {
-			num_vehs += this.airRouteManager.m_townRouteArray[i].AddRemoveVehicleToRoute(num_vehs < MAX_AIR_VEHICLES);
+			num_vehs += this.airRouteManager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < MAX_AIR_VEHICLES);
 		}
 		if (this.InterruptAirManagement(cur_date)) return;
 	}
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 1) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = this.lastAirManagedArray; i >= 0; --i) {
 		if (this.lastAirManagedManagement != 0) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local city_from = this.airRouteManager.m_townRouteArray[i].m_city_from;
-		local city_to = this.airRouteManager.m_townRouteArray[i].m_city_to;
-		local cargo_class = this.airRouteManager.m_townRouteArray[i].m_cargo_class;
-		if (this.airRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
-			this.airRouteManager.m_townRouteArray.remove(i);
+		local city_from = this.airRouteManager.m_town_route_array[i].m_city_from;
+		local city_to = this.airRouteManager.m_town_route_array[i].m_city_to;
+		local cargo_class = this.airRouteManager.m_town_route_array[i].m_cargo_class;
+		if (this.airRouteManager.m_town_route_array[i].RemoveIfUnserviced()) {
+			this.airRouteManager.m_town_route_array.remove(i);
 			this.airTownManager.ResetCityPair(city_from, city_to, cargo_class, true);
 		}
 		if (this.InterruptAirManagement(cur_date)) return;
@@ -281,5 +281,5 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 	this.ResetAirManagementVariables();
 	if (this.lastAirManagedManagement == 0) this.lastAirManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + this.airRouteManager.m_townRouteArray.len() + " air route" + (this.airRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + this.airRouteManager.m_town_route_array.len() + " air route" + (this.airRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }

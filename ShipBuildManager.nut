@@ -59,13 +59,13 @@ class ShipBuildManager
 		m_best_routes_built = null;
 	}
 
-	function BuildWaterRoute(city_from, city_to, cargo_class, cheaperRoute, sentToDepotWaterGroup, best_routes_built)
+	function BuildWaterRoute(city_from, city_to, cargo_class, cheaperRoute, sent_to_depot_water_group, best_routes_built)
 	{
 		m_city_from = city_from;
 		m_city_to = city_to;
 		m_cargo_class = cargo_class;
 		m_cheaperRoute = cheaperRoute;
-		m_sentToDepotWaterGroup = sentToDepotWaterGroup;
+		m_sentToDepotWaterGroup = sent_to_depot_water_group;
 		m_best_routes_built = best_routes_built;
 
 		local num_vehicles = AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_WATER);

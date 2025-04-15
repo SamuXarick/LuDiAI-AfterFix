@@ -25,7 +25,7 @@ class ShipRoute extends ShipRouteManager
 
 	m_vehicle_list = null;
 
-	constructor(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sentToDepotWaterGroup, is_loaded = 0)
+	constructor(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sent_to_depot_water_group, is_loaded = 0)
 	{
 		m_city_from = city_from;
 		m_city_to = city_to;
@@ -36,7 +36,7 @@ class ShipRoute extends ShipRouteManager
 
 		m_engine = GetShipEngine(cargo_class);
 		m_group = AIGroup.GROUP_INVALID;
-		m_sentToDepotWaterGroup = sentToDepotWaterGroup;
+		m_sentToDepotWaterGroup = sent_to_depot_water_group;
 
 		m_last_vehicle_added = 0;
 		m_last_vehicle_removed = AIDate.GetCurrentDate();
@@ -769,9 +769,9 @@ class ShipRoute extends ShipRouteManager
 		local depot_tile = data[4];
 		local cargo_class = data[5];
 
-		local sentToDepotWaterGroup = data[9];
+		local sent_to_depot_water_group = data[9];
 
-		local route = ShipRoute(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sentToDepotWaterGroup, 1);
+		local route = ShipRoute(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sent_to_depot_water_group, 1);
 
 		route.m_last_vehicle_added = data[6];
 		route.m_last_vehicle_removed = data[7];

@@ -661,12 +661,12 @@ class RailBuildManager
 		}
 	}
 
-	function BuildRailRoute(city_from, city_to, cargo_class, sentToDepotRailGroup, best_routes_built, rail_type)
+	function BuildRailRoute(city_from, city_to, cargo_class, sent_to_depot_rail_group, best_routes_built, rail_type)
 	{
 		m_city_from = city_from;
 		m_city_to = city_to;
 		m_cargo_class = cargo_class;
-		m_sentToDepotRailGroup = sentToDepotRailGroup;
+		m_sentToDepotRailGroup = sent_to_depot_rail_group;
 		m_best_routes_built = best_routes_built;
 		m_rail_type = rail_type;
 		if (m_builtWays == -1) m_builtWays++;

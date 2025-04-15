@@ -53,7 +53,7 @@ class LuDiAIAfterFix extends AIController
 
 	roadTownManager = null;
 	roadRouteManager = null;
-	roadBuildManager = null;
+	road_build_manager = null;
 
 	shipTownManager = null;
 	shipRouteManager = null;
@@ -67,10 +67,10 @@ class LuDiAIAfterFix extends AIController
 	railRouteManager = null;
 	railBuildManager = null;
 
-	sentToDepotAirGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	sent_to_depot_air_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	sent_to_depot_road_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-	sentToDepotWaterGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-	sentToDepotRailGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	sent_to_depot_water_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
 	loading = null;
 	loadData = null;
@@ -110,15 +110,15 @@ class LuDiAIAfterFix extends AIController
 		bestRoutesBuilt = 0
 
 		roadRouteManager = RoadRouteManager(this.sent_to_depot_road_group, false);
-		roadBuildManager = RoadBuildManager();
+		road_build_manager = RoadBuildManager();
 
-		shipRouteManager = ShipRouteManager(this.sentToDepotWaterGroup, false);
+		shipRouteManager = ShipRouteManager(this.sent_to_depot_water_group, false);
 		shipBuildManager = ShipBuildManager();
 
-		airRouteManager = AirRouteManager(this.sentToDepotAirGroup, false);
+		airRouteManager = AirRouteManager(this.sent_to_depot_air_group, false);
 		airBuildManager = AirBuildManager();
 
-		railRouteManager = RailRouteManager(this.sentToDepotRailGroup, false);
+		railRouteManager = RailRouteManager(this.sent_to_depot_rail_group, false);
 		railBuildManager = RailBuildManager();
 
 		::scheduledRemovalsTable <- { Train = [], Road = {}, Ship = {}, Aircraft = {} };
@@ -518,7 +518,7 @@ function LuDiAIAfterFix::Save()
 	local table = {};
 	table.rawset("road_town_manager", roadTownManager.SaveTownManager());
 	table.rawset("road_route_manager", roadRouteManager.SaveRouteManager());
-	table.rawset("road_build_manager", roadBuildManager.SaveBuildManager());
+	table.rawset("road_build_manager", road_build_manager.SaveBuildManager());
 
 	table.rawset("ship_town_manager", shipTownManager.SaveTownManager());
 	table.rawset("ship_route_manager", shipRouteManager.SaveRouteManager());
@@ -537,10 +537,10 @@ function LuDiAIAfterFix::Save()
 	table.rawset("best_routes_built", bestRoutesBuilt);
 	table.rawset("all_routes_built", allRoutesBuilt);
 
-	table.rawset("sent_to_depot_air_group", sentToDepotAirGroup);
+	table.rawset("sent_to_depot_air_group", sent_to_depot_air_group);
 	table.rawset("sent_to_depot_road_group", sent_to_depot_road_group);
-	table.rawset("sent_to_depot_water_group", sentToDepotWaterGroup);
-	table.rawset("sent_to_depot_rail_group", sentToDepotRailGroup);
+	table.rawset("sent_to_depot_water_group", sent_to_depot_water_group);
+	table.rawset("sent_to_depot_rail_group", sent_to_depot_rail_group);
 
 	table.rawset("last_road_managed_array", lastRoadManagedArray);
 	table.rawset("last_road_managed_management", lastRoadManagedManagement);
@@ -584,12 +584,12 @@ function LuDiAIAfterFix::Start()
 
 	if (loading) {
 		if (loadData == null) {
-			for (local i = 0; i < sentToDepotAirGroup.len(); ++i) {
-				if (!AIGroup.IsValidGroup(sentToDepotAirGroup[i])) {
-					sentToDepotAirGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID);
-					if (i == 0) AIGroup.SetName(sentToDepotAirGroup[i], "0: Aircraft to sell");
-					if (i == 1) AIGroup.SetName(sentToDepotAirGroup[i], "1: Aircraft to renew");
-					airRouteManager.m_sent_to_depot_air_group[i] = sentToDepotAirGroup[i];
+			for (local i = 0; i < sent_to_depot_air_group.len(); ++i) {
+				if (!AIGroup.IsValidGroup(sent_to_depot_air_group[i])) {
+					sent_to_depot_air_group[i] = AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID);
+					if (i == 0) AIGroup.SetName(sent_to_depot_air_group[i], "0: Aircraft to sell");
+					if (i == 1) AIGroup.SetName(sent_to_depot_air_group[i], "1: Aircraft to renew");
+					airRouteManager.m_sent_to_depot_air_group[i] = sent_to_depot_air_group[i];
 				}
 			}
 
@@ -602,21 +602,21 @@ function LuDiAIAfterFix::Start()
 				}
 			}
 
-			for (local i = 0; i < sentToDepotWaterGroup.len(); ++i) {
-				if (!AIGroup.IsValidGroup(sentToDepotWaterGroup[i])) {
-					sentToDepotWaterGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID);
-					if (i == 0) AIGroup.SetName(sentToDepotWaterGroup[i], "0: Ships to sell");
-					if (i == 1) AIGroup.SetName(sentToDepotWaterGroup[i], "1: Ships to renew");
-					shipRouteManager.m_sentToDepotWaterGroup[i] = sentToDepotWaterGroup[i];
+			for (local i = 0; i < sent_to_depot_water_group.len(); ++i) {
+				if (!AIGroup.IsValidGroup(sent_to_depot_water_group[i])) {
+					sent_to_depot_water_group[i] = AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID);
+					if (i == 0) AIGroup.SetName(sent_to_depot_water_group[i], "0: Ships to sell");
+					if (i == 1) AIGroup.SetName(sent_to_depot_water_group[i], "1: Ships to renew");
+					shipRouteManager.m_sentToDepotWaterGroup[i] = sent_to_depot_water_group[i];
 				}
 			}
 
-			for (local i = 0; i < sentToDepotRailGroup.len(); ++i) {
-				if (!AIGroup.IsValidGroup(sentToDepotRailGroup[i])) {
-					sentToDepotRailGroup[i] = AIGroup.CreateGroup(AIVehicle.VT_RAIL AIGroup.GROUP_INVALID);
-					if (i == 0) AIGroup.SetName(sentToDepotRailGroup[i], "0: Trains to sell");
-					if (i == 1) AIGroup.SetName(sentToDepotRailGroup[i], "1: Trains to renew");
-					railRouteManager.m_sentToDepotRailGroup[i] = sentToDepotRailGroup[i];
+			for (local i = 0; i < sent_to_depot_rail_group.len(); ++i) {
+				if (!AIGroup.IsValidGroup(sent_to_depot_rail_group[i])) {
+					sent_to_depot_rail_group[i] = AIGroup.CreateGroup(AIVehicle.VT_RAIL AIGroup.GROUP_INVALID);
+					if (i == 0) AIGroup.SetName(sent_to_depot_rail_group[i], "0: Trains to sell");
+					if (i == 1) AIGroup.SetName(sent_to_depot_rail_group[i], "1: Trains to renew");
+					railRouteManager.m_sentToDepotRailGroup[i] = sent_to_depot_rail_group[i];
 				}
 			}
 		}
@@ -631,7 +631,7 @@ function LuDiAIAfterFix::Start()
 			}
 
 			if (loadData[1].rawin("road_build_manager")) {
-				roadBuildManager.LoadBuildManager(loadData[1].rawget("road_build_manager"));
+				road_build_manager.LoadBuildManager(loadData[1].rawget("road_build_manager"));
 			}
 
 			if (loadData[1].rawin("ship_town_manager")) {
@@ -683,7 +683,7 @@ function LuDiAIAfterFix::Start()
 			}
 
 			if (loadData[1].rawin("sent_to_depot_air_group")) {
-				sentToDepotAirGroup = loadData[1].rawget("sent_to_depot_air_group");
+				sent_to_depot_air_group = loadData[1].rawget("sent_to_depot_air_group");
 			}
 
 			if (loadData[1].rawin("sent_to_depot_road_group")) {
@@ -695,7 +695,7 @@ function LuDiAIAfterFix::Start()
 			}
 
 			if (loadData[1].rawin("sent_to_depot_rail_group")) {
-				sentToDepotRailGroup = loadData[1].rawget("sent_to_depot_rail_group");
+				sent_to_depot_rail_group = loadData[1].rawget("sent_to_depot_rail_group");
 			}
 
 			if (loadData[1].rawin("last_road_managed_array")) {

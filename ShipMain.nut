@@ -160,7 +160,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 
 function LuDiAIAfterFix::ResetWaterManagementVariables()
 {
-	if (lastWaterManagedArray < 0) lastWaterManagedArray = shipRouteManager.m_townRouteArray.len() - 1;
+	if (lastWaterManagedArray < 0) lastWaterManagedArray = shipRouteManager.m_town_route_array.len() - 1;
 	if (lastWaterManagedManagement < 0) lastWaterManagedManagement = 6;
 }
 
@@ -187,7 +187,7 @@ function LuDiAIAfterFix::ManageShipRoutes()
 //	for (local i = lastWaterManagedArray; i >= 0; --i) {
 //		if (lastWaterManagedManagement != 7) break;
 //		lastWaterManagedArray--;
-//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(shipRouteManager.m_townRouteArray[i].m_dockFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(shipRouteManager.m_townRouteArray[i].m_dockTo)));
+//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(shipRouteManager.m_town_route_array[i].m_dockFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(shipRouteManager.m_town_route_array[i].m_dockTo)));
 //		if (InterruptWaterManagement(cur_date)) return;
 //	}
 //	ResetWaterManagementVariables();
@@ -198,26 +198,26 @@ function LuDiAIAfterFix::ManageShipRoutes()
 		if (lastWaterManagedManagement != 6) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". RenewVehicles");
-		shipRouteManager.m_townRouteArray[i].RenewVehicles();
+		shipRouteManager.m_town_route_array[i].RenewVehicles();
 		if (InterruptWaterManagement(cur_date)) return;
 	}
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 6) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = lastWaterManagedArray; i >= 0; --i) {
 		if (lastWaterManagedManagement != 5) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". SendNegativeProfitVehiclesToDepot");
-		shipRouteManager.m_townRouteArray[i].SendNegativeProfitVehiclesToDepot();
+		shipRouteManager.m_town_route_array[i].SendNegativeProfitVehiclesToDepot();
 		if (InterruptWaterManagement(cur_date)) return;
 	}
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 5) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	local num_vehs = shipRouteManager.GetShipCount();
@@ -227,40 +227,40 @@ function LuDiAIAfterFix::ManageShipRoutes()
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
 		if (MAX_SHIP_VEHICLES * 0.95 < num_vehs) {
-			shipRouteManager.m_townRouteArray[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
+			shipRouteManager.m_town_route_array[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
 	}
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 4) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = lastWaterManagedArray; i >= 0; --i) {
 		if (lastWaterManagedManagement != 3) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". UpgradeEngine");
-		shipRouteManager.m_townRouteArray[i].UpgradeEngine();
+		shipRouteManager.m_town_route_array[i].UpgradeEngine();
 		if (InterruptWaterManagement(cur_date)) return;
 	}
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 3) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = lastWaterManagedArray; i >= 0; --i) {
 		if (lastWaterManagedManagement != 2) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". SellVehiclesInDepot");
-		shipRouteManager.m_townRouteArray[i].SellVehiclesInDepot();
+		shipRouteManager.m_town_route_array[i].SellVehiclesInDepot();
 		if (InterruptWaterManagement(cur_date)) return;
 	}
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 2) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	num_vehs = shipRouteManager.GetShipCount();
@@ -269,25 +269,25 @@ function LuDiAIAfterFix::ManageShipRoutes()
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
 		if (num_vehs < MAX_SHIP_VEHICLES) {
-			num_vehs += shipRouteManager.m_townRouteArray[i].AddRemoveVehicleToRoute(num_vehs < MAX_SHIP_VEHICLES);
+			num_vehs += shipRouteManager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < MAX_SHIP_VEHICLES);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
 	}
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 1) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	for (local i = lastWaterManagedArray; i >= 0; --i) {
 		if (lastWaterManagedManagement != 0) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
-		local city_from = shipRouteManager.m_townRouteArray[i].m_city_from;
-		local city_to = shipRouteManager.m_townRouteArray[i].m_city_to;
-		local cargoC = shipRouteManager.m_townRouteArray[i].m_cargo_class;
-		if (shipRouteManager.m_townRouteArray[i].RemoveIfUnserviced()) {
-			shipRouteManager.m_townRouteArray.remove(i);
+		local city_from = shipRouteManager.m_town_route_array[i].m_city_from;
+		local city_to = shipRouteManager.m_town_route_array[i].m_city_to;
+		local cargoC = shipRouteManager.m_town_route_array[i].m_cargo_class;
+		if (shipRouteManager.m_town_route_array[i].RemoveIfUnserviced()) {
+			shipRouteManager.m_town_route_array.remove(i);
 			shipTownManager.ResetCityPair(city_from, city_to, cargoC, true);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
@@ -295,7 +295,7 @@ function LuDiAIAfterFix::ManageShipRoutes()
 	ResetWaterManagementVariables();
 	if (lastWaterManagedManagement == 0) lastWaterManagedManagement--;
 //	local management_ticks = AIController.GetTick() - start_tick;
-//	AILog.Info("Managed " + shipRouteManager.m_townRouteArray.len() + " water route" + (shipRouteManager.m_townRouteArray.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
+//	AILog.Info("Managed " + shipRouteManager.m_town_route_array.len() + " water route" + (shipRouteManager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }
 
 function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
@@ -323,8 +323,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 					allTilesFound.AddTile(tile);
 					break;
 				}
-				for (local i = shipRouteManager.m_townRouteArray.len() - 1; i >= 0; --i) {
-					if (shipRouteManager.m_townRouteArray[i].m_dockFrom == tile || shipRouteManager.m_townRouteArray[i].m_dockTo == tile) {
+				for (local i = shipRouteManager.m_town_route_array.len() - 1; i >= 0; --i) {
+					if (shipRouteManager.m_town_route_array[i].m_dockFrom == tile || shipRouteManager.m_town_route_array[i].m_dockTo == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), stationType);
 						allTilesFound.AddList(stationTiles);
@@ -357,8 +357,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 					allTilesFound.AddTile(tile);
 					break;
 				}
-				for (local i = shipRouteManager.m_townRouteArray.len() - 1; i >= 0; --i) {
-					if (shipRouteManager.m_townRouteArray[i].m_depot_tile == tile) {
+				for (local i = shipRouteManager.m_town_route_array.len() - 1; i >= 0; --i) {
+					if (shipRouteManager.m_town_route_array[i].m_depot_tile == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						allTilesFound.AddTile(tile);
 						break;

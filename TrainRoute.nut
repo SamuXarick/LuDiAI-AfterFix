@@ -32,7 +32,7 @@ class RailRoute extends RailRouteManager
 
 	m_vehicle_list = null;
 
-	constructor(city_from, city_to, station_from, station_to, depotFrom, depotTo, bridge_tiles, cargo_class, sentToDepotRailGroup, rail_type, stationFromDir, stationToDir, is_loaded = 0)
+	constructor(city_from, city_to, station_from, station_to, depotFrom, depotTo, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, stationFromDir, stationToDir, is_loaded = 0)
 	{
 		AIRail.SetCurrentRailType(rail_type);
 		m_city_from = city_from;
@@ -51,7 +51,7 @@ class RailRoute extends RailRouteManager
 		m_routeDistance = GetRouteDistance();
 		m_engineWagonPair = GetTrainEngineWagonPair(cargo_class);
 		m_group = AIGroup.GROUP_INVALID;
-		m_sentToDepotRailGroup = sentToDepotRailGroup;
+		m_sentToDepotRailGroup = sent_to_depot_rail_group;
 
 		m_last_vehicle_added = 0;
 		m_last_vehicle_removed = AIDate.GetCurrentDate();
@@ -919,12 +919,12 @@ class RailRoute extends RailRouteManager
 		local cargo_class = data[7];
 		local rail_type = data[13];
 
-		local sentToDepotRailGroup = data[11];
+		local sent_to_depot_rail_group = data[11];
 
 		local stationFromDir = data[14];
 		local stationToDir = data[15];
 
-		local route = RailRoute(city_from, city_to, station_from, station_to, depotFrom, depotTo, bridge_tiles, cargo_class, sentToDepotRailGroup, rail_type, stationFromDir, stationToDir, 1);
+		local route = RailRoute(city_from, city_to, station_from, station_to, depotFrom, depotTo, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, stationFromDir, stationToDir, 1);
 
 		route.m_last_vehicle_added = data[8];
 		route.m_last_vehicle_removed = data[9];
