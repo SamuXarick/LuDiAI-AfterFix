@@ -43,7 +43,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
-			local best_engine_info = WrightAI().GetBestEngineIncome(engine_list, cargo_type, RoadRoute.START_VEHICLE_COUNT, false);
+			local best_engine_info = WrightAI().GetBestEngineIncome(engine_list, cargo_type, RoadRoute.START_VEHICLE_COUNT[cargo_class], false);
 			local max_distance = (ROAD_DAYS_IN_TRANSIT * 2 * 3 * 74 * AIEngine.GetMaxSpeed(best_engine_info[0]) / 4) / (192 * 16);
 			local min_distance = max(20, max_distance * 2 / 3);
 //			AILog.Info("best_engine_info: best_engine = " + AIEngine.GetName(best_engine_info[0]) + "; best_distance = " + best_engine_info[1] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);
@@ -54,7 +54,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 //			AILog.Info("map_size = " + map_size + " ; min_dist = " + min_dist + " ; max_dist = " + max_dist);
 
 			local estimated_costs = 0;
-			local engine_costs = (AIEngine.GetPrice(engine_list.Begin()) + 500) * (cargo_class == AICargo.CC_PASSENGERS ? RoadRoute.START_VEHICLE_COUNT : RoadRoute.MIN_VEHICLE_START_COUNT);
+			local engine_costs = (AIEngine.GetPrice(engine_list.Begin()) + 500) * RoadRoute.START_VEHICLE_COUNT[cargo_class];
 			local road_costs = AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, AIRoad.BT_ROAD) * 2 * max_dist;
 			local clear_costs = AITile.GetBuildCost(AITile.BT_CLEAR_ROUGH) * max_dist;
 			local station_costs = AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, cargo_class == AICargo.CC_PASSENGERS ? AIRoad.BT_BUS_STOP : AIRoad.BT_TRUCK_STOP) * 2;

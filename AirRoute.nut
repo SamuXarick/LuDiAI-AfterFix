@@ -35,8 +35,9 @@ class AirRoute extends AirRouteManager
 		this.m_airport_from = airport_from;
 		this.m_airport_to = airport_to;
 		this.m_cargo_class = cargo_class;
-		this.m_group = AIGroup.GROUP_INVALID;
 		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
+		
+		this.m_group = AIGroup.GROUP_INVALID;
 		this.m_last_vehicle_added = 0;
 		this.m_last_vehicle_removed = AIDate.GetCurrentDate();
 		this.m_renew_vehicles = true;

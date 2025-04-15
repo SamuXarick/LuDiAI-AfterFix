@@ -2,7 +2,7 @@ require("ShipRouteManager.nut");
 
 class ShipRoute extends ShipRouteManager
 {
-	MAX_VEHICLE_COUNT_MODE = AIController.GetSetting("water_cap_mode");
+	m_max_vehicle_count_mode = AIController.GetSetting("water_cap_mode");
 	COUNT_INTERVAL = 20;
 	STATION_RATING_INTERVAL = 40;
 
@@ -163,7 +163,7 @@ class ShipRoute extends ShipRouteManager
 	function AddVehicle(return_vehicle = false)
 	{
 		ValidateVehicleList();
-		if (MAX_VEHICLE_COUNT_MODE != 2 && m_vehicle_list.len() >= OptimalVehicleCount()) {
+		if (m_max_vehicle_count_mode != 2 && m_vehicle_list.len() >= OptimalVehicleCount()) {
 			return null;
 		}
 
@@ -296,7 +296,7 @@ class ShipRoute extends ShipRouteManager
 
 	function OptimalVehicleCount()
 	{
-		if (MAX_VEHICLE_COUNT_MODE == 0) return 10;
+		if (m_max_vehicle_count_mode == 0) return 10;
 
 		local dockDistance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dockFrom), Utils.GetDockDockingTile(m_dockTo));
 //		AILog.Info("dockDistance = " + dockDistance);
@@ -370,7 +370,7 @@ class ShipRoute extends ShipRouteManager
 				break;
 			}
 		}
-		if (numvehicles * 2 < (MAX_VEHICLE_COUNT_MODE == 0 ? 1 : optimal_vehicle_count) && m_last_vehicle_added >= 0) {
+		if (numvehicles * 2 < (m_max_vehicle_count_mode == 0 ? 1 : optimal_vehicle_count) && m_last_vehicle_added >= 0) {
 			m_last_vehicle_added = 0;
 		}
 		return numvehicles - numvehicles_before;
@@ -626,9 +626,9 @@ class ShipRoute extends ShipRouteManager
 			return AddVehiclesToNewRoute(m_cargo_class);
 		}
 
-		if (MAX_VEHICLE_COUNT_MODE != AIController.GetSetting("water_cap_mode")) {
-			MAX_VEHICLE_COUNT_MODE = AIController.GetSetting("water_cap_mode");
-//			AILog.Info("MAX_VEHICLE_COUNT_MODE = " + MAX_VEHICLE_COUNT_MODE);
+		if (m_max_vehicle_count_mode != AIController.GetSetting("water_cap_mode")) {
+			m_max_vehicle_count_mode = AIController.GetSetting("water_cap_mode");
+//			AILog.Info("m_max_vehicle_count_mode = " + m_max_vehicle_count_mode);
 		}
 
 		if (AIDate.GetCurrentDate() - m_last_vehicle_added < 90) {
@@ -640,7 +640,7 @@ class ShipRoute extends ShipRouteManager
 		local numvehicles = m_vehicle_list.len();
 		local numvehicles_before = numvehicles;
 
-		if (MAX_VEHICLE_COUNT_MODE != 2 && numvehicles >= optimal_vehicle_count && maxed_out_num_vehs) {
+		if (m_max_vehicle_count_mode != 2 && numvehicles >= optimal_vehicle_count && maxed_out_num_vehs) {
 			return 0;
 		}
 
@@ -675,8 +675,8 @@ class ShipRoute extends ShipRouteManager
 						skipped_order = true;
 					}
 					AIVehicle.StartStopVehicle(added_vehicle);
-					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + AIBaseStation.GetName(skipped_order ? station2 : station1) + " to " + AIBaseStation.GetName(skipped_order ? station1 : station2) + "! (" + numvehicles + (MAX_VEHICLE_COUNT_MODE != 2 ? "/" + optimal_vehicle_count : "") + " ship" + (numvehicles != 1 ? "s" : "") + ", " + routedist + " manhattan tiles)");
-					if (numvehicles >= MAX_VEHICLE_COUNT_MODE != 2 ? 1 : optimal_vehicle_count) {
+					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + AIBaseStation.GetName(skipped_order ? station2 : station1) + " to " + AIBaseStation.GetName(skipped_order ? station1 : station2) + "! (" + numvehicles + (m_max_vehicle_count_mode != 2 ? "/" + optimal_vehicle_count : "") + " ship" + (numvehicles != 1 ? "s" : "") + ", " + routedist + " manhattan tiles)");
+					if (numvehicles >= m_max_vehicle_count_mode != 2 ? 1 : optimal_vehicle_count) {
 						number_to_add = 0;
 					}
 				}
