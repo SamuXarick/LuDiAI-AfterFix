@@ -11,11 +11,11 @@ class RailRouteManager {
 		m_best_routes_built = best_routes_built;
 	}
 
-	function BuildRoute(railBuildManager, city_from, city_to, cargo_class, best_routes_built, rail_type) {
-		local route = railBuildManager.BuildRailRoute(city_from, city_to, cargo_class, m_sentToDepotRailGroup, best_routes_built, rail_type);
+	function BuildRoute(rail_build_manager, city_from, city_to, cargo_class, best_routes_built, rail_type) {
+		local route = rail_build_manager.BuildRailRoute(city_from, city_to, cargo_class, m_sentToDepotRailGroup, best_routes_built, rail_type);
 		if (route != null && route != 0) {
 			m_town_route_array.append(route);
-			railBuildManager.SetRouteFinished();
+			rail_build_manager.SetRouteFinished();
 			return [1, route.m_station_from, route.m_station_to];
 		}
 
@@ -63,24 +63,24 @@ class RailRouteManager {
 	function HasMaxStationCount(city_from, city_to, cargo_class) {
 //		return 0;
 
-		local maxTownStationFrom = (1 + AITown.GetPopulation(city_from) / 1000).tointeger();
-		local maxTownStationTo = (1 + AITown.GetPopulation(city_to) / 1000).tointeger();
+		local max_town_station_from = (1 + AITown.GetPopulation(city_from) / 1000).tointeger();
+		local max_town_station_to = (1 + AITown.GetPopulation(city_to) / 1000).tointeger();
 
-		local cityFromCount = 0;
-		local cityToCount = 0;
+		local city_from_count = 0;
+		local city_to_count = 0;
 
 		for (local i = 0; i < m_town_route_array.len(); ++i) {
 			if (m_town_route_array[i].m_city_from == city_from || m_town_route_array[i].m_city_from == city_to) {
-				if (m_town_route_array[i].m_cargo_class == cargo_class) ++cityFromCount;
+				if (m_town_route_array[i].m_cargo_class == cargo_class) ++city_from_count;
 			}
 
 			if (m_town_route_array[i].m_city_to == city_to || m_town_route_array[i].m_city_to == city_from) {
-				if (m_town_route_array[i].m_cargo_class == cargo_class) ++cityToCount;
+				if (m_town_route_array[i].m_cargo_class == cargo_class) ++city_to_count;
 			}
 		}
-//		AILog.Info("city_from = " + AITown.GetName(city_from) + " ; cityFromCount = " + cityFromCount + " ; maxTownStationFrom = " + maxTownStationFrom + " ; city_to = " + AITown.GetName(city_to) + " ; cityToCount = " + cityToCount + " ; maxTownStationTo = " + maxTownStationTo);
+//		AILog.Info("city_from = " + AITown.GetName(city_from) + " ; city_from_count = " + city_from_count + " ; max_town_station_from = " + max_town_station_from + " ; city_to = " + AITown.GetName(city_to) + " ; city_to_count = " + city_to_count + " ; max_town_station_to = " + max_town_station_to);
 
-		if ((cityFromCount >= maxTownStationFrom) || (cityToCount >= maxTownStationTo)) {
+		if ((city_from_count >= max_town_station_from) || (city_to_count >= max_town_station_to)) {
 			return 1;
 		}
 

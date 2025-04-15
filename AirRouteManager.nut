@@ -4,17 +4,24 @@ class AirRouteManager
 {
 	m_town_route_array = null;
 	m_sent_to_depot_air_group = null;
-	m_best_routes_built = null;
 
-	constructor(sent_to_depot_air_group, best_routes_built)
+	constructor()
 	{
 		this.m_town_route_array = [];
-		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
-		this.m_best_routes_built = best_routes_built;
 	}
 
 	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
 	{
+		if (this.m_sent_to_depot_air_group == null) {
+			this.m_sent_to_depot_air_group = [];
+			for (local i = 0; i <= 1; i++) {
+				this.m_sent_to_depot_air_group.append(AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID));
+				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_air_group[i]));
+			}
+			assert(AIGroup.SetName(this.m_sent_to_depot_air_group[0], "0: Aircraft to sell"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_air_group[1], "1: Aircraft to renew"));
+		}
+
 		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_air_group, best_routes_built, all_routes_built);
 		if (route != null && route != 0) {
 			this.m_town_route_array.append(route);
@@ -97,24 +104,19 @@ class AirRouteManager
 			town_route_array.append(route.SaveRoute());
 		}
 
-		return [town_route_array, this.m_sent_to_depot_air_group, this.m_best_routes_built];
+		return [town_route_array, this.m_sent_to_depot_air_group];
 	}
 
 	function LoadRouteManager(data)
 	{
-		if (this.m_town_route_array == null) {
-			this.m_town_route_array = [];
-		}
-
 		local town_route_array = data[0];
 
-		foreach (load in town_route_array) {
-			local route = AirRoute.LoadRoute(load);
+		foreach (loaded_route in town_route_array) {
+			local route = AirRoute.LoadRoute(loaded_route);
 			this.m_town_route_array.append(route);
 		}
 		AILog.Info("Loaded " + this.m_town_route_array.len() + " air routes.");
 
 		this.m_sent_to_depot_air_group = data[1];
-		this.m_best_routes_built = data[2];
 	}
 };
