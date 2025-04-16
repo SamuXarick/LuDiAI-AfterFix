@@ -507,9 +507,11 @@ class Utils
 		local veh_type = AIEngine.GetVehicleType(engine_id);
 		/* Assuming going in axis, it is the same as distancemanhattan */
 		if (veh_type == AIVehicle.VT_ROAD) {
-			return ((AIEngine.GetMaxSpeed(engine_id) * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16);
+			/* ((max_speed * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16) */
+			return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 444 / 12288;
 		} else if (veh_type == AIVehicle.VT_WATER) {
-			return (AIEngine.GetMaxSpeed(engine_id) * 2 * 74 * days_in_transit) / (256 * 16);
+			/* (max_speed * 2 * 74 * days_in_transit) / (256 * 16) */
+			return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 148 / 4096;
 		} else {
 			assert(!AIEngine.IsValidEngine(engine_id) || !AIEngine.IsBuildable(engine_id));
 			return 0;
