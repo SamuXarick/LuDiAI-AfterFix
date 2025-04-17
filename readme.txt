@@ -162,8 +162,7 @@ Road pathfinder profile:
     Optimized for fastest planning speed, at the cost of low road reuse.
     It prefers fewer curves, which could result in roads going through
     sharp landscapes, or be longer than necessary. Can only build small
-    bridges, which may not be ideal for maps with lots of water. Cannot
-    build tunnels.
+    bridges, which may not be ideal for maps with lots of water.
 
 
 Road route capacity mode:

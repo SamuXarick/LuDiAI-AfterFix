@@ -825,7 +825,7 @@ class RoadBuildManager
 						pathfinder_instance.cost.coast = 5000;
 						pathfinder_instance.cost.drive_through;
 						pathfinder_instance.cost.max_bridge_length = 3;
-						pathfinder_instance.cost.max_tunnel_length = 0;
+						pathfinder_instance.cost.max_tunnel_length = 11;
 						pathfinder_instance.cost.search_range = 3;
 						break;
 					}

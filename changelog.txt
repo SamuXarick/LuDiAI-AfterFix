@@ -13,6 +13,7 @@ v22 (11-04-2025)
   bridge slopes
 - Use a customized cargo production rating based on transported percentage
   to decide whether to fund buildings
+- Allow "Fastest" road pathfinder profile to build tunnels
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0
