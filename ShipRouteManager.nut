@@ -26,7 +26,7 @@ class ShipRouteManager
 		if (route != null && route != 0) {
 			this.m_town_route_array.append(route);
 			ship_build_manager.SetRouteFinished();
-			return [1, route.m_dockFrom, route.m_dockTo];
+			return [1, route.m_dock_from, route.m_dock_to];
 		}
 
 		return [route, null, null];

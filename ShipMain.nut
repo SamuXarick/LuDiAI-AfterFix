@@ -136,7 +136,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			local from = unfinished ? ship_build_manager.m_city_from : city_from;
 			local to = unfinished ? ship_build_manager.m_city_to : city_to;
 			local cargoC = unfinished ? ship_build_manager.m_cargo_class : cC;
-			local cheaper = unfinished ? ship_build_manager.m_cheaperRoute : cheaper_route;
+			local cheaper = unfinished ? ship_build_manager.m_cheaper_route : cheaper_route;
 			local best_routes = unfinished ? ship_build_manager.m_best_routes_built : ((((bestRoutesBuilt >> 2) & 3) & (1 << (cC == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 
 			local start_date = AIDate.GetCurrentDate();
@@ -183,7 +183,7 @@ function LuDiAIAfterFix::ManageShipRoutes()
 //	for (local i = lastWaterManagedArray; i >= 0; --i) {
 //		if (lastWaterManagedManagement != 7) break;
 //		lastWaterManagedArray--;
-//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(ship_route_manager.m_town_route_array[i].m_dockFrom)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(ship_route_manager.m_town_route_array[i].m_dockTo)));
+//		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(ship_route_manager.m_town_route_array[i].m_dock_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(ship_route_manager.m_town_route_array[i].m_dock_to)));
 //		if (InterruptWaterManagement(cur_date)) return;
 //	}
 //	ResetWaterManagementVariables();
@@ -298,8 +298,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 {
 	if (ship_build_manager.HasUnfinishedRoute()) {
 		/* Look for potentially unregistered dock or ship depot tiles during save */
-		local dockFrom = ship_build_manager.m_dockFrom;
-		local dockTo = ship_build_manager.m_dockTo;
+		local dockFrom = ship_build_manager.m_dock_from;
+		local dockTo = ship_build_manager.m_dock_to;
 		local depot_tile = ship_build_manager.m_depot_tile;
 		local stationType = AIStation.STATION_DOCK;
 
@@ -320,7 +320,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 					break;
 				}
 				for (local i = ship_route_manager.m_town_route_array.len() - 1; i >= 0; --i) {
-					if (ship_route_manager.m_town_route_array[i].m_dockFrom == tile || ship_route_manager.m_town_route_array[i].m_dockTo == tile) {
+					if (ship_route_manager.m_town_route_array[i].m_dock_from == tile || ship_route_manager.m_town_route_array[i].m_dock_to == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), stationType);
 						allTilesFound.AddList(stationTiles);

@@ -428,7 +428,7 @@ class RailBuildManager
 	m_pathfinder_profile = -1;
 	m_builtWays = -1;
 	m_built_tiles = [[], []];
-	m_sentToDepotRailGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+	m_sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 	m_rail_type = AIRail.RAILTYPE_INVALID;
 	m_stationFromDir = -1;
@@ -451,7 +451,7 @@ class RailBuildManager
 		m_cargo_class = -1;
 		m_builtWays = -1;
 		m_built_tiles = [[], []];
-		m_sentToDepotRailGroup = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
+		m_sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 		m_best_routes_built = null;
 		m_rail_type = AIRail.RAILTYPE_INVALID;
 		m_stationFromDir = -1;
@@ -666,7 +666,7 @@ class RailBuildManager
 		m_city_from = city_from;
 		m_city_to = city_to;
 		m_cargo_class = cargo_class;
-		m_sentToDepotRailGroup = sent_to_depot_rail_group;
+		m_sent_to_depot_rail_group = sent_to_depot_rail_group;
 		m_best_routes_built = best_routes_built;
 		m_rail_type = rail_type;
 		if (m_builtWays == -1) m_builtWays++;
@@ -756,7 +756,7 @@ class RailBuildManager
 		}
 
 		m_built_tiles = [[], []];
-		return RailRoute(m_city_from, m_city_to, m_station_from, m_station_to, m_depotFrom, m_depotTo, m_bridge_tiles, m_cargo_class, m_sentToDepotRailGroup, m_rail_type, m_stationFromDir, m_stationToDir);
+		return RailRoute(m_city_from, m_city_to, m_station_from, m_station_to, m_depotFrom, m_depotTo, m_bridge_tiles, m_cargo_class, m_sent_to_depot_rail_group, m_rail_type, m_stationFromDir, m_stationToDir);
 	}
 
 	function AreOtherRailwayStationsNearby(station)
