@@ -20,16 +20,11 @@ require("Caches.nut");
 
 class LuDiAIAfterFix extends AIController
 {
-	MAX_ROAD_VEHICLES = AIGameSettings.GetValue("max_roadveh");
-	MAX_SHIP_VEHICLES = AIGameSettings.GetValue("max_ships");
-	MAX_AIR_VEHICLES = AIGameSettings.GetValue("max_aircraft");
-	MAX_TRAIN_VEHICLES = AIGameSettings.GetValue("max_trains");
+	static ROAD_DAYS_IN_TRANSIT = AIController.GetSetting("road_days_in_transit");
+	static WATER_DAYS_IN_TRANSIT = AIController.GetSetting("water_days_in_transit");
+	static RAIL_DAYS_IN_TRANSIT = AIController.GetSetting("rail_days_in_transit");
 
-	ROAD_DAYS_IN_TRANSIT = AIController.GetSetting("road_days_in_transit");
-	WATER_DAYS_IN_TRANSIT = AIController.GetSetting("water_days_in_transit");
-	RAIL_DAYS_IN_TRANSIT = AIController.GetSetting("rail_days_in_transit");
-
-	MAX_DISTANCE_INCREASE = 25;
+	static MAX_DISTANCE_INCREASE = 25;
 
 	bestRoutesBuilt = null;
 	allRoutesBuilt = null;
