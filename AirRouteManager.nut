@@ -32,7 +32,6 @@ class AirRouteManager
 		return [route, null, null];
 	}
 
-
 	function GetAircraftCount()
 	{
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_AIR);

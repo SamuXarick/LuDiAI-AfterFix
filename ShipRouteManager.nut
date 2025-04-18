@@ -32,7 +32,6 @@ class ShipRouteManager
 		return [route, null, null];
 	}
 
-
 	function GetShipCount()
 	{
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_WATER);

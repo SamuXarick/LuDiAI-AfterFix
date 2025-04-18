@@ -62,8 +62,6 @@ class LuDiAIAfterFix extends AIController
 	rail_route_manager = null;
 	rail_build_manager = null;
 
-	sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-
 	loading = null;
 	loadData = null;
 
@@ -110,7 +108,7 @@ class LuDiAIAfterFix extends AIController
 		air_route_manager = AirRouteManager();
 		air_build_manager = AirBuildManager();
 
-		rail_route_manager = RailRouteManager(this.sent_to_depot_rail_group, false);
+		rail_route_manager = RailRouteManager();
 		rail_build_manager = RailBuildManager();
 
 		::scheduledRemovalsTable <- { Train = [], Road = {}, Ship = {}, Aircraft = {} };
@@ -529,8 +527,6 @@ function LuDiAIAfterFix::Save()
 	table.rawset("best_routes_built", bestRoutesBuilt);
 	table.rawset("all_routes_built", allRoutesBuilt);
 
-	table.rawset("sent_to_depot_rail_group", sent_to_depot_rail_group);
-
 	table.rawset("last_road_managed_array", lastRoadManagedArray);
 	table.rawset("last_road_managed_management", lastRoadManagedManagement);
 
@@ -572,17 +568,6 @@ function LuDiAIAfterFix::Start()
 	if (AICompany.GetAutoRenewStatus(::caches.m_my_company_id)) AICompany.SetAutoRenewStatus(false);
 
 	if (loading) {
-		if (loadData == null) {
-			for (local i = 0; i < sent_to_depot_rail_group.len(); ++i) {
-				if (!AIGroup.IsValidGroup(sent_to_depot_rail_group[i])) {
-					sent_to_depot_rail_group[i] = AIGroup.CreateGroup(AIVehicle.VT_RAIL AIGroup.GROUP_INVALID);
-					if (i == 0) AIGroup.SetName(sent_to_depot_rail_group[i], "0: Trains to sell");
-					if (i == 1) AIGroup.SetName(sent_to_depot_rail_group[i], "1: Trains to renew");
-					rail_route_manager.m_sentToDepotRailGroup[i] = sent_to_depot_rail_group[i];
-				}
-			}
-		}
-
 		if (loadData != null) {
 			if (loadData[1].rawin("road_town_manager")) {
 				roadTownManager.LoadTownManager(loadData[1].rawget("road_town_manager"));
@@ -642,10 +627,6 @@ function LuDiAIAfterFix::Start()
 
 			if (loadData[1].rawin("all_routes_built")) {
 				allRoutesBuilt = loadData[1].rawget("all_routes_built");
-			}
-
-			if (loadData[1].rawin("sent_to_depot_rail_group")) {
-				sent_to_depot_rail_group = loadData[1].rawget("sent_to_depot_rail_group");
 			}
 
 			if (loadData[1].rawin("last_road_managed_array")) {

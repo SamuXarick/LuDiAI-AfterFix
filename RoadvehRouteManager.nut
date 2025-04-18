@@ -32,7 +32,6 @@ class RoadRouteManager
 		return [route, null, null];
 	}
 
-
 	function GetRoadVehicleCount()
 	{
 		return AIGroup.GetNumVehicles(AIGroup.GROUP_ALL, AIVehicle.VT_ROAD);
