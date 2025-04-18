@@ -748,13 +748,13 @@ function LuDiAIAfterFix::ManageTrainRoutes()
 
 //	local start_tick = AIController.GetTick();
 	local num_vehs = rail_route_manager.GetTrainCount();
-	local maxAllRoutesProfit = rail_route_manager.HighestProfitLastYear();
+	local max_all_routes_profit = rail_route_manager.HighestProfitLastYear();
 	for (local i = lastRailManagedArray; i >= 0; --i) {
 		if (lastRailManagedManagement != 5) break;
 		lastRailManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
 		if (max_trains * 0.95 < num_vehs) {
-			rail_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
+			rail_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(max_all_routes_profit);
 		}
 		if (InterruptRailManagement(cur_date)) return;
 	}

@@ -62,7 +62,6 @@ class LuDiAIAfterFix extends AIController
 	rail_route_manager = null;
 	rail_build_manager = null;
 
-	sent_to_depot_water_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
 	loading = null;
@@ -105,7 +104,7 @@ class LuDiAIAfterFix extends AIController
 		road_route_manager = RoadRouteManager();
 		road_build_manager = RoadBuildManager();
 
-		ship_route_manager = ShipRouteManager(this.sent_to_depot_water_group, false);
+		ship_route_manager = ShipRouteManager();
 		ship_build_manager = ShipBuildManager();
 
 		air_route_manager = AirRouteManager();
@@ -530,7 +529,6 @@ function LuDiAIAfterFix::Save()
 	table.rawset("best_routes_built", bestRoutesBuilt);
 	table.rawset("all_routes_built", allRoutesBuilt);
 
-	table.rawset("sent_to_depot_water_group", sent_to_depot_water_group);
 	table.rawset("sent_to_depot_rail_group", sent_to_depot_rail_group);
 
 	table.rawset("last_road_managed_array", lastRoadManagedArray);
@@ -575,15 +573,6 @@ function LuDiAIAfterFix::Start()
 
 	if (loading) {
 		if (loadData == null) {
-			for (local i = 0; i < sent_to_depot_water_group.len(); ++i) {
-				if (!AIGroup.IsValidGroup(sent_to_depot_water_group[i])) {
-					sent_to_depot_water_group[i] = AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID);
-					if (i == 0) AIGroup.SetName(sent_to_depot_water_group[i], "0: Ships to sell");
-					if (i == 1) AIGroup.SetName(sent_to_depot_water_group[i], "1: Ships to renew");
-					ship_route_manager.m_sentToDepotWaterGroup[i] = sent_to_depot_water_group[i];
-				}
-			}
-
 			for (local i = 0; i < sent_to_depot_rail_group.len(); ++i) {
 				if (!AIGroup.IsValidGroup(sent_to_depot_rail_group[i])) {
 					sent_to_depot_rail_group[i] = AIGroup.CreateGroup(AIVehicle.VT_RAIL AIGroup.GROUP_INVALID);
@@ -653,10 +642,6 @@ function LuDiAIAfterFix::Start()
 
 			if (loadData[1].rawin("all_routes_built")) {
 				allRoutesBuilt = loadData[1].rawget("all_routes_built");
-			}
-
-			if (loadData[1].rawin("sent_to_depot_water_group")) {
-				sent_to_depot_water_group = loadData[1].rawget("sent_to_depot_water_group");
 			}
 
 			if (loadData[1].rawin("sent_to_depot_rail_group")) {

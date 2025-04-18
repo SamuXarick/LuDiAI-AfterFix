@@ -217,13 +217,13 @@ function LuDiAIAfterFix::ManageShipRoutes()
 
 //	local start_tick = AIController.GetTick();
 	local num_vehs = ship_route_manager.GetShipCount();
-	local maxAllRoutesProfit = ship_route_manager.HighestProfitLastYear();
+	local max_all_routes_profit = ship_route_manager.HighestProfitLastYear();
 	for (local i = lastWaterManagedArray; i >= 0; --i) {
 		if (lastWaterManagedManagement != 4) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
 		if (max_ships * 0.95 < num_vehs) {
-			ship_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
+			ship_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(max_all_routes_profit);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
 	}

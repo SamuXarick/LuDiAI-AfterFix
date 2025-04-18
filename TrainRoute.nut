@@ -492,7 +492,7 @@ class RailRoute extends RailRouteManager
 		}
 	}
 
-	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit)
+	function SendLowProfitVehiclesToDepot(max_all_routes_profit)
 	{
 		ValidateVehicleList();
 		local vehicleList = AIList();
@@ -516,7 +516,7 @@ class RailRoute extends RailRouteManager
 //		AILog.Info("cargoWaiting = " + (cargoWaiting1 + cargoWaiting2));
 		if (cargoWaiting1 + cargoWaiting2 < 150) {
 			for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
-				if (AIVehicle.GetProfitLastYear(vehicle) < (maxAllRoutesProfit / 6)) {
+				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {
 					if (SendMoveVehicleToDepot(vehicle)) {
 						if (!AIGroup.MoveVehicle(m_sentToDepotRailGroup[0], vehicle)) {
 							AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + m_sentToDepotRailGroup[0]);

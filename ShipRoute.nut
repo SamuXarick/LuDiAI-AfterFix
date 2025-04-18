@@ -534,7 +534,7 @@ class ShipRoute extends ShipRouteManager
 		}
 	}
 
-	function SendLowProfitVehiclesToDepot(maxAllRoutesProfit)
+	function SendLowProfitVehiclesToDepot(max_all_routes_profit)
 	{
 		ValidateVehicleList();
 		local vehicleList = AIList();
@@ -558,7 +558,7 @@ class ShipRoute extends ShipRouteManager
 //		AILog.Info("cargoWaiting = " + (cargoWaiting1 + cargoWaiting2));
 		if (cargoWaiting1 + cargoWaiting2 < 150) {
 			for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
-				if (AIVehicle.GetProfitLastYear(vehicle) < (maxAllRoutesProfit / 6)) {
+				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {
 					if (SendMoveVehicleToDepot(vehicle)) {
 						if (!AIGroup.MoveVehicle(m_sentToDepotWaterGroup[0], vehicle)) {
 							AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + m_sentToDepotWaterGroup[0]);

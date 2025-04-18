@@ -40,23 +40,23 @@ class RailRouteManager {
 
 	/* the highest last years profit out of all vehicles */
 	function HighestProfitLastYear() {
-		local maxAllRoutesProfit = null;
+		local max_all_routes_profit = null;
 
 		for (local i = 0; i < this.m_town_route_array.len(); ++i) {
-			local maxRouteProfit = 0;
+			local max_route_profit = 0;
 			foreach (vehicle, _ in this.m_town_route_array[i].m_vehicle_list) {
 				local profit = AIVehicle.GetProfitLastYear(vehicle);
-				if (maxRouteProfit < profit) {
-					maxRouteProfit = profit;
+				if (max_route_profit < profit) {
+					max_route_profit = profit;
 				}
 			}
 
-			if (maxAllRoutesProfit == null || maxRouteProfit > maxAllRoutesProfit) {
-				maxAllRoutesProfit = maxRouteProfit;
+			if (max_all_routes_profit == null || max_route_profit > max_all_routes_profit) {
+				max_all_routes_profit = max_route_profit;
 			}
 		}
 
-		return maxAllRoutesProfit;
+		return max_all_routes_profit;
 	}
 
 	/* won't build any new stations if 1 */
