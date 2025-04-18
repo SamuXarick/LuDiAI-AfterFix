@@ -20,50 +20,45 @@ require("Caches.nut");
 
 class LuDiAIAfterFix extends AIController
 {
-	MAX_ROAD_VEHICLES = AIGameSettings.GetValue("max_roadveh");
-	MAX_SHIP_VEHICLES = AIGameSettings.GetValue("max_ships");
-	MAX_AIR_VEHICLES = AIGameSettings.GetValue("max_aircraft");
-	MAX_TRAIN_VEHICLES = AIGameSettings.GetValue("max_trains");
-
 	ROAD_DAYS_IN_TRANSIT = AIController.GetSetting("road_days_in_transit");
 	WATER_DAYS_IN_TRANSIT = AIController.GetSetting("water_days_in_transit");
 	RAIL_DAYS_IN_TRANSIT = AIController.GetSetting("rail_days_in_transit");
 
 	MAX_DISTANCE_INCREASE = 25;
 
-	bestRoutesBuilt = null;
-	allRoutesBuilt = null;
+	best_routes_built = null;
+	all_routes_built = null;
 
-	lastRoadManagedArray = -1;
-	lastRoadManagedManagement = -1;
+	last_road_managed_array = -1;
+	last_road_managed_management = -1;
 
-	lastWaterManagedArray = -1;
-	lastWaterManagedManagement = -1;
+	last_water_managed_array = -1;
+	last_water_managed_management = -1;
 
-	lastAirManagedArray = -1;
-	lastAirManagedManagement = -1;
+	last_air_managed_array = -1;
+	last_air_managed_management = -1;
 
-	lastRailManagedArray = -1;
-	lastRailManagedManagement = -1;
+	last_rail_managed_array = -1;
+	last_rail_managed_management = -1;
 
-	cargoClassRoad = null;
-	cargoClassWater = null;
-	cargoClassAir = null;
-	cargoClassRail = null;
+	cargo_class_road = null;
+	cargo_class_water = null;
+	cargo_class_air = null;
+	cargo_class_rail = null;
 
-	roadTownManager = null;
+	road_town_manager = null;
 	road_route_manager = null;
 	road_build_manager = null;
 
-	shipTownManager = null;
+	ship_town_manager = null;
 	ship_route_manager = null;
 	ship_build_manager = null;
 
-	airTownManager = null;
+	air_town_manager = null;
 	air_route_manager = null;
 	air_build_manager = null;
 
-	railTownManager = null;
+	rail_town_manager = null;
 	rail_route_manager = null;
 	rail_build_manager = null;
 
@@ -71,41 +66,41 @@ class LuDiAIAfterFix extends AIController
 	sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 
 	loading = null;
-	loadData = null;
+	load_data = null;
 
-	buildTimerRoad = 0;
-	buildTimerWater = 0;
-	buildTimerAir = 0;
-	buildTimerRail = 0;
+	build_timer_road = 0;
+	build_timer_water = 0;
+	build_timer_air = 0;
+	build_timer_rail = 0;
 
-	reservedMoney = 0;
+	reserved_money = 0;
 
-	reservedMoneyRoad = 0;
-	reservedMoneyWater = 0;
-	reservedMoneyAir = 0;
-	reservedMoneyRail = 0;
+	reserved_money_road = 0;
+	reserved_money_water = 0;
+	reserved_money_air = 0;
+	reserved_money_rail = 0;
 
 	constructor()
 	{
-		roadTownManager = TownManager();
-		shipTownManager = TownManager();
-		airTownManager = TownManager();
-		railTownManager = TownManager();
+		road_town_manager = TownManager();
+		ship_town_manager = TownManager();
+		air_town_manager = TownManager();
+		rail_town_manager = TownManager();
 
-		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
-		cargoClassWater = cargoClassRoad;
-		cargoClassAir = cargoClassRoad;
-		cargoClassRail = cargoClassRoad;
+		cargo_class_road = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
+		cargo_class_water = cargo_class_road;
+		cargo_class_air = cargo_class_road;
+		cargo_class_rail = cargo_class_road;
 
 		/**
-		 * 'allRoutesBuilt' and 'bestRoutesBuilt' are bits:
+		 * 'all_routes_built' and 'best_routes_built' are bits:
 		 * bit 0 - Road/Passengers, bit 1 - Road/Mail
 		 * bit 2 - Water/Passengers, bit 3 - Water/Mail
 		 * bit 4 - Air/Passengers, bit 5 - Air/Mail
 		 * bit 6 - Rail/Passengers, bit 7 - Rail/Mail
 		 */
-		allRoutesBuilt = 0;
-		bestRoutesBuilt = 0
+		all_routes_built = 0;
+		best_routes_built = 0
 
 		road_route_manager = RoadRouteManager();
 		road_build_manager = RoadBuildManager();
@@ -327,7 +322,7 @@ function LuDiAIAfterFix::PerformTownActions()
 {
 	if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) return;
 
-	local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
+	local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargo_class_road : AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
 	local cargo_type = Utils.GetCargoType(cC);
 
 	local stationList = AIStationList(AIStation.STATION_ANY);
@@ -481,24 +476,24 @@ function LuDiAIAfterFix::FoundTown()
 		}
 		if (perform_action && TestFoundTown().TryFound(town_tile, AITown.TOWN_SIZE_MEDIUM, true, AITown.ROAD_LAYOUT_3x3, null)) {
 			AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
-			if (allRoutesBuilt != 0) {
-				allRoutesBuilt = 0;
-//				roadTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//				roadTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-				roadTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-				roadTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//				shipTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//				shipTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-				shipTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-				shipTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//				airTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//				airTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-				airTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-				airTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//				railTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//				railTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-				railTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-				railTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+			if (all_routes_built != 0) {
+				all_routes_built = 0;
+//				road_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				road_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				road_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				road_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//				ship_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				ship_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				ship_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				ship_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//				air_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				air_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				air_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				air_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//				rail_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//				rail_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+				rail_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+				rail_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
 				AILog.Warning("Not all routes have been used at this time.");
 			}
 		}
@@ -509,57 +504,57 @@ function LuDiAIAfterFix::Save()
 {
 	local ops = AIController.GetOpsTillSuspend();
 	if (loading) {
-		if (loadData != null) return loadData;
+		if (load_data != null) return load_data;
 		AILog.Error("WARNING! AI didn't finish loading previously saved data. It will be saving partial data!")
 	}
 
 	local table = {};
-	table.rawset("road_town_manager", roadTownManager.SaveTownManager());
+	table.rawset("road_town_manager", road_town_manager.SaveTownManager());
 	table.rawset("road_route_manager", road_route_manager.SaveRouteManager());
 	table.rawset("road_build_manager", road_build_manager.SaveBuildManager());
 
-	table.rawset("ship_town_manager", shipTownManager.SaveTownManager());
+	table.rawset("ship_town_manager", ship_town_manager.SaveTownManager());
 	table.rawset("ship_route_manager", ship_route_manager.SaveRouteManager());
 	table.rawset("ship_build_manager", ship_build_manager.SaveBuildManager());
 
-	table.rawset("air_town_manager", airTownManager.SaveTownManager());
+	table.rawset("air_town_manager", air_town_manager.SaveTownManager());
 	table.rawset("air_route_manager", air_route_manager.SaveRouteManager());
 	table.rawset("air_build_manager", air_build_manager.SaveBuildManager());
 
-	table.rawset("rail_town_manager", railTownManager.SaveTownManager());
+	table.rawset("rail_town_manager", rail_town_manager.SaveTownManager());
 	table.rawset("rail_route_manager", rail_route_manager.SaveRouteManager());
 	table.rawset("rail_build_manager", rail_build_manager.SaveBuildManager());
 
 	table.rawset("scheduled_removals_table", ::scheduledRemovalsTable);
 
-	table.rawset("best_routes_built", bestRoutesBuilt);
-	table.rawset("all_routes_built", allRoutesBuilt);
+	table.rawset("best_routes_built", best_routes_built);
+	table.rawset("all_routes_built", all_routes_built);
 
 	table.rawset("sent_to_depot_water_group", sent_to_depot_water_group);
 	table.rawset("sent_to_depot_rail_group", sent_to_depot_rail_group);
 
-	table.rawset("last_road_managed_array", lastRoadManagedArray);
-	table.rawset("last_road_managed_management", lastRoadManagedManagement);
+	table.rawset("last_road_managed_array", last_road_managed_array);
+	table.rawset("last_road_managed_management", last_road_managed_management);
 
-	table.rawset("last_water_managed_array", lastWaterManagedArray);
-	table.rawset("last_water_managed_management", lastWaterManagedManagement);
+	table.rawset("last_water_managed_array", last_water_managed_array);
+	table.rawset("last_water_managed_management", last_water_managed_management);
 
-	table.rawset("last_air_managed_array", lastAirManagedArray);
-	table.rawset("last_air_managed_management", lastAirManagedManagement);
+	table.rawset("last_air_managed_array", last_air_managed_array);
+	table.rawset("last_air_managed_management", last_air_managed_management);
 
-	table.rawset("last_rail_managed_array", lastRailManagedArray);
-	table.rawset("last_rail_managed_management", lastRailManagedManagement);
+	table.rawset("last_rail_managed_array", last_rail_managed_array);
+	table.rawset("last_rail_managed_management", last_rail_managed_management);
 
-	table.rawset("reserved_money", reservedMoney);
-	table.rawset("reserved_money_road", reservedMoneyRoad);
-	table.rawset("reserved_money_water", reservedMoneyWater);
-	table.rawset("reserved_money_air", reservedMoneyAir);
-	table.rawset("reserved_money_rail", reservedMoneyRail);
+	table.rawset("reserved_money", reserved_money);
+	table.rawset("reserved_money_road", reserved_money_road);
+	table.rawset("reserved_money_water", reserved_money_water);
+	table.rawset("reserved_money_air", reserved_money_air);
+	table.rawset("reserved_money_rail", reserved_money_rail);
 
-	table.rawset("cargo_class_road", cargoClassRoad);
-	table.rawset("cargo_class_water", cargoClassWater);
-	table.rawset("cargo_class_air", cargoClassAir);
-	table.rawset("cargo_class_rail", cargoClassRail);
+	table.rawset("cargo_class_road", cargo_class_road);
+	table.rawset("cargo_class_water", cargo_class_water);
+	table.rawset("cargo_class_air", cargo_class_air);
+	table.rawset("cargo_class_rail", cargo_class_rail);
 
 	table.rawset("caches", ::caches.SaveCaches());
 
@@ -570,7 +565,7 @@ function LuDiAIAfterFix::Save()
 function LuDiAIAfterFix::Load(version, data)
 {
 	loading = true;
-	loadData = [version, data];
+	load_data = [version, data];
 	AILog.Warning("Loading data from version " + version + "...");
 }
 
@@ -579,7 +574,7 @@ function LuDiAIAfterFix::Start()
 	if (AICompany.GetAutoRenewStatus(::caches.m_my_company_id)) AICompany.SetAutoRenewStatus(false);
 
 	if (loading) {
-		if (loadData == null) {
+		if (load_data == null) {
 			for (local i = 0; i < sent_to_depot_water_group.len(); ++i) {
 				if (!AIGroup.IsValidGroup(sent_to_depot_water_group[i])) {
 					sent_to_depot_water_group[i] = AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID);
@@ -599,145 +594,145 @@ function LuDiAIAfterFix::Start()
 			}
 		}
 
-		if (loadData != null) {
-			if (loadData[1].rawin("road_town_manager")) {
-				roadTownManager.LoadTownManager(loadData[1].rawget("road_town_manager"));
+		if (load_data != null) {
+			if (load_data[1].rawin("road_town_manager")) {
+				road_town_manager.LoadTownManager(load_data[1].rawget("road_town_manager"));
 			}
 
-			if (loadData[1].rawin("road_route_manager")) {
-				road_route_manager.LoadRouteManager(loadData[1].rawget("road_route_manager"));
+			if (load_data[1].rawin("road_route_manager")) {
+				road_route_manager.LoadRouteManager(load_data[1].rawget("road_route_manager"));
 			}
 
-			if (loadData[1].rawin("road_build_manager")) {
-				road_build_manager.LoadBuildManager(loadData[1].rawget("road_build_manager"));
+			if (load_data[1].rawin("road_build_manager")) {
+				road_build_manager.LoadBuildManager(load_data[1].rawget("road_build_manager"));
 			}
 
-			if (loadData[1].rawin("ship_town_manager")) {
-				shipTownManager.LoadTownManager(loadData[1].rawget("ship_town_manager"));
+			if (load_data[1].rawin("ship_town_manager")) {
+				ship_town_manager.LoadTownManager(load_data[1].rawget("ship_town_manager"));
 			}
 
-			if (loadData[1].rawin("ship_route_manager")) {
-				ship_route_manager.LoadRouteManager(loadData[1].rawget("ship_route_manager"));
+			if (load_data[1].rawin("ship_route_manager")) {
+				ship_route_manager.LoadRouteManager(load_data[1].rawget("ship_route_manager"));
 			}
 
-			if (loadData[1].rawin("ship_build_manager")) {
-				ship_build_manager.LoadBuildManager(loadData[1].rawget("ship_build_manager"));
+			if (load_data[1].rawin("ship_build_manager")) {
+				ship_build_manager.LoadBuildManager(load_data[1].rawget("ship_build_manager"));
 			}
 
-			if (loadData[1].rawin("air_town_manager")) {
-				airTownManager.LoadTownManager(loadData[1].rawget("air_town_manager"));
+			if (load_data[1].rawin("air_town_manager")) {
+				air_town_manager.LoadTownManager(load_data[1].rawget("air_town_manager"));
 			}
 
-			if (loadData[1].rawin("air_route_manager")) {
-				air_route_manager.LoadRouteManager(loadData[1].rawget("air_route_manager"));
+			if (load_data[1].rawin("air_route_manager")) {
+				air_route_manager.LoadRouteManager(load_data[1].rawget("air_route_manager"));
 			}
 
-			if (loadData[1].rawin("air_build_manager")) {
-				air_build_manager.LoadBuildManager(loadData[1].rawget("air_build_manager"));
+			if (load_data[1].rawin("air_build_manager")) {
+				air_build_manager.LoadBuildManager(load_data[1].rawget("air_build_manager"));
 			}
 
-			if (loadData[1].rawin("rail_town_manager")) {
-				railTownManager.LoadTownManager(loadData[1].rawget("rail_town_manager"));
+			if (load_data[1].rawin("rail_town_manager")) {
+				rail_town_manager.LoadTownManager(load_data[1].rawget("rail_town_manager"));
 			}
 
-			if (loadData[1].rawin("rail_route_manager")) {
-				rail_route_manager.LoadRouteManager(loadData[1].rawget("rail_route_manager"));
+			if (load_data[1].rawin("rail_route_manager")) {
+				rail_route_manager.LoadRouteManager(load_data[1].rawget("rail_route_manager"));
 			}
 
-			if (loadData[1].rawin("rail_build_manager")) {
-				rail_build_manager.LoadBuildManager(loadData[1].rawget("rail_build_manager"));
+			if (load_data[1].rawin("rail_build_manager")) {
+				rail_build_manager.LoadBuildManager(load_data[1].rawget("rail_build_manager"));
 			}
 
-			if (loadData[1].rawin("scheduled_removals_table")) {
-				::scheduledRemovalsTable = loadData[1].rawget("scheduled_removals_table");
+			if (load_data[1].rawin("scheduled_removals_table")) {
+				::scheduledRemovalsTable = load_data[1].rawget("scheduled_removals_table");
 			}
 
-			if (loadData[1].rawin("best_routes_built")) {
-				bestRoutesBuilt = loadData[1].rawget("best_routes_built");
+			if (load_data[1].rawin("best_routes_built")) {
+				best_routes_built = load_data[1].rawget("best_routes_built");
 			}
 
-			if (loadData[1].rawin("all_routes_built")) {
-				allRoutesBuilt = loadData[1].rawget("all_routes_built");
+			if (load_data[1].rawin("all_routes_built")) {
+				all_routes_built = load_data[1].rawget("all_routes_built");
 			}
 
-			if (loadData[1].rawin("sent_to_depot_water_group")) {
-				sent_to_depot_water_group = loadData[1].rawget("sent_to_depot_water_group");
+			if (load_data[1].rawin("sent_to_depot_water_group")) {
+				sent_to_depot_water_group = load_data[1].rawget("sent_to_depot_water_group");
 			}
 
-			if (loadData[1].rawin("sent_to_depot_rail_group")) {
-				sent_to_depot_rail_group = loadData[1].rawget("sent_to_depot_rail_group");
+			if (load_data[1].rawin("sent_to_depot_rail_group")) {
+				sent_to_depot_rail_group = load_data[1].rawget("sent_to_depot_rail_group");
 			}
 
-			if (loadData[1].rawin("last_road_managed_array")) {
-				lastRoadManagedArray = loadData[1].rawget("last_road_managed_array");
+			if (load_data[1].rawin("last_road_managed_array")) {
+				last_road_managed_array = load_data[1].rawget("last_road_managed_array");
 			}
 
-			if (loadData[1].rawin("last_road_managed_management")) {
-				lastRoadManagedManagement = loadData[1].rawget("last_road_managed_management");
+			if (load_data[1].rawin("last_road_managed_management")) {
+				last_road_managed_management = load_data[1].rawget("last_road_managed_management");
 			}
 
-			if (loadData[1].rawin("last_water_managed_array")) {
-				lastWaterManagedArray = loadData[1].rawget("last_water_managed_array");
+			if (load_data[1].rawin("last_water_managed_array")) {
+				last_water_managed_array = load_data[1].rawget("last_water_managed_array");
 			}
 
-			if (loadData[1].rawin("last_water_managed_management")) {
-				lastWaterManagedManagement = loadData[1].rawget("last_water_managed_management");
+			if (load_data[1].rawin("last_water_managed_management")) {
+				last_water_managed_management = load_data[1].rawget("last_water_managed_management");
 			}
 
-			if (loadData[1].rawin("last_air_managed_array")) {
-				lastAirManagedArray = loadData[1].rawget("last_air_managed_array");
+			if (load_data[1].rawin("last_air_managed_array")) {
+				last_air_managed_array = load_data[1].rawget("last_air_managed_array");
 			}
 
-			if (loadData[1].rawin("last_air_managed_management")) {
-				lastAirManagedManagement = loadData[1].rawget("last_air_managed_management");
+			if (load_data[1].rawin("last_air_managed_management")) {
+				last_air_managed_management = load_data[1].rawget("last_air_managed_management");
 			}
 
-			if (loadData[1].rawin("last_rail_managed_array")) {
-				lastRailManagedArray = loadData[1].rawget("last_rail_managed_array");
+			if (load_data[1].rawin("last_rail_managed_array")) {
+				last_rail_managed_array = load_data[1].rawget("last_rail_managed_array");
 			}
 
-			if (loadData[1].rawin("last_rail_managed_management")) {
-				lastRailManagedManagement = loadData[1].rawget("last_rail_managed_management");
+			if (load_data[1].rawin("last_rail_managed_management")) {
+				last_rail_managed_management = load_data[1].rawget("last_rail_managed_management");
 			}
 
-			if (loadData[1].rawin("reserved_money")) {
-				reservedMoney = loadData[1].rawget("reserved_money");
+			if (load_data[1].rawin("reserved_money")) {
+				reserved_money = load_data[1].rawget("reserved_money");
 			}
 
-			if (loadData[1].rawin("reserved_money_road")) {
-				reservedMoneyRoad = loadData[1].rawget("reserved_money_road");
+			if (load_data[1].rawin("reserved_money_road")) {
+				reserved_money_road = load_data[1].rawget("reserved_money_road");
 			}
 
-			if (loadData[1].rawin("reserved_money_water")) {
-				reservedMoneyWater = loadData[1].rawget("reserved_money_water");
+			if (load_data[1].rawin("reserved_money_water")) {
+				reserved_money_water = load_data[1].rawget("reserved_money_water");
 			}
 
-			if (loadData[1].rawin("reserved_money_air")) {
-				reservedMoneyAir = loadData[1].rawget("reserved_money_air");
+			if (load_data[1].rawin("reserved_money_air")) {
+				reserved_money_air = load_data[1].rawget("reserved_money_air");
 			}
 
-			if (loadData[1].rawin("reserved_money_rail")) {
-				reservedMoneyRail = loadData[1].rawget("reserved_money_rail");
+			if (load_data[1].rawin("reserved_money_rail")) {
+				reserved_money_rail = load_data[1].rawget("reserved_money_rail");
 			}
 
-			if (loadData[1].rawin("cargo_class_road")) {
-				cargoClassRoad = loadData[1].rawget("cargo_class_road");
+			if (load_data[1].rawin("cargo_class_road")) {
+				cargo_class_road = load_data[1].rawget("cargo_class_road");
 			}
 
-			if (loadData[1].rawin("cargo_class_water")) {
-				cargoClassWater = loadData[1].rawget("cargo_class_water");
+			if (load_data[1].rawin("cargo_class_water")) {
+				cargo_class_water = load_data[1].rawget("cargo_class_water");
 			}
 
-			if (loadData[1].rawin("cargo_class_air")) {
-				cargoClassAir = loadData[1].rawget("cargo_class_air");
+			if (load_data[1].rawin("cargo_class_air")) {
+				cargo_class_air = load_data[1].rawget("cargo_class_air");
 			}
 
-			if (loadData[1].rawin("cargo_class_rail")) {
-				cargoClassRail = loadData[1].rawget("cargo_class_rail");
+			if (load_data[1].rawin("cargo_class_rail")) {
+				cargo_class_rail = load_data[1].rawget("cargo_class_rail");
 			}
 
-			if (loadData[1].rawin("caches")) {
-				::caches.LoadCaches(loadData[1].rawget("caches"));
+			if (load_data[1].rawin("caches")) {
+				::caches.LoadCaches(load_data[1].rawget("caches"));
 			}
 
 			CheckForUnfinishedRoadRoute();
@@ -745,13 +740,13 @@ function LuDiAIAfterFix::Start()
 			CheckForUnfinishedRailRoute();
 
 			AILog.Warning("Game loaded.");
-			loadData = null;
+			load_data = null;
 
 		} else {
 			/* Name company */
 			local cargostr = "";
 			if (AIController.GetSetting("select_town_cargo") != 2) {
-				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClassRoad));
+				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class_road));
 			}
 			if (!AICompany.SetName("LuDiAI AfterFix" + cargostr)) {
 				local i = 2;

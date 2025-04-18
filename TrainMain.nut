@@ -3,13 +3,13 @@ function LuDiAIAfterFix::BuildRailRoute()
 	if (!AIController.GetSetting("rail_support")) return;
 
 	local unfinished = rail_build_manager.HasUnfinishedRoute();
-	if (unfinished || (rail_route_manager.GetTrainCount() < max(MAX_TRAIN_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 6) & 3) != 3) {
+	if (unfinished || (rail_route_manager.GetTrainCount() < max(AIGameSettings.GetValue("max_trains") - 10, 10)) && ((all_routes_built >> 6) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
 		local best_railtype;
-		local cargo_class = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRail : (!unfinished ? cargoClassRail : (cargoClassRail == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
+		local cargo_class = AIController.GetSetting("select_town_cargo") != 2 ? cargo_class_rail : (!unfinished ? cargo_class_rail : (cargo_class_rail == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
 		if (!unfinished) {
-			cargoClassRail = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRail : (cargo_class == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
+			cargo_class_rail = AIController.GetSetting("select_town_cargo") != 2 ? cargo_class_rail : (cargo_class == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
 
 			local cargo_type = Utils.GetCargoType(cargo_class);
 
@@ -105,7 +105,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 
 			if (engineList.IsEmpty() || wagonList.IsEmpty()) {
-//				cargoClassRail = cargo_class;
+//				cargo_class_rail = cargo_class;
 				return;
 			}
 
@@ -139,7 +139,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 
 			local bestpairinfo = LuDiAIAfterFix.GetBestTrainIncome(engineWagonPairs, cargo_type, RAIL_DAYS_IN_TRANSIT, platform_length);
 			if (bestpairinfo[0][0] == -1) {
-//				cargoClassRail = cargo_class;
+//				cargo_class_rail = cargo_class;
 				return;
 			}
 			local engine_max_speed = AIEngine.GetMaxSpeed(bestpairinfo[0][0]);
@@ -177,34 +177,34 @@ function LuDiAIAfterFix::BuildRailRoute()
 			local depot_costs = AIRail.GetBuildCost(best_railtype, AIRail.BT_DEPOT) * 2;
 			estimated_costs += engine_costs + wagon_costs + rail_costs + clear_costs + foundation_costs + station_costs + depot_costs;
 //			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + "; wagon_costs = " + wagon_costs + ", rail_costs = " + rail_costs + ", clear_costs = " + clear_costs + ", foundation_costs = " + foundation_costs + ", station_costs = " + station_costs + ", depot_costs = " + depot_costs);
-			if (!Utils.HasMoney(estimated_costs + reservedMoney - reservedMoneyRail)) {
-//				cargoClassRail = cargo_class;
+			if (!Utils.HasMoney(estimated_costs + reserved_money - reserved_money_rail)) {
+//				cargo_class_rail = cargo_class;
 				return;
 			} else {
 //				AIController.Sleep(100);
 //				AIController.Break(" ");
 //				return;
-				reservedMoneyRail = estimated_costs;
-				reservedMoney += reservedMoneyRail;
+				reserved_money_rail = estimated_costs;
+				reserved_money += reserved_money_rail;
 			}
 
 			if (city_from == null) {
-				city_from = railTownManager.GetUnusedCity(((((bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
+				city_from = rail_town_manager.GetUnusedCity(((((best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
 				if (city_from == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						railTownManager.m_used_cities_list[cargo_class].Clear();
+						rail_town_manager.m_used_cities_list[cargo_class].Clear();
 					} else {
-						if ((((bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
-							bestRoutesBuilt = bestRoutesBuilt | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
-							railTownManager.m_used_cities_list[cargo_class].Clear();
-//							railTownManager.m_near_city_pair_array[cargo_class].clear();
+						if ((((best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+							best_routes_built = best_routes_built | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+							rail_town_manager.m_used_cities_list[cargo_class].Clear();
+//							rail_town_manager.m_near_city_pair_array[cargo_class].clear();
 							AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " rail routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 						} else {
-//							railTownManager.m_near_city_pair_array[cargo_class].clear();
-							if ((((allRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+//							rail_town_manager.m_near_city_pair_array[cargo_class].clear();
+							if ((((all_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 								AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " rail routes have been used!");
 							}
-							allRoutesBuilt = allRoutesBuilt | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+							all_routes_built = all_routes_built | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
 						}
 					}
 				}
@@ -213,21 +213,21 @@ function LuDiAIAfterFix::BuildRailRoute()
 			if (city_from != null) {
 //				AILog.Info("New city found: " + AITown.GetName(city_from));
 
-				railTownManager.FindNearCities(city_from, min_dist, max_dist, ((((bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
+				rail_town_manager.FindNearCities(city_from, min_dist, max_dist, ((((best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
 
-				if (!railTownManager.m_near_city_pair_array[cargo_class].len()) {
+				if (!rail_town_manager.m_near_city_pair_array[cargo_class].len()) {
 					AILog.Info("No near city available");
 					city_from = null;
 				}
 			}
 
 			if (city_from != null) {
-				for (local i = 0; i < railTownManager.m_near_city_pair_array[cargo_class].len(); ++i) {
-					if (city_from == railTownManager.m_near_city_pair_array[cargo_class][i][0]) {
-						if (!rail_route_manager.TownRouteExists(city_from, railTownManager.m_near_city_pair_array[cargo_class][i][1], cargo_class)) {
-							city_to = railTownManager.m_near_city_pair_array[cargo_class][i][1];
+				for (local i = 0; i < rail_town_manager.m_near_city_pair_array[cargo_class].len(); ++i) {
+					if (city_from == rail_town_manager.m_near_city_pair_array[cargo_class][i][0]) {
+						if (!rail_route_manager.TownRouteExists(city_from, rail_town_manager.m_near_city_pair_array[cargo_class][i][1], cargo_class)) {
+							city_to = rail_town_manager.m_near_city_pair_array[cargo_class][i][1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && ((((allRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && rail_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+							if (AIController.GetSetting("pick_mode") != 1 && ((((all_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && rail_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
 //								AILog.Info("rail_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + rail_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								city_to = null;
 								continue;
@@ -245,11 +245,11 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 
 			if (city_from == null && city_to == null) {
-				reservedMoney -= reservedMoneyRail;
-				reservedMoneyRail = 0;
+				reserved_money -= reserved_money_rail;
+				reserved_money_rail = 0;
 			}
 		} else {
-			if (!Utils.HasMoney(reservedMoneyRail / (rail_build_manager.m_builtWays + 1))) {
+			if (!Utils.HasMoney(reserved_money_rail / (rail_build_manager.m_builtWays + 1))) {
 				return;
 			}
 		}
@@ -260,27 +260,27 @@ function LuDiAIAfterFix::BuildRailRoute()
 				AILog.Info("t:New near city found: " + AITown.GetName(city_to));
 			}
 
-			if (!unfinished) buildTimerRail = 0;
+			if (!unfinished) build_timer_rail = 0;
 			city_from = unfinished ? rail_build_manager.m_city_from : city_from;
 			city_to = unfinished ? rail_build_manager.m_city_to : city_to;
 			cargo_class = unfinished ? rail_build_manager.m_cargo_class : cargo_class;
-			local best_routes = unfinished ? rail_build_manager.m_best_routes_built : ((((bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
+			local best_routes = unfinished ? rail_build_manager.m_best_routes_built : ((((best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 			local rt = unfinished ? rail_build_manager.m_rail_type : best_railtype;
 
 			local start_date = AIDate.GetCurrentDate();
 			local routeResult = rail_route_manager.BuildRoute(rail_build_manager, city_from, city_to, cargo_class, best_routes, rt);
-			buildTimerRail += AIDate.GetCurrentDate() - start_date;
+			build_timer_rail += AIDate.GetCurrentDate() - start_date;
 			if (routeResult[0] != null) {
 				if (routeResult[0] != 0) {
-					reservedMoney -= reservedMoneyRail;
-					reservedMoneyRail = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " rail route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + ".");
+					reserved_money -= reserved_money_rail;
+					reserved_money_rail = 0;
+					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " rail route between " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(routeResult[2])) + " in " + build_timer_rail + " day" + (build_timer_rail != 1 ? "s" : "") + ".");
 				}
 			} else {
-				reservedMoney -= reservedMoneyRail;
-				reservedMoneyRail = 0;
-				railTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
-				AILog.Error("t:" + buildTimerRail + " day" + (buildTimerRail != 1 ? "s" : "") + " wasted!");
+				reserved_money -= reserved_money_rail;
+				reserved_money_rail = 0;
+				rail_town_manager.ResetCityPair(city_from, city_to, cargo_class, false);
+				AILog.Error("t:" + build_timer_rail + " day" + (build_timer_rail != 1 ? "s" : "") + " wasted!");
 			}
 		}
 	}
@@ -691,14 +691,14 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine, wagon, railtypesma
 
 function LuDiAIAfterFix::ResetRailManagementVariables()
 {
-	if (lastRailManagedArray < 0) lastRailManagedArray = rail_route_manager.m_town_route_array.len() - 1;
-	if (lastRailManagedManagement < 0) lastRailManagedManagement = 7;
+	if (last_rail_managed_array < 0) last_rail_managed_array = rail_route_manager.m_town_route_array.len() - 1;
+	if (last_rail_managed_management < 0) last_rail_managed_management = 7;
 }
 
 function LuDiAIAfterFix::InterruptRailManagement(cur_date)
 {
 	if (AIDate.GetCurrentDate() - cur_date > 1) {
-		if (lastRailManagedArray == -1) lastRailManagedManagement--;
+		if (last_rail_managed_array == -1) last_rail_managed_management--;
 		return true;
 	}
 	return false;
@@ -707,137 +707,133 @@ function LuDiAIAfterFix::InterruptRailManagement(cur_date)
 function LuDiAIAfterFix::ManageTrainRoutes()
 {
 	local max_trains = AIGameSettings.GetValue("max_trains");
-	if (max_trains != MAX_TRAIN_VEHICLES) {
-		MAX_TRAIN_VEHICLES = max_trains;
-		AILog.Info("MAX_TRAIN_VEHICLES = " + MAX_TRAIN_VEHICLES);
-	}
 
 	local cur_date = AIDate.GetCurrentDate();
 	ResetRailManagementVariables();
 
-//	for (local i = lastRailManagedArray; i >= 0; --i) {
-//		if (lastRailManagedManagement != 8) break;
-//		lastRailManagedArray--;
+//	for (local i = last_rail_managed_array; i >= 0; --i) {
+//		if (last_rail_managed_management != 8) break;
+//		last_rail_managed_array--;
 //		AILog.Info("Route " + i + " from " + AIBaseStation.GetName(AIStation.GetStationID(rail_route_manager.m_town_route_array[i].m_station_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(rail_route_manager.m_town_route_array[i].m_station_to)));
 //		if (InterruptRailManagement(cur_date)) return;
 //	}
 //	ResetRailManagementVariables();
-//	if (lastRailManagedManagement == 8) lastRailManagedManagement--;
+//	if (last_rail_managed_management == 8) last_rail_managed_management--;
 //
 //	local start_tick = AIController.GetTick();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 7) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 7) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". RenewVehicles");
 		rail_route_manager.m_town_route_array[i].RenewVehicles();
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 7) lastRailManagedManagement--;
+	if (last_rail_managed_management == 7) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 6) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 6) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". SendNegativeProfitVehiclesToDepot");
 		rail_route_manager.m_town_route_array[i].SendNegativeProfitVehiclesToDepot();
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 6) lastRailManagedManagement--;
+	if (last_rail_managed_management == 6) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	local num_vehs = rail_route_manager.GetTrainCount();
 	local maxAllRoutesProfit = rail_route_manager.HighestProfitLastYear();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 5) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 5) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
-		if (MAX_TRAIN_VEHICLES * 0.95 < num_vehs) {
+		if (max_trains * 0.95 < num_vehs) {
 			rail_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
 		}
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 5) lastRailManagedManagement--;
+	if (last_rail_managed_management == 5) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 4) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 4) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". UpdateEngineWagonPair");
 		rail_route_manager.m_town_route_array[i].UpdateEngineWagonPair();
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 4) lastRailManagedManagement--;
+	if (last_rail_managed_management == 4) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 3) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 3) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". SellVehiclesInDepot");
 		rail_route_manager.m_town_route_array[i].SellVehiclesInDepot();
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 3) lastRailManagedManagement--;
+	if (last_rail_managed_management == 3) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 2) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 2) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". UpgradeBridges")
 		rail_route_manager.m_town_route_array[i].UpgradeBridges();
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 2) lastRailManagedManagement--;
+	if (last_rail_managed_management == 2) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
 	num_vehs = rail_route_manager.GetTrainCount();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 1) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 1) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
-		if (num_vehs < MAX_TRAIN_VEHICLES) {
-			num_vehs += rail_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < MAX_TRAIN_VEHICLES);
+		if (num_vehs < max_trains) {
+			num_vehs += rail_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < max_trains);
 		}
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 1) lastRailManagedManagement--;
+	if (last_rail_managed_management == 1) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //	local start_tick = AIController.GetTick();
-	for (local i = lastRailManagedArray; i >= 0; --i) {
-		if (lastRailManagedManagement != 0) break;
-		lastRailManagedArray--;
+	for (local i = last_rail_managed_array; i >= 0; --i) {
+		if (last_rail_managed_management != 0) break;
+		last_rail_managed_array--;
 //		AILog.Info("managing route " + i + ". RemoveIfUnserviced");
 		local city_from = rail_route_manager.m_town_route_array[i].m_city_from;
 		local city_to = rail_route_manager.m_town_route_array[i].m_city_to;
 		local cargoC = rail_route_manager.m_town_route_array[i].m_cargo_class;
 		if (rail_route_manager.m_town_route_array[i].RemoveIfUnserviced()) {
 			rail_route_manager.m_town_route_array.remove(i);
-			railTownManager.ResetCityPair(city_from, city_to, cargoC, true);
+			rail_town_manager.ResetCityPair(city_from, city_to, cargoC, true);
 		}
 		if (InterruptRailManagement(cur_date)) return;
 	}
 	ResetRailManagementVariables();
-	if (lastRailManagedManagement == 0) lastRailManagedManagement--;
+	if (last_rail_managed_management == 0) last_rail_managed_management--;
 //	local management_ticks = AIController.GetTick() - start_tick;
 //	AILog.Info("Managed " + rail_route_manager.m_town_route_array.len() + " rail route" + (rail_route_manager.m_town_route_array.len() != 1 ? "s" : "") + " in " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 }
