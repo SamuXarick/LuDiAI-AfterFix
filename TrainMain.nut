@@ -3,7 +3,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 	if (!AIController.GetSetting("rail_support")) return;
 
 	local unfinished = rail_build_manager.HasUnfinishedRoute();
-	if (unfinished || (rail_route_manager.GetTrainCount() < max(MAX_TRAIN_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 6) & 3) != 3) {
+	if (unfinished || (rail_route_manager.GetTrainCount() < max(AIGameSettings.GetValue("max_trains") - 10, 10)) && ((allRoutesBuilt >> 6) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
 		local best_railtype;
@@ -707,10 +707,6 @@ function LuDiAIAfterFix::InterruptRailManagement(cur_date)
 function LuDiAIAfterFix::ManageTrainRoutes()
 {
 	local max_trains = AIGameSettings.GetValue("max_trains");
-	if (max_trains != MAX_TRAIN_VEHICLES) {
-		MAX_TRAIN_VEHICLES = max_trains;
-		AILog.Info("MAX_TRAIN_VEHICLES = " + MAX_TRAIN_VEHICLES);
-	}
 
 	local cur_date = AIDate.GetCurrentDate();
 	ResetRailManagementVariables();
@@ -757,7 +753,7 @@ function LuDiAIAfterFix::ManageTrainRoutes()
 		if (lastRailManagedManagement != 5) break;
 		lastRailManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
-		if (MAX_TRAIN_VEHICLES * 0.95 < num_vehs) {
+		if (max_trains * 0.95 < num_vehs) {
 			rail_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
 		}
 		if (InterruptRailManagement(cur_date)) return;
@@ -812,8 +808,8 @@ function LuDiAIAfterFix::ManageTrainRoutes()
 		if (lastRailManagedManagement != 1) break;
 		lastRailManagedArray--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
-		if (num_vehs < MAX_TRAIN_VEHICLES) {
-			num_vehs += rail_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < MAX_TRAIN_VEHICLES);
+		if (num_vehs < max_trains) {
+			num_vehs += rail_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < max_trains);
 		}
 		if (InterruptRailManagement(cur_date)) return;
 	}

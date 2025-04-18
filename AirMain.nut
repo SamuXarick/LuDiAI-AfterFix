@@ -3,7 +3,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 	if (!AIController.GetSetting("air_support")) return;
 
 	local unfinished = this.air_build_manager.HasUnfinishedRoute();
-	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(MAX_AIR_VEHICLES - 10, 10)) && ((this.allRoutesBuilt >> 4) & 3) != 3) {
+	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(AIGameSettings.GetValue("max_aircraft") - 10, 10)) && ((this.allRoutesBuilt >> 4) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
 		local cargo_class = AIController.GetSetting("select_town_cargo") != 2 ? this.cargoClassAir : (!unfinished ? this.cargoClassAir : (this.cargoClassAir == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
@@ -162,10 +162,6 @@ function LuDiAIAfterFix::InterruptAirManagement(cur_date)
 function LuDiAIAfterFix::ManageAircraftRoutes()
 {
 	local max_aircraft = AIGameSettings.GetValue("max_aircraft");
-	if (max_aircraft != MAX_AIR_VEHICLES) {
-		MAX_AIR_VEHICLES = max_aircraft;
-		AILog.Info("MAX_AIR_VEHICLES = " + MAX_AIR_VEHICLES);
-	}
 
 	local cur_date = AIDate.GetCurrentDate();
 	this.ResetAirManagementVariables();
@@ -212,7 +208,7 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		if (this.lastAirManagedManagement != 4) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
-		if (MAX_AIR_VEHICLES * 0.95 < num_vehs) {
+		if (max_aircraft * 0.95 < num_vehs) {
 			this.air_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(max_all_routes_profit);
 		}
 		if (this.InterruptAirManagement(cur_date)) return;
@@ -254,8 +250,8 @@ function LuDiAIAfterFix::ManageAircraftRoutes()
 		if (this.lastAirManagedManagement != 1) break;
 		this.lastAirManagedArray--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
-		if (num_vehs < MAX_AIR_VEHICLES) {
-			num_vehs += this.air_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < MAX_AIR_VEHICLES);
+		if (num_vehs < max_aircraft) {
+			num_vehs += this.air_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < max_aircraft);
 		}
 		if (this.InterruptAirManagement(cur_date)) return;
 	}

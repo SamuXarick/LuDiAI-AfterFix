@@ -3,7 +3,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 	if (!AIController.GetSetting("water_support")) return;
 
 	local unfinished = ship_build_manager.HasUnfinishedRoute();
-	if (unfinished || (ship_route_manager.GetShipCount() < max(MAX_SHIP_VEHICLES - 10, 10)) && ((allRoutesBuilt >> 2) & 3) != 3) {
+	if (unfinished || (ship_route_manager.GetShipCount() < max(AIGameSettings.GetValue("max_ships") - 10, 10)) && ((allRoutesBuilt >> 2) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
 		local cheaper_route = false;
@@ -176,10 +176,6 @@ function LuDiAIAfterFix::InterruptWaterManagement(cur_date)
 function LuDiAIAfterFix::ManageShipRoutes()
 {
 	local max_ships = AIGameSettings.GetValue("max_ships");
-	if (max_ships != MAX_SHIP_VEHICLES) {
-		MAX_SHIP_VEHICLES = max_ships;
-		AILog.Info("MAX_SHIP_VEHICLES = " + MAX_SHIP_VEHICLES);
-	}
 
 	local cur_date = AIDate.GetCurrentDate();
 	ResetWaterManagementVariables();
@@ -226,7 +222,7 @@ function LuDiAIAfterFix::ManageShipRoutes()
 		if (lastWaterManagedManagement != 4) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". SendLowProfitVehiclesToDepot");
-		if (MAX_SHIP_VEHICLES * 0.95 < num_vehs) {
+		if (max_ships * 0.95 < num_vehs) {
 			ship_route_manager.m_town_route_array[i].SendLowProfitVehiclesToDepot(maxAllRoutesProfit);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
@@ -268,8 +264,8 @@ function LuDiAIAfterFix::ManageShipRoutes()
 		if (lastWaterManagedManagement != 1) break;
 		lastWaterManagedArray--;
 //		AILog.Info("managing route " + i + ". AddRemoveVehicleToRoute");
-		if (num_vehs < MAX_SHIP_VEHICLES) {
-			num_vehs += ship_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < MAX_SHIP_VEHICLES);
+		if (num_vehs < max_ships) {
+			num_vehs += ship_route_manager.m_town_route_array[i].AddRemoveVehicleToRoute(num_vehs < max_ships);
 		}
 		if (InterruptWaterManagement(cur_date)) return;
 	}
