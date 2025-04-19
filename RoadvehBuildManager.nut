@@ -204,6 +204,63 @@ class RoadBuildManager
 		return false;
 	}
 
+	function GetAdjacentNonRoadStationID(station_tile, station_id)
+	{
+		if (station_id != AIStation.STATION_NEW) {
+			return station_id;
+		}
+
+		local spread_rad = AIGameSettings.GetValue("station_spread");
+		if (!spread_rad || !AIGameSettings.GetValue("distant_join_stations")) {
+			return AIStation.STATION_NEW;
+		}
+
+		local spread_rectangle = OrthogonalTileArea(station_tile, 1, 1);
+		spread_rectangle.Expand(spread_rad - 1, spread_rad - 1);
+
+		local tile_list = AITileList();
+		tile_list.AddRectangle(spread_rectangle.tile_top, spread_rectangle.tile_bot);
+
+		foreach (tile, _ in tile_list) {
+			if (!AITile.IsStationTile(tile)) {
+				tile_list[tile] = null;
+				continue;
+			}
+			if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
+				tile_list[tile] = null;
+				continue;
+			}
+			local station_id2 = AIStation.GetStationID(tile);
+			if (AIStation.HasStationType(station_id2, AIStation.STATION_BUS_STOP)) {
+				tile_list[tile] = null;
+				continue;
+			}
+			if (AIStation.HasStationType(station_id2, AIStation.STATION_TRUCK_STOP)) {
+				tile_list[tile] = null;
+				continue;
+			}
+			tile_list[tile] = station_id2;
+		}
+
+		local station_list = AIList();
+		station_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
+		foreach (tile, station_id2 in tile_list) {
+			station_list[station_id2] = AIMap.DistanceManhattan(tile, station_tile);
+		}
+
+		foreach (station_id2, _ in station_list) {
+			local station_tiles = AITileList_StationType(station_id, AIStation.STATION_ANY);
+			foreach (tile, _ in station_tiles) {
+				if (!spread_rectangle.Contains(tile)) {
+					station_list[station_id2] = null;
+					break;
+				}
+			}
+		}
+
+		return station_list.IsEmpty() ? AIStation.STATION_NEW : station_list.Begin();
+	}
+
 	/* Warning: this function can also be called from RoadRoute class. Do not use 'this' members variables */
 	function BuildTownRoadStation(city_from, city_to, cargo_class, articulated, best_routes_built, station_tile = null)
 	{
@@ -287,7 +344,7 @@ class RoadBuildManager
 
 			AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
 			local num_adjacent_road_tiles = adjacent_road_tiles.Count();
-			local adjacent_station_id = Utils.CheckAdjacentNonRoadStation(tile, station_id);
+			local adjacent_station_id = this.GetAdjacentNonRoadStationID(tile, station_id);
 			local max_num_tries = station_tile == null ? 1 : 500;
 			local tile_has_road = AIRoad.IsRoadTile(tile);
 

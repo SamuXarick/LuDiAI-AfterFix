@@ -1056,7 +1056,8 @@ class RailBuildManager
 						if (!AreOtherRailwayStationsNearby(station)) {
 							local cargo_production = AITile.GetCargoProduction(tile, cargoType, station.width, station.height, radius);
 							if (pick_mode == 1 || best_routes_built || cargo_production >= 8) {
-								stations.Insert(station, -((cargo_production << 28) | ((0x2000 - worst_dirs[1]) << 14) | (0x2000 - worst_dirs[2]))); // store as negative to make priority queue prioritize highest values
+								/* store as negative to make priority queue prioritize highest values */
+								stations.Insert(station, -((cargo_production << 26) | ((0x1FFF - worst_dirs[1]) << 13) | (0x1FFF - worst_dirs[2])));
 							}
 						}
 					}

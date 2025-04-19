@@ -17,14 +17,14 @@ class OrthogonalTileArea
 
 		this.sx = AIMap.GetTileX(top);
 		this.sy = AIMap.GetTileY(top);
-		local borders = AIGameSettings.GetValue("freeform_edges");
-		this.ex = this.sx + width - borders;
-		this.ey = this.sy + height - borders;
+		this.ex = this.sx + width - 1;
+		this.ey = this.sy + height - 1;
 
 		this.tile_top = top;
 		this.tile_bot = AIMap.GetTileIndex(this.ex, this.ey);
-		this.w = min(width, AIMap.GetMapSizeX() - this.sx - borders);
-		this.h = min(height, AIMap.GetMapSizeY() - this.sy - borders);
+		assert(AIMap.IsValidTile(this.tile_bot));
+		this.w = this.ex - this.sx + 1;
+		this.h = this.ey - this.sy + 1;
 	}
 
 	function CreateArea(start, end)
@@ -44,6 +44,8 @@ class OrthogonalTileArea
 		local width = ex - sx + 1;
 		local height = ey - sy + 1;
 
+//		AILog.Info("CreateArea, top:" + top + ", width: " + width + ", height: " + height + ", start: " + start + ", end: " + end + ", sx: " + sx + ", sy: " + sy + ", ex: " + ex + ", ey: " + ey);
+//		area.PrintValues();
 		return OrthogonalTileArea(top, width, height);
 	}
 
@@ -207,54 +209,6 @@ class Utils
 		return adjacent_tiles;
 	}
 
-	function AreOtherDocksNearby(tile_north, tile_south)
-	{
-		/* check if there are other docks squareSize squares nearby */
-		local squareSize = AIStation.GetCoverageRadius(AIStation.STATION_DOCK) * 2;
-
-		local square = AITileList();
-		if (!AIController.GetSetting("is_friendly")) {
-			squareSize = 2;
-			/* don't care about enemy stations when is_friendly is off */
-			square.AddRectangle(Utils.GetValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(tile_south, squareSize, squareSize));
-
-			/* if another dock of mine is nearby return true */
-			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (Utils.IsTileMyDock(tile)) { // negate second expression to merge your stations
-					return true;
-				}
-			}
-		} else {
-			square.AddRectangle(Utils.GetValidOffsetTile(tile_north, -1 * squareSize, -1 * squareSize), Utils.GetValidOffsetTile(tile_south, squareSize, squareSize));
-
-			/* if any other station is nearby, except my own airports, return true */
-			for (local tile = square.Begin(); !square.IsEnd(); tile = square.Next()) {
-				if (AITile.IsStationTile(tile)) {
-					if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
-						return true;
-					} else {
-						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
-						if (stationTiles.HasItem(tile)) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-
-		return false;
-	}
-
-	function IsTileMyDock(tile)
-	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
-	}
-
-	function IsTileMyStationWithoutDock(tile)
-	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_DOCK);
-	}
-
 	function IsTileMyStationWithoutRailwayStation(tile)
 	{
 		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
@@ -278,200 +232,6 @@ class Utils
 
 		/* both AICargo.CC_MAIL and AICargo.CC_PASSENGERS should return the first available cargo_type */
 		return cargo_type;
-	}
-
-	function CheckAdjacentNonRoadStation(station_tile, station_id)
-	{
-		if (station_id != AIStation.STATION_NEW) {
-			return station_id;
-		}
-
-		local spread_rad = AIGameSettings.GetValue("station_spread");
-		if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
-			return AIStation.STATION_NEW;
-		}
-
-		local spread_rectangle = OrthogonalTileArea(station_tile, 1, 1);
-		spread_rectangle.Expand(spread_rad - 1, spread_rad - 1);
-
-		local tile_list = AITileList();
-		tile_list.AddRectangle(spread_rectangle.tile_top, spread_rectangle.tile_bot);
-
-		foreach (tile, _ in tile_list) {
-			if (!AITile.IsStationTile(tile)) {
-				tile_list[tile] = null;
-				continue;
-			}
-			if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
-				tile_list[tile] = null;
-				continue;
-			}
-			local station_id2 = AIStation.GetStationID(tile);
-			if (AIStation.HasStationType(station_id2, AIStation.STATION_BUS_STOP)) {
-				tile_list[tile] = null;
-				continue;
-			}
-			if (AIStation.HasStationType(station_id2, AIStation.STATION_TRUCK_STOP)) {
-				tile_list[tile] = null;
-				continue;
-			}
-			tile_list[tile] = station_id2;
-		}
-
-		local station_list = AIList();
-		station_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
-		foreach (tile, station_id2 in tile_list) {
-			station_list[station_id2] = AIMap.DistanceManhattan(tile, station_tile);
-		}
-
-		foreach (station_id2, _ in station_list) {
-			local station_tiles = AITileList_StationType(station_id, AIStation.STATION_ANY);
-			foreach (tile, _ in station_tiles) {
-				if (!spread_rectangle.Contains(tile)) {
-					station_list[station_id2] = null;
-					break;
-				}
-			}
-		}
-
-		return station_list.IsEmpty() ? AIStation.STATION_NEW : station_list.Begin();
-	}
-
-	function CheckAdjacentNonDock(stationTile)
-	{
-		if (!AIController.GetSetting("station_spread") || !AIGameSettings.GetValue("distant_join_stations")) {
-			return AIStation.STATION_NEW;
-		}
-
-		local tileList = AITileList();
-		local spreadrectangle = Utils.ExpandAdjacentDockRect(stationTile);
-		tileList.AddRectangle(spreadrectangle[0], spreadrectangle[1]);
-
-		local templist = AITileList();
-		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-			if (Utils.IsTileMyStationWithoutDock(tile)) {
-				tileList.SetValue(tile, AIStation.GetStationID(tile));
-			} else {
-				templist.AddTile(tile);
-			}
-		}
-		tileList.RemoveList(templist);
-
-		local stationList = AIList();
-
-		for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
-			stationList.AddItem(tileList.GetValue(tile), AIMap.DistanceManhattan(tile, stationTile));
-		}
-
-		local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);
-		local spreadrectangle_top_y = AIMap.GetTileY(spreadrectangle[0]);
-		local spreadrectangle_bot_x = AIMap.GetTileX(spreadrectangle[1]);
-		local spreadrectangle_bot_y = AIMap.GetTileY(spreadrectangle[1]);
-
-		local list = AIList();
-		list.AddList(stationList);
-		for (local stationId = stationList.Begin(); !stationList.IsEnd(); stationId = stationList.Next()) {
-			local stationTiles = AITileList_StationType(stationId, AIStation.STATION_ANY);
-			local station_top_x = AIMap.GetTileX(AIBaseStation.GetLocation(stationId));
-			local station_top_y = AIMap.GetTileY(AIBaseStation.GetLocation(stationId));
-			local station_bot_x = station_top_x;
-			local station_bot_y = station_top_y;
-			for (local tile = stationTiles.Begin(); !stationTiles.IsEnd(); tile = stationTiles.Next()) {
-				local tile_x = AIMap.GetTileX(tile);
-				local tile_y = AIMap.GetTileY(tile);
-				if (tile_x < station_top_x) {
-					station_top_x = tile_x;
-				}
-				if (tile_x > station_bot_x) {
-					station_bot_x = tile_x;
-				}
-				if (tile_y < station_top_y) {
-					station_top_y = tile_y;
-				}
-				if (tile_y > station_bot_y) {
-					station_bot_y = tile_y;
-				}
-			}
-
-			if (spreadrectangle_top_x > station_top_x ||
-				spreadrectangle_top_y > station_top_y ||
-				spreadrectangle_bot_x < station_bot_x ||
-				spreadrectangle_bot_y < station_bot_y) {
-				list.RemoveItem(stationId);
-			}
-		}
-		list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
-
-		local adjacentStation = AIStation.STATION_NEW;
-		if (!list.IsEmpty()) {
-			adjacentStation = list.Begin();
-//			AILog.Info("adjacentStation = " + AIStation.GetName(adjacentStation) + " ; stationtTile = " + AIMap.GetTileX(stationTile) + "," + AIMap.GetTileY(stationTile));
-		}
-
-		return adjacentStation;
-	}
-
-	function ExpandAdjacentDockRect(dockTile)
-	{
-		local slope = AITile.GetSlope(dockTile);
-		if (slope != AITile.SLOPE_SW && slope != AITile.SLOPE_NW && slope != AITile.SLOPE_SE && slope != AITile.SLOPE_NE) return [dockTile, dockTile]; // shouldn't happen
-
-		local offset = 0;
-		local tile2 = AIMap.TILE_INVALID;
-		if (slope == AITile.SLOPE_NE) offset = AIMap.GetTileIndex(1, 0);
-		if (slope == AITile.SLOPE_SE) offset = AIMap.GetTileIndex(0, -1);
-		if (slope == AITile.SLOPE_SW) offset = AIMap.GetTileIndex(-1, 0);
-		if (slope == AITile.SLOPE_NW) offset = AIMap.GetTileIndex(0, 1);
-		tile2 = dockTile + offset;
-
-		local temp_tile1 = dockTile;
-		local temp_tile2 = tile2;
-		if (temp_tile1 > temp_tile2) {
-			local swap = temp_tile1;
-			temp_tile1 = temp_tile2;
-			temp_tile2 = swap;
-		}
-
-		local x_length = 1;
-		local y_length = 1;
-		if (temp_tile2 - temp_tile1 == 1) {
-			x_length = 2;
-		} else {
-			y_length = 2;
-		}
-
-		local spread_rad = AIGameSettings.GetValue("station_spread");
-		local dock_x = x_length;
-		local dock_y = y_length;
-
-		local remaining_x = spread_rad - dock_x;
-		local remaining_y = spread_rad - dock_y;
-
-		local tile_top_x = AIMap.GetTileX(temp_tile1);
-		local tile_top_y = AIMap.GetTileY(temp_tile1);
-		local tile_bot_x = tile_top_x + dock_x - 1;
-		local tile_bot_y = tile_top_y + dock_y - 1;
-
-		for (local x = remaining_x; x > 0; x--) {
-			if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_top_x - 1, tile_top_y))) {
-				tile_top_x = tile_top_x - 1;
-			}
-			if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_bot_x + 1, tile_bot_y))) {
-				tile_bot_x = tile_bot_x + 1;
-			}
-		}
-
-		for (local y = remaining_y; y > 0; y--) {
-			if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_top_x, tile_top_y - 1))) {
-				tile_top_y = tile_top_y - 1;
-			}
-			if (AIMap.IsValidTile(AIMap.GetTileIndex(tile_bot_x, tile_bot_y + 1))) {
-				tile_bot_y = tile_bot_y + 1;
-			}
-		}
-
-//		AILog.Info("spreadrectangle top = " + tile_top_x + "," + tile_top_y + " ; spreadrectangle bottom = " + tile_bot_x + "," + tile_bot_y);
-		return [AIMap.GetTileIndex(tile_top_x, tile_top_y), AIMap.GetTileIndex(tile_bot_x, tile_bot_y)];
 	}
 
 	/**
