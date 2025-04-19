@@ -66,6 +66,184 @@ class ShipBuildManager
 		this.m_sent_to_depot_water_group = null;
 	}
 
+	/**
+	 * Get the tile where ships can use to dock at the given dock.
+	 * @param dock_tile A tile that is part of the dock.
+	 * @return The tile where ships dock at the given dock.
+	 */
+	function GetDockDockingTile(dock_tile)
+	{
+		assert(AIMarine.IsDockTile(dock_tile));
+
+		local dock_slope;
+		if (AITile.GetSlope(dock_tile) == AITile.SLOPE_FLAT) {
+			foreach (offset in [AIMap.GetMapSizeX(), -AIMap.GetMapSizeX(), 1, -1]) {
+				local offset_tile = dock_tile + offset;
+				if (AIMarine.IsDockTile(offset_tile)) {
+					local slope = AITile.GetSlope(offset_tile);
+					if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE) {
+						dock_slope = offset_tile;
+						break;
+					}
+				}
+			}
+		} else {
+			dock_slope = dock_tile;
+		}
+
+		local slope = AITile.GetSlope(dock_slope);
+		if (slope == AITile.SLOPE_NE) {
+			return dock_slope + 2;
+		} else if (slope == AITile.SLOPE_SE) {
+			return dock_slope - 2 * AIMap.GetMapSizeX();
+		} else if (slope == AITile.SLOPE_SW) {
+			return dock_slope - 2;
+		} else if (slope == AITile.SLOPE_NW) {
+			return dock_slope + 2 * AIMap.GetMapSizeX();
+		}
+	}
+
+	/**
+	 * Get the tile of the other end of a lock.
+	 * @param tile The tile of the entrance of a lock.
+	 * @return The tile of the other end of the same lock.
+	 */
+	function GetOtherLockEnd(tile)
+	{
+		assert(AIMarine.IsLockTile(tile) && AITile.GetSlope(tile) == AITile.SLOPE_FLAT);
+
+		foreach (offset in [AIMap.GetMapSizeX(), -AIMap.GetMapSizeX(), 1, -1]) {
+			local middle_tile = tile + offset;
+			local slope = AITile.GetSlope(middle_tile);
+			if (AIMarine.IsLockTile(middle_tile) && (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE)) {
+				return middle_tile + offset;
+			}
+		}
+	}
+
+	/**
+	 * Get the tile of the middle part of a lock.
+	 * @param tile The tile of a part of a lock.
+	 * @return The tile of the middle part of the same lock.
+	 */
+	function GetLockMiddleTile(tile)
+	{
+		assert(AIMarine.IsLockTile(tile));
+
+		local slope = AITile.GetSlope(tile);
+		if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE) return tile;
+
+		assert(slope == AITile.SLOPE_FLAT);
+
+		local other_end = this.GetOtherLockEnd(tile);
+		return tile - (tile - other_end) / 2;
+	}
+
+	/**
+	 * Check whether the tile we're coming from is compatible with the axis of a
+	 *  lock planned in this location.
+	 * @param prev_tile The tile we're coming from.
+	 * @param middle_tile The tile of the middle part of a planned lock.
+	 * @return true if the previous tile is compatible with the axis of the planned lock.
+	 */
+	function CheckLockDirection(prev_tile, middle_tile)
+	{
+		local slope = AITile.GetSlope(middle_tile);
+		assert(slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE);
+
+		if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NE) {
+			return prev_tile == middle_tile + 1 || prev_tile == middle_tile - 1;
+		} else if (slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NW) {
+			return prev_tile == middle_tile + AIMap.GetMapSizeX() || prev_tile == middle_tile - AIMap.GetMapSizeX();
+		}
+
+		return false;
+	}
+
+	function RemovingCanalBlocksConnection(tile)
+	{
+		local t_sw = tile + AIMap.GetTileIndex(1, 0);
+		local t_ne = tile + AIMap.GetTileIndex(-1, 0);
+		local t_se = tile + AIMap.GetTileIndex(0, 1);
+		local t_nw = tile + AIMap.GetTileIndex(0, -1);
+
+		if (AIMarine.IsLockTile(t_se) && AITile.GetSlope(t_se) == AITile.SLOPE_FLAT && this.CheckLockDirection(t_se, this.GetLockMiddleTile(t_se)) ||
+				AIMarine.IsLockTile(t_nw) && AITile.GetSlope(t_nw) == AITile.SLOPE_FLAT && this.CheckLockDirection(t_nw, this.GetLockMiddleTile(t_nw)) ||
+				AIMarine.IsLockTile(t_ne) && AITile.GetSlope(t_ne) == AITile.SLOPE_FLAT && this.CheckLockDirection(t_ne, this.GetLockMiddleTile(t_ne)) ||
+				AIMarine.IsLockTile(t_sw) && AITile.GetSlope(t_sw) == AITile.SLOPE_FLAT && this.CheckLockDirection(t_sw, this.GetLockMiddleTile(t_sw))) {
+			return true;
+		}
+
+		if (AIMarine.IsDockTile(t_se) && this.GetDockDockingTile(t_se) == tile ||
+				AIMarine.IsDockTile(t_nw) && this.GetDockDockingTile(t_nw) == tile ||
+				AIMarine.IsDockTile(t_ne) && this.GetDockDockingTile(t_ne) == tile ||
+				AIMarine.IsDockTile(t_sw) && this.GetDockDockingTile(t_sw) == tile) {
+			return true;
+		}
+
+		local t_e = tile + AIMap.GetTileIndex(-1, 1);
+
+		if (AIMarine.AreWaterTilesConnected(tile, t_se) && AIMarine.AreWaterTilesConnected(tile, t_ne)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_e, t_se) && AIMarine.AreWaterTilesConnected(t_e, t_ne))) {
+				return true;
+			}
+		}
+
+		local t_n = tile + AIMap.GetTileIndex(-1, -1);
+
+		if (AIMarine.AreWaterTilesConnected(tile, t_nw) && AIMarine.AreWaterTilesConnected(tile, t_ne)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_n, t_nw) && AIMarine.AreWaterTilesConnected(t_n, t_ne))) {
+				return true;
+			}
+		}
+
+		local t_s = tile + AIMap.GetTileIndex(1, 1);
+
+		if (AIMarine.AreWaterTilesConnected(tile, t_se) && AIMarine.AreWaterTilesConnected(tile, t_sw)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_s, t_se) && AIMarine.AreWaterTilesConnected(t_s, t_sw))) {
+				return true;
+			}
+		}
+
+		local t_w = tile + AIMap.GetTileIndex(1, -1);
+
+		if (AIMarine.AreWaterTilesConnected(tile, t_nw) && AIMarine.AreWaterTilesConnected(tile, t_sw)) {
+			if (!(AIMarine.AreWaterTilesConnected(t_w, t_nw) && AIMarine.AreWaterTilesConnected(t_w, t_sw))) {
+				return true;
+			}
+		}
+
+		if (AIMarine.AreWaterTilesConnected(tile, t_se) && AIMarine.AreWaterTilesConnected(tile, t_nw)) {
+			if (AIMarine.AreWaterTilesConnected(t_s, t_se) && AIMarine.AreWaterTilesConnected(t_s, t_sw)) {
+				if (!(AIMarine.AreWaterTilesConnected(t_w, t_nw) && AIMarine.AreWaterTilesConnected(t_w, t_sw))) {
+					return true;
+				}
+			} else if (AIMarine.AreWaterTilesConnected(t_e, t_se) && AIMarine.AreWaterTilesConnected(t_e, t_ne)) {
+				if (!(AIMarine.AreWaterTilesConnected(t_n, t_nw) && AIMarine.AreWaterTilesConnected(t_n, t_ne))) {
+					return true;
+				}
+			} else {
+				return true;
+			}
+		}
+
+		if (AIMarine.AreWaterTilesConnected(tile, t_ne) && AIMarine.AreWaterTilesConnected(tile, t_sw)) {
+			if (AIMarine.AreWaterTilesConnected(t_e, t_se) && AIMarine.AreWaterTilesConnected(t_e, t_ne)) {
+				if (!(AIMarine.AreWaterTilesConnected(t_s, t_se) && AIMarine.AreWaterTilesConnected(t_s, t_sw))) {
+					return true;
+				}
+			} else if (AIMarine.AreWaterTilesConnected(t_n, t_nw) && AIMarine.AreWaterTilesConnected(t_n, t_ne)) {
+				if (!(AIMarine.AreWaterTilesConnected(t_w, t_nw) && AIMarine.AreWaterTilesConnected(t_w, t_sw))) {
+					return true;
+				}
+			} else {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	function BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, sent_to_depot_water_group, best_routes_built)
 	{
 		this.m_city_from = city_from;
@@ -105,13 +283,13 @@ class ShipBuildManager
 					do {
 						if (!TestRemoveDock().TryRemove(this.m_dock_from)) {
 							++counter;
-						}
-						else {
+						} else {
 //							AILog.Warning("this.m_dock_to == null; Removed dock tile at " + this.m_dock_from);
 							break;
 						}
 						AIController.Sleep(1);
 					} while (counter < 500);
+
 					if (counter == 500) {
 						::scheduledRemovalsTable.Ship.rawset(this.m_dock_from, 0);
 //						AILog.Error("Failed to remove dock tile at " + this.m_dock_from + " - " + AIError.GetLastErrorString());
@@ -130,31 +308,31 @@ class ShipBuildManager
 							do {
 								if (!TestRemoveCanal().TryRemove(tile2)) {
 									++counter;
-								}
-								else {
+								} else {
 //									AILog.Warning("this.m_dock_to == null; Removed canal tile at " + tile2);
 									break;
 								}
 								AIController.Sleep(1);
 							} while (counter < 500);
+
 							if (counter == 500) {
 								::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 							}
 						}
 						local tile3 = tile2 + offset;
-						if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
+						if (AIMarine.IsCanalTile(tile3) && !this.RemovingCanalBlocksConnection(tile3)) {
 							local counter = 0;
 							do {
 								if (!TestRemoveCanal().TryRemove(tile3)) {
 									++counter;
-								}
-								else {
+								} else {
 //									AILog.Warning("this.m_dock_to == null; Removed canal tile at " + tile3);
 									break;
 								}
 								AIController.Sleep(1);
 							} while (counter < 500);
+
 							if (counter == 500) {
 								::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //								AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
@@ -200,13 +378,13 @@ class ShipBuildManager
 				do {
 					if (!TestRemoveDock().TryRemove(this.m_dock_from)) {
 						++counter;
-					}
-					else {
+					} else {
 //						AILog.Warning("this.m_depot_tile == null; Removed dock tile at " + this.m_dock_from);
 						break;
 					}
 					AIController.Sleep(1);
 				} while (counter < 500);
+
 				if (counter == 500) {
 					::scheduledRemovalsTable.Ship.rawset(this.m_dock_from, 0);
 //					AILog.Error("Failed to remove dock tile at " + this.m_dock_from + " - " + AIError.GetLastErrorString());
@@ -225,26 +403,25 @@ class ShipBuildManager
 						do {
 							if (!TestRemoveCanal().TryRemove(tile2)) {
 								++counter;
-							}
-							else {
+							} else {
 //								AILog.Warning("this.m_depot_tile == null; Removed canal tile at " + tile2);
 								break;
 							}
 							AIController.Sleep(1);
 						} while (counter < 500);
+
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						}
 					}
 					local tile3 = tile2 + offset;
-					if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
+					if (AIMarine.IsCanalTile(tile3) && !this.RemovingCanalBlocksConnection(tile3)) {
 						local counter = 0;
 						do {
 							if (!TestRemoveCanal().TryRemove(tile3)) {
 								++counter;
-							}
-							else {
+							} else {
 //								AILog.Warning("this.m_depot_tile == null; Removed canal tile at " + tile3);
 								break;
 							}
@@ -263,13 +440,13 @@ class ShipBuildManager
 				do {
 					if (!TestRemoveDock().TryRemove(this.m_dock_to)) {
 						++counter;
-					}
-					else {
+					} else {
 //						AILog.Warning("this.m_depot_tile == null; Removed dock tile at " + this.m_dock_to);
 						break;
 					}
 					AIController.Sleep(1);
 				} while (counter < 500);
+
 				if (counter == 500) {
 					::scheduledRemovalsTable.Ship.rawset(this.m_dock_to, 0);
 //					AILog.Error("Failed to remove dock tile at " + this.m_dock_to + " - " + AIError.GetLastErrorString());
@@ -288,31 +465,31 @@ class ShipBuildManager
 						do {
 							if (!TestRemoveCanal().TryRemove(tile2)) {
 								++counter;
-							}
-							else {
+							} else {
 //								AILog.Warning("this.m_depot_tile == null; Removed canal tile at " + tile2);
 								break;
 							}
 							AIController.Sleep(1);
 						} while (counter < 500);
+
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile2, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile2 + " - " + AIError.GetLastErrorString());
 						}
 					}
 					local tile3 = tile2 + offset;
-					if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
+					if (AIMarine.IsCanalTile(tile3) && !this.RemovingCanalBlocksConnection(tile3)) {
 						local counter = 0;
 						do {
 							if (!TestRemoveCanal().TryRemove(tile3)) {
 								++counter;
-							}
-							else {
+							} else {
 //								AILog.Warning("this.m_depot_tile == null; Removed canal tile at " + tile3);
 								break;
 							}
 							AIController.Sleep(1);
 						} while (counter < 500);
+
 						if (counter == 500) {
 							::scheduledRemovalsTable.Ship.rawset(tile3, 0);
 //							AILog.Error("Failed to remove canal tile at " + tile3 + " - " + AIError.GetLastErrorString());
@@ -327,6 +504,31 @@ class ShipBuildManager
 
 		this.m_built_tiles = [];
 		return ShipRoute(this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class, this.m_sent_to_depot_water_group);
+	}
+
+	function IsDockBuildableTile(tile, cheaper_route)
+	{
+		local slope = AITile.GetSlope(tile);
+		if (slope == AITile.SLOPE_FLAT) return [false, null];
+
+		local offset = 0;
+		local tile2 = AIMap.TILE_INVALID;
+		if (AITile.IsBuildable(tile) && (
+				slope == AITile.SLOPE_NE && (offset = AIMap.GetTileIndex(1, 0)) ||
+				slope == AITile.SLOPE_SE && (offset = AIMap.GetTileIndex(0, -1)) ||
+				slope == AITile.SLOPE_SW && (offset = AIMap.GetTileIndex(-1, 0)) ||
+				slope == AITile.SLOPE_NW && (offset = AIMap.GetTileIndex(0, 1)))) {
+			tile2 = tile + offset;
+			if (!AIMap.IsValidTile(tile2)) return [false, null];
+			if (AITile.GetSlope(tile2) != AITile.SLOPE_FLAT) return [false, null];
+			if (!((!cheaper_route && AITile.IsBuildable(tile2)) || (AITile.IsWaterTile(tile2) && !AIMarine.IsWaterDepotTile(tile2) && !AIMarine.IsLockTile(tile2)))) return [false, null];
+			local tile3 = tile2 + offset;
+			if (!AIMap.IsValidTile(tile3)) return [false, null];
+			if (AITile.GetSlope(tile3) != AITile.SLOPE_FLAT) return [false, null];
+			if (!((!cheaper_route && AITile.IsBuildable(tile3)) || (AITile.IsWaterTile(tile3) && !AIMarine.IsWaterDepotTile(tile3) && !AIMarine.IsLockTile(tile3)))) return [false, null];
+		}
+
+		return [true, tile2];
 	}
 
 	function BuildTownDock(town_id, cargo_class, cheaper_route, best_routes_built)
@@ -344,7 +546,7 @@ class ShipBuildManager
 		local templist = AITileList();
 		templist.AddList(tileList);
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tile = tileList.Next()) {
-			local buildable = Utils.IsDockBuildableTile(tile, cheaper_route);
+			local buildable = this.IsDockBuildableTile(tile, cheaper_route);
 			if (!buildable[0]) {
 				templist.RemoveTile(tile);
 				continue;
@@ -492,13 +694,13 @@ class ShipBuildManager
 				}
 
 				local blocking = false;
-				if (AIMarine.IsLockTile(tile2_1) && AITile.GetSlope(tile2_1) == AITile.SLOPE_FLAT && Utils.CheckLockDirection(tile2_1, Utils.GetLockMiddleTile(tile2_1)) ||
-						AIMarine.IsLockTile(tile2_2) && AITile.GetSlope(tile2_2) == AITile.SLOPE_FLAT && Utils.CheckLockDirection(tile2_2, Utils.GetLockMiddleTile(tile2_2))) {
+				if (AIMarine.IsLockTile(tile2_1) && AITile.GetSlope(tile2_1) == AITile.SLOPE_FLAT && this.CheckLockDirection(tile2_1, this.GetLockMiddleTile(tile2_1)) ||
+						AIMarine.IsLockTile(tile2_2) && AITile.GetSlope(tile2_2) == AITile.SLOPE_FLAT && this.CheckLockDirection(tile2_2, this.GetLockMiddleTile(tile2_2))) {
 					blocking = true;
 				}
 
-				if (!blocking && (AIMarine.IsDockTile(tile2_1) && Utils.GetDockDockingTile(tile2_1) == tile2 ||
-						AIMarine.IsDockTile(tile2_2) && Utils.GetDockDockingTile(tile2_2) == tile2)) {
+				if (!blocking && (AIMarine.IsDockTile(tile2_1) && this.GetDockDockingTile(tile2_1) == tile2 ||
+						AIMarine.IsDockTile(tile2_2) && this.GetDockDockingTile(tile2_2) == tile2)) {
 					blocking = true;
 				}
 
@@ -619,6 +821,41 @@ class ShipBuildManager
 		return null;
 	}
 
+	/**
+	 * Special check determining the possibility of a two tile sized
+	 *  aqueduct sharing the same edge to be built here.
+	 *  Checks wether the slopes are suitable and in the correct
+	 *  direction for such aqueduct.
+	 * @param tile_a The starting tile of a two tile sized aqueduct.
+	 * @param tile_b The ending tile of a two tile sized aqueduct.
+	 * @return true if the slopes are suitable for a two tile sized aqueduct.
+	 */
+	function CheckAqueductSlopes(tile_a, tile_b)
+	{
+		if (AIMap.DistanceManhattan(tile_a, tile_b) != 1) return false;
+		local slope_a = AITile.GetSlope(tile_a);
+		local slope_b = AITile.GetSlope(tile_b);
+		if ((slope_a != AITile.SLOPE_SW && slope_a != AITile.SLOPE_NW && slope_a != AITile.SLOPE_SE && slope_a != AITile.SLOPE_NE) ||
+				(slope_b != AITile.SLOPE_SW && slope_b != AITile.SLOPE_NW && slope_b != AITile.SLOPE_SE && slope_b != AITile.SLOPE_NE)) {
+			return false;
+		}
+
+		if (AITile.GetComplementSlope(slope_a) != slope_b) return false;
+
+		local offset;
+		if (slope_a == AITile.SLOPE_NE) {
+			offset = 1;
+		} else if (slope_a == AITile.SLOPE_SE) {
+			offset = -AIMap.GetMapSizeX();
+		} else if (slope_a == AITile.SLOPE_SW) {
+			offset = -1;
+		} else if (slope_a == AITile.SLOPE_NW) {
+			offset = AIMap.GetMapSizeX();
+		}
+
+		return tile_a + offset == tile_b;
+	}
+
 	/* find canal way between fromTile and toTile */
 	function PathfindBuildCanal(fromTile, toTile, silent_mode = false, pathfinder = null, builtTiles = [], cost_so_far = 0)
 	{
@@ -701,7 +938,7 @@ class ShipBuildManager
 				local par = path.GetParent();
 //				AILog.Info("built_last_node = " + built_last_node + "; last_node = " + last_node + "; par.GetTile() = " + (par == null ? par : par.GetTile()) + "; path.GetTile() = " + path.GetTile());
 				if (par != null) {
-					if (AIMap.DistanceManhattan(par.GetTile(), path.GetTile()) > 1 || Utils.CheckAqueductSlopes(par.GetTile(), path.GetTile())) {
+					if (AIMap.DistanceManhattan(par.GetTile(), path.GetTile()) > 1 || this.CheckAqueductSlopes(par.GetTile(), path.GetTile())) {
 						if (AIMap.DistanceManhattan(par.GetTile(), path.GetTile()) == 2 && AITile.GetSlope(par.GetTile()) == AITile.SLOPE_FLAT && AITile.GetSlope(path.GetTile()) == AITile.SLOPE_FLAT) {
 							/* We want to build a lock. */
 							local next_tile = par.GetTile() - (par.GetTile() - path.GetTile()) / 2;
@@ -720,8 +957,8 @@ class ShipBuildManager
 												if (!silent_mode) AILog.Warning("Couldn't build lock at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile() + " - LockBlocksConnection = true - Retrying...");
 												return this.PathfindBuildCanal(fromTile, last_node, silent_mode, null, this.m_built_tiles, canal_cost);
 											}
-										} else if (AIMarine.IsLockTile(next_tile) && Utils.GetLockMiddleTile(next_tile) == next_tile &&
-												AIMarine.IsLockTile(path.GetTile()) && Utils.GetOtherLockEnd(path.GetTile()) == par.GetTile()) {
+										} else if (AIMarine.IsLockTile(next_tile) && this.GetLockMiddleTile(next_tile) == next_tile &&
+												AIMarine.IsLockTile(path.GetTile()) && this.GetOtherLockEnd(path.GetTile()) == par.GetTile()) {
 //											if (!silent_mode) AILog.Warning("We found a lock already built at tiles " + path.GetTile() + ", " + next_tile + " and " + par.GetTile());
 											built_last_node = false;
 											break;
@@ -793,7 +1030,7 @@ class ShipBuildManager
 						}
 					} else {
 						/* We want to build a canal tile. */
-						if (!AITile.HasTransportType(path.GetTile(), AITile.TRANSPORT_WATER) || last_node != null && AIMap.DistanceManhattan(last_node, path.GetTile()) == 1 && !Utils.CheckAqueductSlopes(last_node, path.GetTile()) && !AIMarine.AreWaterTilesConnected(last_node, path.GetTile())) {
+						if (!AITile.HasTransportType(path.GetTile(), AITile.TRANSPORT_WATER) || last_node != null && AIMap.DistanceManhattan(last_node, path.GetTile()) == 1 && !this.CheckAqueductSlopes(last_node, path.GetTile()) && !AIMarine.AreWaterTilesConnected(last_node, path.GetTile())) {
 							local counter = 0;
 							do {
 								local costs = AIAccounting();
@@ -944,10 +1181,10 @@ class ShipBuildManager
 		if (AIBridge.IsBridgeTile(b_sp) && AITile.HasTransportType(b_sp, AITile.TRANSPORT_WATER)) return true;
 		if (AIBridge.IsBridgeTile(b_sn) && AITile.HasTransportType(b_sn, AITile.TRANSPORT_WATER)) return true;
 
-		if (AIMarine.IsDockTile(t_sp) && AITile.GetSlope(t_sp) == AITile.SLOPE_FLAT && Utils.GetDockDockingTile(t_sp) == top_tile) return true;
-		if (AIMarine.IsDockTile(t_sn) && AITile.GetSlope(t_sn) == AITile.SLOPE_FLAT && Utils.GetDockDockingTile(t_sn) == top_tile) return true;
-		if (AIMarine.IsDockTile(b_sp) && AITile.GetSlope(b_sp) == AITile.SLOPE_FLAT && Utils.GetDockDockingTile(b_sp) == bot_tile) return true;
-		if (AIMarine.IsDockTile(b_sn) && AITile.GetSlope(b_sn) == AITile.SLOPE_FLAT && Utils.GetDockDockingTile(b_sn) == bot_tile) return true;
+		if (AIMarine.IsDockTile(t_sp) && AITile.GetSlope(t_sp) == AITile.SLOPE_FLAT && this.GetDockDockingTile(t_sp) == top_tile) return true;
+		if (AIMarine.IsDockTile(t_sn) && AITile.GetSlope(t_sn) == AITile.SLOPE_FLAT && this.GetDockDockingTile(t_sn) == top_tile) return true;
+		if (AIMarine.IsDockTile(b_sp) && AITile.GetSlope(b_sp) == AITile.SLOPE_FLAT && this.GetDockDockingTile(b_sp) == bot_tile) return true;
+		if (AIMarine.IsDockTile(b_sn) && AITile.GetSlope(b_sn) == AITile.SLOPE_FLAT && this.GetDockDockingTile(b_sn) == bot_tile) return true;
 
 		if (top_tile_t_sp) {
 			if (AIMarine.IsWaterDepotTile(t_sp)) return true;

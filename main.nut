@@ -199,7 +199,7 @@ function LuDiAIAfterFix::RemoveLeftovers()
 							}
 						}
 						local tile3 = tile2 + offset;
-						if (AIMarine.IsCanalTile(tile3) && !Utils.RemovingCanalBlocksConnection(tile3)) {
+						if (AIMarine.IsCanalTile(tile3) && !ShipBuildManager.RemovingCanalBlocksConnection(tile3)) {
 							if (!TestRemoveCanal().TryRemove(tile3)) {
 								toclearList.AddItem(tile3, 0);
 							}
@@ -211,7 +211,7 @@ function LuDiAIAfterFix::RemoveLeftovers()
 					clearedList.AddItem(tile, 0);
 				}
 			}
-			else if (AIMarine.IsCanalTile(tile) && !Utils.RemovingCanalBlocksConnection(tile)) {
+			else if (AIMarine.IsCanalTile(tile) && !ShipBuildManager.RemovingCanalBlocksConnection(tile)) {
 				if (TestRemoveCanal().TryRemove(tile)) {
 					clearedList.AddItem(tile, 0);
 				}

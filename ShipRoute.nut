@@ -126,7 +126,7 @@ class ShipRoute extends ShipRouteManager
 
 		local cargo_type = Utils.GetCargoType(cargo_class);
 
-		local distance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dock_from), Utils.GetDockDockingTile(m_dock_to));
+		local distance = AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(m_dock_from), ShipBuildManager.GetDockDockingTile(m_dock_to));
 		local best_income = null;
 		local best_engine = null;
 		for (local engine = engineList.Begin(); !engineList.IsEnd(); engine = engineList.Next()) {
@@ -298,7 +298,7 @@ class ShipRoute extends ShipRouteManager
 	{
 		if (m_max_vehicle_count_mode == 0) return 10;
 
-		local dockDistance = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dock_from), Utils.GetDockDockingTile(m_dock_to));
+		local dockDistance = AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(m_dock_from), ShipBuildManager.GetDockDockingTile(m_dock_to));
 //		AILog.Info("dockDistance = " + dockDistance);
 		local count_interval = (AIEngine.GetMaxSpeed(this.m_engine) * 2 * 74 * STATION_RATING_INTERVAL) / (256 * 16);
 //		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + AIEngine.GetMaxSpeed(this.m_engine));
@@ -338,7 +338,7 @@ class ShipRoute extends ShipRouteManager
 			return 0;
 		}
 
-		local routedist = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dock_from), Utils.GetDockDockingTile(m_dock_to));
+		local routedist = AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(m_dock_from), ShipBuildManager.GetDockDockingTile(m_dock_to));
 
 		local buyVehicleCount = max((((numvehicles + 1) * 2) >= optimal_vehicle_count ? 1 : 2), (optimal_vehicle_count / 2 - numvehicles))
 
@@ -660,7 +660,7 @@ class ShipRoute extends ShipRouteManager
 
 		if ((cargoWaiting1 > engine_capacity || cargoWaiting2 > engine_capacity) && group_usage > 66) {
 			local number_to_add = max(1, (cargoWaiting1 > cargoWaiting2 ? cargoWaiting1 : cargoWaiting2) / engine_capacity);
-			local routedist = AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dock_from), Utils.GetDockDockingTile(m_dock_to));
+			local routedist = AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(m_dock_from), ShipBuildManager.GetDockDockingTile(m_dock_to));
 			while (number_to_add) {
 				number_to_add--;
 				local added_vehicle = AddVehicle(true);
@@ -747,7 +747,7 @@ class ShipRoute extends ShipRouteManager
 		if (!AIGroup.IsValidGroup(m_group)) {
 			m_group = AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID);
 			if (AIGroup.IsValidGroup(m_group)) {
-				AIGroup.SetName(m_group, (m_cargo_class == AICargo.CC_PASSENGERS ? "P" : "M") + AIMap.DistanceManhattan(Utils.GetDockDockingTile(m_dock_from), Utils.GetDockDockingTile(m_dock_to)) + ": " + m_dock_from + " - " + m_dock_to);
+				AIGroup.SetName(m_group, (m_cargo_class == AICargo.CC_PASSENGERS ? "P" : "M") + AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(m_dock_from), ShipBuildManager.GetDockDockingTile(m_dock_to)) + ": " + m_dock_from + " - " + m_dock_to);
 				AILog.Info("Created " + AIGroup.GetName(m_group) + " for water route from " + AIBaseStation.GetName(AIStation.GetStationID(m_dock_from)) + " to " + AIBaseStation.GetName(AIStation.GetStationID(m_dock_to)));
 			}
 		}
