@@ -4,10 +4,12 @@ class ShipRouteManager
 {
 	m_town_route_array = null;
 	m_sent_to_depot_water_group = null;
+	m_cargo_class_water = null;
 
 	constructor()
 	{
 		this.m_town_route_array = [];
+		this.m_cargo_class_water = this.SwapCargoClass();
 	}
 
 	function BuildRoute(ship_build_manager, city_from, city_to, cargo_class, cheaper_route, best_routes_built)
@@ -96,6 +98,42 @@ class ShipRouteManager
 		return city_from_count >= max_town_station_from || city_to_count >= max_town_station_to;
 	}
 
+	function SwapCargoClass()
+	{
+		switch (AIController.GetSetting("select_town_cargo")) {
+			case 0: { // Passengers
+				this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+				return this.m_cargo_class_water;
+			}
+			case 1: { // Mail
+				if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+					this.m_cargo_class_water = AICargo.CC_MAIL;
+				} else {
+					this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+				}
+				return this.m_cargo_class_water;
+			}
+			case 2: { // Passengers and Mail
+				if (this.m_cargo_class_water == AICargo.CC_PASSENGERS) {
+					if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+						this.m_cargo_class_water = AICargo.CC_MAIL;
+					} else {
+						this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+					}
+				} else if (this.m_cargo_class_water == AICargo.CC_MAIL) {
+					this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+				} else if (this.m_cargo_class_water == null) {
+					if (AIBase.Chance(1, 2)) {
+						this.m_cargo_class_water = AICargo.CC_MAIL;
+					} else {
+						this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+					}
+				}
+				return this.m_cargo_class_water;
+			}
+		}
+	}
+	
 	function SaveRouteManager()
 	{
 		local town_route_array = [];

@@ -10,13 +10,13 @@ class RailRoute extends RailRouteManager
 	m_city_to = null;
 	m_station_from = null;
 	m_station_to = null;
-	m_depotFrom = null;
-	m_depotTo = null;
+	m_depot_tile_from = null;
+	m_depot_tile_to = null;
 	m_bridge_tiles = null;
 	m_cargo_class = null;
 	m_rail_type = null;
-	m_stationFromDir = null;
-	m_stationToDir = null;
+	m_station_from_dir = null;
+	m_station_to_dir = null;
 
 	m_platformLength = null;
 	m_routeDistance = null;
@@ -32,20 +32,20 @@ class RailRoute extends RailRouteManager
 
 	m_vehicle_list = null;
 
-	constructor(city_from, city_to, station_from, station_to, depotFrom, depotTo, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, stationFromDir, stationToDir, is_loaded = 0)
+	constructor(city_from, city_to, station_from, station_to, depot_tile_from, depot_tile_to, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, station_from_dir, station_to_dir, is_loaded = 0)
 	{
 		AIRail.SetCurrentRailType(rail_type);
 		m_city_from = city_from;
 		m_city_to = city_to;
 		m_station_from = station_from;
 		m_station_to = station_to;
-		m_depotFrom = depotFrom;
-		m_depotTo = depotTo;
+		m_depot_tile_from = depot_tile_from;
+		m_depot_tile_to = depot_tile_to;
 		m_bridge_tiles = bridge_tiles;
 		m_cargo_class = cargo_class;
 		m_rail_type = rail_type;
-		m_stationFromDir = stationFromDir;
-		m_stationToDir = stationToDir;
+		m_station_from_dir = station_from_dir;
+		m_station_to_dir = station_to_dir;
 
 		m_platformLength = GetPlatformLength();
 		m_routeDistance = GetRouteDistance();
@@ -149,7 +149,7 @@ class RailRoute extends RailRouteManager
 		for (local engine = engineList.Begin(); !engineList.IsEnd(); engine = engineList.Next()) {
 			for (local wagon = wagonList.Begin(); !wagonList.IsEnd(); wagon = wagonList.Next()) {
 				local pair = [engine, wagon];
-				if (::caches.CanAttachToEngine(wagon, engine, cargo_type, m_rail_type, m_depotFrom)) {
+				if (::caches.CanAttachToEngine(wagon, engine, cargo_type, m_rail_type, m_depot_tile_from)) {
 					engineWagonPairs.append(pair);
 				}
 			}
@@ -174,17 +174,17 @@ class RailRoute extends RailRouteManager
 			local engine_max_speed = AIEngine.GetMaxSpeed(engine) == 0 ? 65535 : AIEngine.GetMaxSpeed(engine);
 			local wagon_max_speed = AIEngine.GetMaxSpeed(wagon) == 0 ? 65535 : AIEngine.GetMaxSpeed(wagon);
 			local train_max_speed = min(engine_max_speed, wagon_max_speed);
-			local railtype_max_speed = AIRail.GetMaxSpeed(m_rail_type) == 0 ? 65535 : AIRail.GetMaxSpeed(m_rail_type);
-			train_max_speed = min(railtype_max_speed, train_max_speed);
+			local rail_type_max_speed = AIRail.GetMaxSpeed(m_rail_type) == 0 ? 65535 : AIRail.GetMaxSpeed(m_rail_type);
+			train_max_speed = min(rail_type_max_speed, train_max_speed);
 			local days_in_transit = (m_routeDistance * 256 * 16) / (2 * 74 * train_max_speed);
 			days_in_transit += STATION_LOADING_INTERVAL;
 
-			local engine_length = ::caches.GetLength(engine, cargo_type, m_depotFrom);
-			local wagon_length = ::caches.GetLength(wagon, cargo_type, m_depotFrom);
+			local engine_length = ::caches.GetLength(engine, cargo_type, m_depot_tile_from);
+			local wagon_length = ::caches.GetLength(wagon, cargo_type, m_depot_tile_from);
 			local max_train_length = m_platformLength * 16;
 			local num_wagons = (max_train_length - engine_length) / wagon_length;
-			local engine_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depotFrom, engine, cargo_type));
-			local wagon_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depotFrom, wagon, cargo_type));
+			local engine_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depot_tile_from, engine, cargo_type));
+			local wagon_capacity = max(0, ::caches.GetBuildWithRefitCapacity(m_depot_tile_from, wagon, cargo_type));
 			local train_capacity = engine_capacity + wagon_capacity * num_wagons;
 			local engine_running_cost = AIEngine.GetRunningCost(engine);
 			local wagon_running_cost = AIEngine.GetRunningCost(wagon);
@@ -263,7 +263,7 @@ class RailRoute extends RailRouteManager
 				share_orders_vid = vehicle_id;
 			}
 		}
-		local depot = skip_order ? m_depotTo : m_depotFrom;
+		local depot = skip_order ? m_depot_tile_to : m_depot_tile_from;
 		local new_vehicle = AIVehicle.VEHICLE_INVALID;
 		if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 			local cargo_type = Utils.GetCargoType(m_cargo_class);
@@ -546,7 +546,7 @@ class RailRoute extends RailRouteManager
 
 		for (local vehicle = sent_to_depot_list.Begin(); !sent_to_depot_list.IsEnd(); vehicle = sent_to_depot_list.Next()) {
 			if (m_vehicle_list.rawin(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
-				local skip_order = AIVehicle.GetLocation(vehicle) == this.m_depotTo;
+				local skip_order = AIVehicle.GetLocation(vehicle) == this.m_depot_tile_to;
 				DeleteSellVehicle(vehicle);
 
 				local renewed_vehicle = AddVehicle(true, skip_order);
@@ -676,20 +676,20 @@ class RailRoute extends RailRouteManager
 
 	function GetPlatformLength()
 	{
-		local station = RailStation.CreateFromTile(m_station_from, m_stationFromDir);
+		local station = RailStation.CreateFromTile(m_station_from, m_station_from_dir);
 		return station.m_length;
 	}
 
 	function GetRouteDistance()
 	{
-		local station_from = RailStation.CreateFromTile(m_station_from, m_stationFromDir);
+		local station_from = RailStation.CreateFromTile(m_station_from, m_station_from_dir);
 		local stationFromPlatform1 = station_from.GetPlatformLine(1);
 		local entryFrom = station_from.GetEntryTile(stationFromPlatform1);
 		local exitFrom = station_from.GetExitTile(stationFromPlatform1);
 		local offsetFrom = entryFrom - exitFrom;
 		local stationFromTile = exitFrom + offsetFrom * station_from.m_length;
 
-		local station_to = RailStation.CreateFromTile(m_station_to, m_stationToDir);
+		local station_to = RailStation.CreateFromTile(m_station_to, m_station_to_dir);
 		local stationToPlatform1 = station_to.GetPlatformLine(1);
 		local entryTo = station_to.GetEntryTile(stationToPlatform1);
 		local exitTo = station_to.GetExitTile(stationToPlatform1);
@@ -709,11 +709,11 @@ class RailRoute extends RailRouteManager
 		local exit_tile_1 = station.GetExitTile(1);
 		local entry_tile_1 = station.GetEntryTile(1);
 		local rail_type = AIRail.GetRailType(top_tile);
-		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, rail_type, bot_tile));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+		::scheduled_removals_table.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, rail_type, bot_tile));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 	}
 
 	function ScheduleRemoveDepot(depot)
@@ -723,10 +723,10 @@ class RailRoute extends RailRouteManager
 		local depotRailb = 2 * depotFront - depotRaila;
 		local depotRailc = 2 * depotFront - depot;
 		local rail_type = AIRail.GetRailType(depot);
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRaila));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailb));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailc));
-		::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, rail_type));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRaila));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailb));
+		::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailc));
+		::scheduled_removals_table.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, rail_type));
 	}
 
 	function ScheduleRemoveTracks(frontTile, prevTile)
@@ -818,7 +818,7 @@ class RailRoute extends RailRouteManager
 				}
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(frontTile, rail_type, prevTile, nextTile));
+				::scheduled_removals_table.Train.append(RailStruct.SetRail(frontTile, rail_type, prevTile, nextTile));
 				ScheduleRemoveTracks(nextTile, frontTile);
 			}
 		} else if (AIBridge.IsBridgeTile(frontTile)) {
@@ -829,7 +829,7 @@ class RailRoute extends RailRouteManager
 				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, rail_type, otherTile));
+				::scheduled_removals_table.Train.append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, rail_type, otherTile));
 				ScheduleRemoveTracks(nextTile, otherTile);
 			}
 		} else if (AITunnel.IsTunnelTile(frontTile)) {
@@ -840,7 +840,7 @@ class RailRoute extends RailRouteManager
 				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, rail_type, otherTile));
+				::scheduled_removals_table.Train.append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, rail_type, otherTile));
 				ScheduleRemoveTracks(nextTile, otherTile);
 			}
 		}
@@ -854,18 +854,18 @@ class RailRoute extends RailRouteManager
 			m_active_route = false;
 
 			local stationFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_station_from));
-			ScheduleRemoveStation(m_station_from, m_stationFromDir);
-			ScheduleRemoveDepot(m_depotFrom);
+			ScheduleRemoveStation(m_station_from, m_station_from_dir);
+			ScheduleRemoveDepot(m_depot_tile_from);
 
 			local stationTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_station_to));
-			ScheduleRemoveStation(m_station_to, m_stationToDir);
-			ScheduleRemoveDepot(m_depotTo);
+			ScheduleRemoveStation(m_station_to, m_station_to_dir);
+			ScheduleRemoveDepot(m_depot_tile_to);
 
-			local station = RailStation.CreateFromTile(m_station_from, m_stationFromDir);
+			local station = RailStation.CreateFromTile(m_station_from, m_station_from_dir);
 			local line = station.GetPlatformLine(2);
 			ScheduleRemoveTracks(station.GetExitTile(line, 1), station.GetExitTile(line));
 
-			station = RailStation.CreateFromTile(m_station_to, m_stationToDir);
+			station = RailStation.CreateFromTile(m_station_to, m_station_to_dir);
 			line = station.GetPlatformLine(2);
 			ScheduleRemoveTracks(station.GetExitTile(line, 1), station.GetExitTile(line));
 
@@ -902,7 +902,7 @@ class RailRoute extends RailRouteManager
 
 	function SaveRoute()
 	{
-		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depotFrom, m_depotTo, m_bridge_tiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sent_to_depot_rail_group, m_group, m_rail_type, m_stationFromDir, m_stationToDir];
+		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile_from, m_depot_tile_to, m_bridge_tiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sent_to_depot_rail_group, m_group, m_rail_type, m_station_from_dir, m_station_to_dir];
 	}
 
 	function LoadRoute(data)
@@ -911,8 +911,8 @@ class RailRoute extends RailRouteManager
 		local city_to = data[1];
 		local station_from = data[2];
 		local station_to = data[3];
-		local depotFrom = data[4];
-		local depotTo = data[5];
+		local depot_tile_from = data[4];
+		local depot_tile_to = data[5];
 
 		local bridge_tiles = data[6];
 
@@ -921,10 +921,10 @@ class RailRoute extends RailRouteManager
 
 		local sent_to_depot_rail_group = data[11];
 
-		local stationFromDir = data[14];
-		local stationToDir = data[15];
+		local station_from_dir = data[14];
+		local station_to_dir = data[15];
 
-		local route = RailRoute(city_from, city_to, station_from, station_to, depotFrom, depotTo, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, stationFromDir, stationToDir, 1);
+		local route = RailRoute(city_from, city_to, station_from, station_to, depot_tile_from, depot_tile_to, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, station_from_dir, station_to_dir, 1);
 
 		route.m_last_vehicle_added = data[8];
 		route.m_last_vehicle_removed = data[9];

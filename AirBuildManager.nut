@@ -337,7 +337,7 @@ class AirBuildManager
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Aircraft.rawset(this.m_airport_from, 0);
+					::scheduled_removals_table.Aircraft.rawset(this.m_airport_from, 0);
 //					AILog.Error("Failed to remove airport at tile " + this.m_airport_from + " - " + AIError.GetLastErrorString());
 				}
 				this.SetRouteFinished();

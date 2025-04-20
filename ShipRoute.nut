@@ -717,12 +717,12 @@ class ShipRoute extends ShipRouteManager
 			m_active_route = false;
 
 			local dockFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_dock_from));
-			::scheduledRemovalsTable.Ship.rawset(m_dock_from, 0);
+			::scheduled_removals_table.Ship.rawset(m_dock_from, 0);
 
 			local dockTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_dock_to));
-			::scheduledRemovalsTable.Ship.rawset(m_dock_to, 0);
+			::scheduled_removals_table.Ship.rawset(m_dock_to, 0);
 
-			::scheduledRemovalsTable.Ship.rawset(m_depot_tile, 0);
+			::scheduled_removals_table.Ship.rawset(m_depot_tile, 0);
 
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.DeleteGroup(m_group);

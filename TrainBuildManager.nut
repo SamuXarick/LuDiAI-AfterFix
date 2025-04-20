@@ -419,8 +419,8 @@ class RailBuildManager
 	m_city_to = -1;
 	m_station_from = -1;
 	m_station_to = -1;
-	m_depotFrom = -1;
-	m_depotTo = -1;
+	m_depot_tile_from = -1;
+	m_depot_tile_to = -1;
 	m_bridge_tiles = [];
 	m_cargo_class = -1;
 	m_pathfinder_instance = null;
@@ -431,8 +431,8 @@ class RailBuildManager
 	m_sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 	m_best_routes_built = null;
 	m_rail_type = AIRail.RAILTYPE_INVALID;
-	m_stationFromDir = -1;
-	m_stationToDir = -1;
+	m_station_from_dir = -1;
+	m_station_to_dir = -1;
 
 	function HasUnfinishedRoute()
 	{
@@ -445,8 +445,8 @@ class RailBuildManager
 		m_city_to = -1;
 		m_station_from = -1;
 		m_station_to = -1;
-		m_depotFrom = -1;
-		m_depotTo = -1;
+		m_depot_tile_from = -1;
+		m_depot_tile_to = -1;
 		m_bridge_tiles = [];
 		m_cargo_class = -1;
 		m_builtWays = -1;
@@ -454,8 +454,8 @@ class RailBuildManager
 		m_sent_to_depot_rail_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
 		m_best_routes_built = null;
 		m_rail_type = AIRail.RAILTYPE_INVALID;
-		m_stationFromDir = -1;
-		m_stationToDir = -1;
+		m_station_from_dir = -1;
+		m_station_to_dir = -1;
 		m_pathfinder_profile = -1;
 	}
 
@@ -482,7 +482,7 @@ class RailBuildManager
 				AIController.Sleep(1);
 			} while (counter < 500);
 			if (counter == 500) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
+				::scheduled_removals_table.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
 //				AILog.Error("Failed to remove railway station tile at " + stationTile + " from tile " + top_tile + " to tile " + bot_tile " - " + AIError.GetLastErrorString());
 			}
 			local counter = 0;
@@ -497,7 +497,7 @@ class RailBuildManager
 				AIController.Sleep(1);
 			} while (counter < 500);
 			if (counter == 500) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
+				::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
 //				AILog.Error("Failed to remove rail track crossing from platform 2 to 1 at tile " + station.GetExitTile(2));
 			}
 			local counter = 0;
@@ -512,7 +512,7 @@ class RailBuildManager
 				AIController.Sleep(1);
 			} while (counter < 500);
 			if (counter == 500) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
+				::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
 //				AILog.Error("Failed to remove rail track crossing from platform 1 to 2 at tile " + station.GetExitTile(1));
 			}
 			local counter = 0;
@@ -527,7 +527,7 @@ class RailBuildManager
 				AIController.Sleep(1);
 			} while (counter < 500);
 			if (counter == 500) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+				::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
 //				AILog.Error("Failed to remove rail track in front of platform 2 at tile " + station.GetExitTile(2));
 			}
 			local counter = 0;
@@ -542,7 +542,7 @@ class RailBuildManager
 				AIController.Sleep(1);
 			} while (counter < 500);
 			if (counter == 500) {
-				::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+				::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 //				AILog.Error("Failed to remove rail track in front of platform 1 at tile " + station.GetExitTile(1));
 			}
 			if (depot != null) {
@@ -562,7 +562,7 @@ class RailBuildManager
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot, depotRaila));
+					::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot, depotRaila));
 //					AILog.Error("Failed to remove rail track in front of depot towards the station at tile " + depotFront);
 				}
 				local counter = 0;
@@ -577,7 +577,7 @@ class RailBuildManager
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot, depotRailb));
+					::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot, depotRailb));
 //					AILog.Error("Failed to remove rail track in front of depot towards the railroad at tile " + depotFront);
 				}
 				local counter = 0;
@@ -592,7 +592,7 @@ class RailBuildManager
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot, depotRailc));
+					::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot, depotRailc));
 //					AILog.Error("Failed to remove rail track in front of depot towards accross the lines at tile " + depotFront);
 				}
 				local counter = 0;
@@ -607,7 +607,7 @@ class RailBuildManager
 					AIController.Sleep(1);
 				} while (counter < 500);
 				if (counter == 500) {
-					::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, m_rail_type));
+					::scheduled_removals_table.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, m_rail_type));
 //					AILog.Error("Failed to remove rail depot at tile " + depot);
 				}
 			}
@@ -631,7 +631,7 @@ class RailBuildManager
 						local tile_to = i.m_tile3;
 						if (!TestRemoveRail().TryRemove(tile_from, tile, tile_to)) {
 //							AILog.Info("Failed to remove rail at tile " + tile + ", connecting " + tile_from + " to " + tile_to + ".");
-							::scheduledRemovalsTable.Train.append(RailStruct.SetRail(tile, type, tile_from, tile_to));
+							::scheduled_removals_table.Train.append(RailStruct.SetRail(tile, type, tile_from, tile_to));
 						}
 //					} else {
 //						AILog.Info("No rail tile found to remove at tile " + tile + ", connecting " + tile_from + " to " + tile_to + ".");
@@ -641,7 +641,7 @@ class RailBuildManager
 					if (AIBridge.IsBridgeTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) && AIBridge.GetOtherBridgeEnd(tile) == tile2) {
 						if (!TestRemoveBridge().TryRemove(tile)) {
 //							AILog.Info("Failed to demolish bridge at tiles " + tile + " and " + tile2 + ".");
-							::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(tile, RailStructType.BRIDGE, type, tile2));
+							::scheduled_removals_table.Train.append(RailStruct.SetStruct(tile, RailStructType.BRIDGE, type, tile2));
 						}
 //					} else {
 //						AILog.Info("No bridge found to demolish at tiles " + tile + " and " + tile2 + ".");
@@ -651,7 +651,7 @@ class RailBuildManager
 					if (AITunnel.IsTunnelTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) && AITunnel.GetOtherTunnelEnd(tile) == tile2) {
 						if (!TestRemoveTunnel().TryRemove(tile)) {
 //							AILog.Info("Failed to demolish tunnel at tiles " + tile + " and " + tile2 + ".");
-							::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(tile, RailStructType.TUNNEL, type, tile2));
+							::scheduled_removals_table.Train.append(RailStruct.SetStruct(tile, RailStructType.TUNNEL, type, tile2));
 						}
 //					} else {
 //						AILog.Info("No tunnel found to demolish at tiles " + tile + " and " + tile2 + ".");
@@ -685,45 +685,45 @@ class RailBuildManager
 				return null;
 			}
 			m_station_from = station_from[0];
-			m_stationFromDir = station_from[1];
+			m_station_from_dir = station_from[1];
 		}
 
-		if (m_depotFrom == -1) {
-			local depotFrom = BuildRouteRailDepot(m_station_from, m_stationFromDir);
-			if (depotFrom == null) {
-				RemoveFailedRouteStation(m_station_from, m_stationFromDir);
+		if (m_depot_tile_from == -1) {
+			local depot_tile_from = BuildRouteRailDepot(m_station_from, m_station_from_dir);
+			if (depot_tile_from == null) {
+				RemoveFailedRouteStation(m_station_from, m_station_from_dir);
 				SetRouteFinished();
 				return null;
 			}
-			m_depotFrom = depotFrom;
+			m_depot_tile_from = depot_tile_from;
 		}
 
 		if (m_station_to == -1) {
 			local station_to = BuildTownRailStation(m_city_to, m_cargo_class, m_city_from, m_best_routes_built, m_rail_type);
 			if (station_to == null) {
-				RemoveFailedRouteStation(m_station_from, m_stationFromDir, m_depotFrom);
+				RemoveFailedRouteStation(m_station_from, m_station_from_dir, m_depot_tile_from);
 				SetRouteFinished();
 				return null;
 			}
 			m_station_to = station_to[0];
-			m_stationToDir = station_to[1];
+			m_station_to_dir = station_to[1];
 		}
 
-		if (m_depotTo == -1) {
-			local depotTo = BuildRouteRailDepot(m_station_to, m_stationToDir);
-			if (depotTo == null) {
-				RemoveFailedRouteStation(m_station_from, m_stationFromDir, m_depotFrom);
-				RemoveFailedRouteStation(m_station_to, m_stationToDir);
+		if (m_depot_tile_to == -1) {
+			local depot_tile_to = BuildRouteRailDepot(m_station_to, m_station_to_dir);
+			if (depot_tile_to == null) {
+				RemoveFailedRouteStation(m_station_from, m_station_from_dir, m_depot_tile_from);
+				RemoveFailedRouteStation(m_station_to, m_station_to_dir);
 				SetRouteFinished();
 				return null;
 			}
-			m_depotTo = depotTo;
+			m_depot_tile_to = depot_tile_to;
 		}
 
-		if (m_station_from != null && m_depotFrom != null && m_station_to != null && m_depotTo != null) {
+		if (m_station_from != null && m_depot_tile_from != null && m_station_to != null && m_depot_tile_to != null) {
 			local railArray;
-			if (m_pathfinder_profile == 1) railArray = PathfindBuildDoubleRail(m_station_from, m_stationFromDir, m_depotFrom, m_station_to, m_stationToDir, m_depotTo, m_pathfinder_profile, false, m_pathfinder_instance, m_built_tiles);
-			if (m_pathfinder_profile == 0) railArray = PathfindBuildSingleRail(m_station_from, m_stationFromDir, m_depotFrom, m_station_to, m_stationToDir, m_depotTo, m_pathfinder_profile, false, m_pathfinder_instance, m_built_tiles);
+			if (m_pathfinder_profile == 1) railArray = PathfindBuildDoubleRail(m_station_from, m_station_from_dir, m_depot_tile_from, m_station_to, m_station_to_dir, m_depot_tile_to, m_pathfinder_profile, false, m_pathfinder_instance, m_built_tiles);
+			if (m_pathfinder_profile == 0) railArray = PathfindBuildSingleRail(m_station_from, m_station_from_dir, m_depot_tile_from, m_station_to, m_station_to_dir, m_depot_tile_to, m_pathfinder_profile, false, m_pathfinder_instance, m_built_tiles);
 			m_pathfinder_instance = railArray[1];
 			if (railArray[0] == null) {
 				if (m_pathfinder_instance != null) {
@@ -738,17 +738,17 @@ class RailBuildManager
 		}
 
 		if (m_built_tiles[0].len() == 0 && m_built_tiles[1].len() == 0) {
-			RemoveFailedRouteStation(m_station_from, m_stationFromDir, m_depotFrom);
-			RemoveFailedRouteStation(m_station_to, m_stationToDir, m_depotTo);
+			RemoveFailedRouteStation(m_station_from, m_station_from_dir, m_depot_tile_from);
+			RemoveFailedRouteStation(m_station_to, m_station_to_dir, m_depot_tile_to);
 			SetRouteFinished();
 			return null;
 		}
 
 		if (m_builtWays == 2) {
-			local signals_built = BuildSignals(m_station_from, m_stationFromDir, m_station_to, m_stationToDir);
+			local signals_built = BuildSignals(m_station_from, m_station_from_dir, m_station_to, m_station_to_dir);
 			if (!signals_built) {
-				RemoveFailedRouteStation(m_station_from, m_stationFromDir, m_depotFrom);
-				RemoveFailedRouteStation(m_station_to, m_stationToDir, m_depotTo);
+				RemoveFailedRouteStation(m_station_from, m_station_from_dir, m_depot_tile_from);
+				RemoveFailedRouteStation(m_station_to, m_station_to_dir, m_depot_tile_to);
 				RemoveFailedRouteTracks();
 				SetRouteFinished();
 				return null;
@@ -756,7 +756,7 @@ class RailBuildManager
 		}
 
 		m_built_tiles = [[], []];
-		return RailRoute(m_city_from, m_city_to, m_station_from, m_station_to, m_depotFrom, m_depotTo, m_bridge_tiles, m_cargo_class, m_sent_to_depot_rail_group, m_rail_type, m_stationFromDir, m_stationToDir);
+		return RailRoute(m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile_from, m_depot_tile_to, m_bridge_tiles, m_cargo_class, m_sent_to_depot_rail_group, m_rail_type, m_station_from_dir, m_station_to_dir);
 	}
 
 	function AreOtherRailwayStationsNearby(station)
@@ -784,8 +784,8 @@ class RailBuildManager
 					if (AITile.GetOwner(tile) != ::caches.m_my_company_id) {
 						return true;
 					} else {
-						local stationTiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
-						if (stationTiles.HasItem(tile)) {
+						local station_tiles = AITileList_StationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
+						if (station_tiles.HasItem(tile)) {
 							return true;
 						}
 					}
@@ -894,9 +894,9 @@ class RailBuildManager
 		}
 		tileList.RemoveList(templist);
 
-		local stationList = AIList();
+		local station_list = AIList();
 		for (local tile = tileList.Begin(); !tileList.IsEnd(); tileList.Next()) {
-			stationList.AddItem(tileList.GetValue(tile), AIMap.DistanceManhattan(tile, station.GetTopTile()));
+			station_list.AddItem(tileList.GetValue(tile), AIMap.DistanceManhattan(tile, station.GetTopTile()));
 		}
 
 		local spreadrectangle_top_x = AIMap.GetTileX(spreadrectangle[0]);
@@ -905,14 +905,14 @@ class RailBuildManager
 		local spreadrectangle_bot_y = AIMap.GetTileY(spreadrectangle[1]);
 
 		local list = AIList();
-		list.AddList(stationList);
-		for (local stationId = stationList.Begin(); !stationList.IsEnd(); stationId = stationList.Next()) {
-			local stationTiles = AITileList_StationType(stationId, AIStation.STATION_ANY);
+		list.AddList(station_list);
+		for (local stationId = station_list.Begin(); !station_list.IsEnd(); stationId = station_list.Next()) {
+			local station_tiles = AITileList_StationType(stationId, AIStation.STATION_ANY);
 			local station_top_x = AIMap.GetTileX(AIBaseStation.GetLocation(stationId));
 			local station_top_y = AIMap.GetTileY(AIBaseStation.GetLocation(stationId));
 			local station_bot_x = station_top_x;
 			local station_bot_y = station_top_y;
-			for (local tile = stationTiles.Begin(); !stationTiles.IsEnd(); tile = stationTiles.Next()) {
+			for (local tile = station_tiles.Begin(); !station_tiles.IsEnd(); tile = station_tiles.Next()) {
 				local tile_x = AIMap.GetTileX(tile);
 				local tile_y = AIMap.GetTileY(tile);
 				if (tile_x < station_top_x) {
@@ -1151,7 +1151,7 @@ class RailBuildManager
 						AIController.Sleep(1);
 					} while (counter < 1);
 					if (counter == 1) {
-						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
+						::scheduled_removals_table.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
 						continue;
 					}
 				}
@@ -1180,7 +1180,7 @@ class RailBuildManager
 							AIController.Sleep(1);
 						} while (counter < 1);
 						if (counter == 1) {
-							::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+							::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 						}
 						local counter = 0;
 						do {
@@ -1193,7 +1193,7 @@ class RailBuildManager
 							AIController.Sleep(1);
 						} while (counter < 1);
 						if (counter == 1) {
-							::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
+							::scheduled_removals_table.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
 							continue;
 						}
 					}
@@ -1221,7 +1221,7 @@ class RailBuildManager
 								AIController.Sleep(1);
 							} while (counter < 1);
 							if (counter == 1) {
-								::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+								::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
 							}
 							local counter = 0;
 							do {
@@ -1234,7 +1234,7 @@ class RailBuildManager
 								AIController.Sleep(1);
 							} while (counter < 1);
 							if (counter == 1) {
-								::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+								::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 							}
 							local counter = 0;
 							do {
@@ -1247,7 +1247,7 @@ class RailBuildManager
 								AIController.Sleep(1);
 							} while (counter < 1);
 							if (counter == 1) {
-								::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
+								::scheduled_removals_table.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
 								continue;
 							}
 						}
@@ -1275,7 +1275,7 @@ class RailBuildManager
 									AIController.Sleep(1);
 								} while (counter < 1);
 								if (counter == 1) {
-									::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
+									::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
 								}
 								local counter = 0;
 								do {
@@ -1288,7 +1288,7 @@ class RailBuildManager
 									AIController.Sleep(1);
 								} while (counter < 1);
 								if (counter == 1) {
-									::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+									::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_2, m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
 								}
 								local counter = 0;
 								do {
@@ -1301,7 +1301,7 @@ class RailBuildManager
 									AIController.Sleep(1);
 								} while (counter < 1);
 								if (counter == 1) {
-									::scheduledRemovalsTable.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+									::scheduled_removals_table.Train.append(RailStruct.SetRail(exit_tile_1, m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 								}
 								local counter = 0;
 								do {
@@ -1314,7 +1314,7 @@ class RailBuildManager
 									AIController.Sleep(1);
 								} while (counter < 1);
 								if (counter == 1) {
-									::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
+									::scheduled_removals_table.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, m_rail_type, bot_tile));
 									continue;
 								}
 							}
@@ -1332,7 +1332,7 @@ class RailBuildManager
 	}
 
 	/* find rail way between tileFrom and tileTo */
-	function PathfindBuildSingleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [[], []], cost_so_far = 0)
+	function PathfindBuildSingleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [[], []], cost_so_far = 0)
 	{
 		/* can store rail tiles into array */
 
@@ -1370,8 +1370,8 @@ class RailBuildManager
 /*0*/			pathfinder.cost.search_range = max(route_dist / 15, 25);
 
 				/* Give the source and goal tiles to the pathfinder. */
-				local station_from = RailStation.CreateFromTile(tileFrom, stationFromDir);
-				local station_to = RailStation.CreateFromTile(tileTo, stationToDir);
+				local station_from = RailStation.CreateFromTile(tileFrom, station_from_dir);
+				local station_to = RailStation.CreateFromTile(tileTo, station_to_dir);
 				local plats = RailStationPlatforms(station_from, station_to);
 
 				local stationFromExit1 = station_from.GetExitTile(plats.m_From1, 1);
@@ -1381,20 +1381,20 @@ class RailBuildManager
 				if (m_builtWays == 0) {
 					local stationFromEntryBefore2 = station_from.GetEntryTile(plats.m_From2);
 					local stationFromEntry2 = station_from.GetExitTile(plats.m_From2);
-					if (AIRail.GetRailDepotFrontTile(depotFrom) == stationFromEntry2) stationFromEntryBefore2 = depotFrom;
+					if (AIRail.GetRailDepotFrontTile(depot_tile_from) == stationFromEntry2) stationFromEntryBefore2 = depot_tile_from;
 					local stationFromExit2 = station_from.GetExitTile(plats.m_From2, 1);
 					local stationToEntryBefore2 = station_to.GetEntryTile(plats.m_To2);
 					local stationToEntry2 = station_to.GetExitTile(plats.m_To2);
-					if (AIRail.GetRailDepotFrontTile(depotTo) == stationToEntry2) stationToEntryBefore2 = depotTo;
+					if (AIRail.GetRailDepotFrontTile(depot_tile_to) == stationToEntry2) stationToEntryBefore2 = depot_tile_to;
 					local stationToExit2 = station_to.GetExitTile(plats.m_To2, 1);
 					local ignore_tiles = [stationFromExit1, stationToExit1];
-					if (AIRail.GetRailDepotFrontTile(depotFrom) == stationFromEntry2) {
+					if (AIRail.GetRailDepotFrontTile(depot_tile_from) == stationFromEntry2) {
 						ignore_tiles.push(stationFromExit2 - stationFromExit1 + stationFromExit2);
 					} else {
 						ignore_tiles.push(station_from.GetExitTile(plats.m_From1, 2));
 						ignore_tiles.push(stationFromExit1 - stationFromExit2 + stationFromExit1);
 					}
-					if (AIRail.GetRailDepotFrontTile(depotTo) == stationToEntry2) {
+					if (AIRail.GetRailDepotFrontTile(depot_tile_to) == stationToEntry2) {
 						ignore_tiles.push(stationToExit2 - stationToExit1 + stationToExit2);
 					} else {
 						ignore_tiles.push(station_to.GetExitTile(plats.m_To1, 2));
@@ -1415,10 +1415,10 @@ class RailBuildManager
 				} else if (m_builtWays == 1) {
 					local stationFromEntryBefore1 = station_from.GetEntryTile(plats.m_From1);
 					local stationFromEntry1 = station_from.GetExitTile(plats.m_From1);
-					if (AIRail.GetRailDepotFrontTile(depotFrom) == stationFromEntry1) stationFromEntryBefore1 = depotFrom;
+					if (AIRail.GetRailDepotFrontTile(depot_tile_from) == stationFromEntry1) stationFromEntryBefore1 = depot_tile_from;
 					local stationToEntryBefore1 = station_to.GetEntryTile(plats.m_To1);
 					local stationToEntry1 = station_to.GetExitTile(plats.m_To1);
-					if (AIRail.GetRailDepotFrontTile(depotTo) == stationToEntry1) stationToEntryBefore1 = depotTo;
+					if (AIRail.GetRailDepotFrontTile(depot_tile_to) == stationToEntry1) stationToEntryBefore1 = depot_tile_to;
 //					AILog.Info("stationToExit1 = " + stationToExit1 + "; stationToEntry1 = " + stationToEntry1 + "; stationToEntryBefore1 = " + stationToEntryBefore1);
 //					AILog.Info("stationFromExit1 = " + stationFromExit1 + "; stationFromEntry1 = " + stationFromEntry1 + "; stationFromEntryBefore1 = " + stationFromEntryBefore1);
 					pathfinder.InitializePath(
@@ -1494,7 +1494,7 @@ class RailBuildManager
 											/* Remove everything and try again */
 											if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + prev + " and " + cur + " - " + AIError.GetLastErrorString() + " - Retrying...");
 											RemoveFailedRouteTracks();
-											return PathfindBuildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+											return PathfindBuildDoubleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 										}
 									}
 									++counter;
@@ -1537,7 +1537,7 @@ class RailBuildManager
 											/* Remove everything and try again */
 											if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + prev + " and " + cur + " - " + AIError.GetLastErrorString() + " - Retrying...");
 											RemoveFailedRouteTracks(m_builtWays);
-											return PathfindBuildSingleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+											return PathfindBuildSingleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 										}
 									}
 									++counter;
@@ -1575,7 +1575,7 @@ class RailBuildManager
 											/* Remove everything and try again */
 											if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + prev + ", connecting " + prevprev + " to " + cur + " - " + AIError.GetLastErrorString() + " - Retrying...");
 											RemoveFailedRouteTracks(m_builtWays);
-											return PathfindBuildSingleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+											return PathfindBuildSingleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 										}
 									}
 									++counter;
@@ -1599,7 +1599,7 @@ class RailBuildManager
 						else if (m_pathfinder_tries < max_pathfinderTries && m_built_tiles[m_builtWays].len() != 0) {
 							if (!silent_mode) AILog.Warning("Won't build a rail crossing a road at tile " + prev + ", connecting " + prevprev + " to " + cur + " - " + AIError.GetLastErrorString() + " - Retrying...");
 							RemoveFailedRouteTracks(m_builtWays);
-							return PathfindBuildSingleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+							return PathfindBuildSingleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 						}
 						else {
 							if (!silent_mode) AILog.Warning("Won't build a rail crossing a road at tile " + prev + ", connecting " + prevprev + " to " + cur + " - " + AIError.GetLastErrorString());
@@ -1619,7 +1619,7 @@ class RailBuildManager
 	}
 
 	/* find rail way between tileFrom and tileTo */
-	function PathfindBuildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [[], []], cost_so_far = 0)
+	function PathfindBuildDoubleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode = false, pathfinder = null, builtTiles = [[], []], cost_so_far = 0)
 	{
 		/* can store rail tiles into array */
 
@@ -1657,8 +1657,8 @@ class RailBuildManager
 /*0*/			pathfinder.cost.search_range = max(route_dist / 15, 25);
 
 				/* Give the source and goal tiles to the pathfinder. */
-				local station_from = RailStation.CreateFromTile(tileFrom, stationFromDir);
-				local station_to = RailStation.CreateFromTile(tileTo, stationToDir);
+				local station_from = RailStation.CreateFromTile(tileFrom, station_from_dir);
+				local station_to = RailStation.CreateFromTile(tileTo, station_to_dir);
 				local plats = RailStationPlatforms(station_from, station_to);
 
 				local stationFromEntry1 = station_from.GetExitTile(plats.m_From1);
@@ -1670,12 +1670,12 @@ class RailBuildManager
 				local stationToEntry2 = station_to.GetExitTile(plats.m_To2);
 				local stationToExit2 = station_to.GetExitTile(plats.m_To2, 1);
 				local ignore_tiles = [];
-//				if (AIRail.GetRailDepotFrontTile(depotFrom) == stationFromEntry2) {
+//				if (AIRail.GetRailDepotFrontTile(depot_tile_from) == stationFromEntry2) {
 					ignore_tiles.push(stationFromExit2 - stationFromExit1 + stationFromExit2);
 //				} else {
 					ignore_tiles.push(stationFromExit1 - stationFromExit2 + stationFromExit1);
 //				}
-//				if (AIRail.GetRailDepotFrontTile(depotTo) == stationToEntry2) {
+//				if (AIRail.GetRailDepotFrontTile(depot_tile_to) == stationToEntry2) {
 					ignore_tiles.push(stationToExit2 - stationToExit1 + stationToExit2);
 //				} else {
 					ignore_tiles.push(stationToExit1 - stationToExit2 + stationToExit1);
@@ -1768,7 +1768,7 @@ class RailBuildManager
 													if (!silent_mode) AILog.Warning("Couldn't build rail tunnel at tiles " + next[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString() + " - Retrying...");
 													/* Remove everything and try again */
 													RemoveFailedRouteTracks();
-													return PathfindBuildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+													return PathfindBuildDoubleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 												}
 											}
 											++counter;
@@ -1810,7 +1810,7 @@ class RailBuildManager
 													/* Remove everything and try again */
 													if (!silent_mode) AILog.Warning("Couldn't build rail bridge at tiles " + next[j] + " and " + scan_tile[j] + " - " + AIError.GetLastErrorString() + " - Retrying...");
 													RemoveFailedRouteTracks();
-													return PathfindBuildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+													return PathfindBuildDoubleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 												}
 											}
 											++counter;
@@ -1843,7 +1843,7 @@ class RailBuildManager
 													/* Remove everything and try again */
 													if (!silent_mode) AILog.Warning("Couldn't build rail track at tile " + next[j] + ", connecting " + nextnext[j] + " to " + scan_tile[j] + " - " + AIError.GetLastErrorString() + " - Retrying...");
 													RemoveFailedRouteTracks();
-													return PathfindBuildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+													return PathfindBuildDoubleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 												}
 											}
 											++counter;
@@ -1867,7 +1867,7 @@ class RailBuildManager
 								else if (m_pathfinder_tries < max_pathfinderTries && (m_built_tiles[0].len() != 0 || m_built_tiles[1].len() != 0)) {
 									if (!silent_mode) AILog.Warning("Won't build a rail crossing a road at tile " + next[j] + ", connecting " + nextnext[j] + " to " + scan_tile[j] + " - " + AIError.GetLastErrorString() + " - Retrying...");
 									RemoveFailedRouteTracks();
-									return PathfindBuildDoubleRail(tileFrom, stationFromDir, depotFrom, tileTo, stationToDir, depotTo, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
+									return PathfindBuildDoubleRail(tileFrom, station_from_dir, depot_tile_from, tileTo, station_to_dir, depot_tile_to, pathfinderProfile, silent_mode, null, m_built_tiles, track_cost);
 								}
 								else {
 									if (!silent_mode) AILog.Warning("Won't build a rail crossing a road at tile " + next[j] + ", connecting " + nextnext[j] + " to " + scan_tile[j] + " - " + AIError.GetLastErrorString());
@@ -1932,7 +1932,7 @@ class RailBuildManager
 				} while (counter < 1);
 
 				if (counter == 1) {
-					::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, m_rail_type));
+					::scheduled_removals_table.Train.append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, m_rail_type));
 					return null;
 				}
 				else {
@@ -1964,7 +1964,7 @@ class RailBuildManager
 					} while (counter < 1);
 
 					if (counter == 1) {
-						::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot_tile, depotRaila));
+						::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot_tile, depotRaila));
 					}
 					local counter = 0;
 					do {
@@ -1978,7 +1978,7 @@ class RailBuildManager
 					} while (counter < 1);
 
 					if (counter == 1) {
-						::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, m_rail_type));
+						::scheduled_removals_table.Train.append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, m_rail_type));
 						return null;
 					}
 					else {
@@ -2010,7 +2010,7 @@ class RailBuildManager
 						} while (counter < 1);
 
 						if (counter == 1) {
-							::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot_tile, depotRailb));
+							::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot_tile, depotRailb));
 						}
 						local counter = 0;
 						do {
@@ -2024,7 +2024,7 @@ class RailBuildManager
 						} while (counter < 1);
 
 						if (counter == 1) {
-							::scheduledRemovalsTable.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot_tile, depotRaila));
+							::scheduled_removals_table.Train.append(RailStruct.SetRail(depotFront, m_rail_type, depot_tile, depotRaila));
 						}
 						local counter = 0;
 						do {
@@ -2038,7 +2038,7 @@ class RailBuildManager
 						} while (counter < 1);
 
 						if (counter == 1) {
-							::scheduledRemovalsTable.Train.append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, m_rail_type));
+							::scheduled_removals_table.Train.append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, m_rail_type));
 							return null;
 						}
 						else {
@@ -2279,10 +2279,10 @@ class RailBuildManager
 		return [true, signal_cost];
 	}
 
-	function BuildSignals(tileFrom, stationFromDir, tileTo, stationToDir)
+	function BuildSignals(tileFrom, station_from_dir, tileTo, station_to_dir)
 	{
-		local station_from = RailStation.CreateFromTile(tileFrom, stationFromDir);
-		local station_to = RailStation.CreateFromTile(tileTo, stationToDir);
+		local station_from = RailStation.CreateFromTile(tileFrom, station_from_dir);
+		local station_to = RailStation.CreateFromTile(tileTo, station_to_dir);
 		local plats = RailStationPlatforms(station_from, station_to);
 		local length = station_from.m_length * 2;
 
@@ -2306,10 +2306,10 @@ class RailBuildManager
 		if (m_city_to == null) m_city_to = -1;
 		if (m_station_from == null) m_station_from = -1;
 		if (m_station_to == null) m_station_to = -1;
-		if (m_depotFrom == null) m_depotFrom = -1;
-		if (m_depotTo == null) m_depotTo = -1;
+		if (m_depot_tile_from == null) m_depot_tile_from = -1;
+		if (m_depot_tile_to == null) m_depot_tile_to = -1;
 
-		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depotFrom, m_depotTo, m_bridge_tiles, m_cargo_class, m_rail_type, m_best_routes_built, m_stationFromDir, m_stationToDir, m_built_tiles, m_pathfinder_profile, m_builtWays];
+		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile_from, m_depot_tile_to, m_bridge_tiles, m_cargo_class, m_rail_type, m_best_routes_built, m_station_from_dir, m_station_to_dir, m_built_tiles, m_pathfinder_profile, m_builtWays];
 	}
 
 	function LoadBuildManager(data)
@@ -2318,14 +2318,14 @@ class RailBuildManager
 		m_city_to = data[1];
 		m_station_from = data[2];
 		m_station_to = data[3];
-		m_depotFrom = data[4];
-		m_depotTo = data[5];
+		m_depot_tile_from = data[4];
+		m_depot_tile_to = data[5];
 		m_bridge_tiles = data[6];
 		m_cargo_class = data[7];
 		m_rail_type = data[8];
 		m_best_routes_built = data[9];
-		m_stationFromDir = data[10];
-		m_stationToDir = data[11];
+		m_station_from_dir = data[10];
+		m_station_to_dir = data[11];
 		m_built_tiles = data[12];
 		m_pathfinder_profile = data[13];
 		m_builtWays = data[14];

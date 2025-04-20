@@ -41,10 +41,7 @@ class LuDiAIAfterFix extends AIController
 	lastRailManagedArray = -1;
 	lastRailManagedManagement = -1;
 
-	cargoClassRoad = null;
 	cargoClassWater = null;
-	cargoClassAir = null;
-	cargoClassRail = null;
 
 	roadTownManager = null;
 	road_route_manager = null;
@@ -84,10 +81,7 @@ class LuDiAIAfterFix extends AIController
 		airTownManager = TownManager();
 		railTownManager = TownManager();
 
-		cargoClassRoad = AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
-		cargoClassWater = cargoClassRoad;
-		cargoClassAir = cargoClassRoad;
-		cargoClassRail = cargoClassRoad;
+		cargoClassWater = (AIController.GetSetting("select_town_cargo") != 1 || !AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL;
 
 		/**
 		 * 'allRoutesBuilt' and 'bestRoutesBuilt' are bits:
@@ -111,7 +105,7 @@ class LuDiAIAfterFix extends AIController
 		rail_route_manager = RailRouteManager();
 		rail_build_manager = RailBuildManager();
 
-		::scheduledRemovalsTable <- { Train = [], Road = {}, Ship = {}, Aircraft = {} };
+		::scheduled_removals_table <- { Train = [], Road = {}, Ship = {}, Aircraft = {} };
 		::caches <- Caches();
 
 		loading = true;
@@ -122,8 +116,8 @@ function LuDiAIAfterFix::RemoveLeftovers()
 {
 	local clearedList = AIList();
 	local toclearList = AIList();
-	if (::scheduledRemovalsTable.Aircraft.len() > 0) {
-		foreach (tile, value in ::scheduledRemovalsTable.Aircraft) {
+	if (::scheduled_removals_table.Aircraft.len() > 0) {
+		foreach (tile, value in ::scheduled_removals_table.Aircraft) {
 			if (AIAirport.IsAirportTile(tile)) {
 				if (TestRemoveAirport().TryRemove(tile)) {
 					clearedList.AddItem(tile, 0);
@@ -136,15 +130,15 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (tile, _ in clearedList) {
-			::scheduledRemovalsTable.Aircraft.rawdelete(tile);
+			::scheduled_removals_table.Aircraft.rawdelete(tile);
 		}
 	}
 
 	clearedList.Clear();
 	toclearList.Clear();
-	if (::scheduledRemovalsTable.Road.len() > 0) {
+	if (::scheduled_removals_table.Road.len() > 0) {
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
-		foreach (tile, value in ::scheduledRemovalsTable.Road) {
+		foreach (tile, value in ::scheduled_removals_table.Road) {
 			if (value == 0) { // Remove without using demolish
 				if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile)) {
 					if (TestRemoveRoadStation().TryRemove(tile)) {
@@ -174,14 +168,14 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (tile, _ in clearedList) {
-			::scheduledRemovalsTable.Road.rawdelete(tile);
+			::scheduled_removals_table.Road.rawdelete(tile);
 		}
 	}
 
 	clearedList.Clear();
 	toclearList.Clear();
-	if (::scheduledRemovalsTable.Ship.len() > 0) {
-		foreach (tile, value in ::scheduledRemovalsTable.Ship) {
+	if (::scheduled_removals_table.Ship.len() > 0) {
+		foreach (tile, value in ::scheduled_removals_table.Ship) {
 			if (AIMarine.IsDockTile(tile)) {
 				local slope = AITile.GetSlope(tile);
 				if (slope == AITile.SLOPE_NE || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW) {
@@ -233,17 +227,17 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (tile, _ in clearedList) {
-			::scheduledRemovalsTable.Ship.rawdelete(tile);
+			::scheduled_removals_table.Ship.rawdelete(tile);
 		}
 		foreach (tile, _ in toclearList) {
-			::scheduledRemovalsTable.Ship.rawset(tile, 0);
+			::scheduled_removals_table.Ship.rawset(tile, 0);
 		}
 	}
 
 	clearedList.Clear();
 	toclearList.Clear();
-	if (::scheduledRemovalsTable.Train.len() > 0) {
-		foreach (id, i in ::scheduledRemovalsTable.Train) {
+	if (::scheduled_removals_table.Train.len() > 0) {
+		foreach (id, i in ::scheduled_removals_table.Train) {
 			local tile = i.m_tile;
 			local struct = i.m_struct;
 			local rail_type = i.m_rail_type;
@@ -310,7 +304,7 @@ function LuDiAIAfterFix::RemoveLeftovers()
 			}
 		}
 		foreach (id, _ in clearedList) {
-			::scheduledRemovalsTable.Train.remove(id);
+			::scheduled_removals_table.Train.remove(id);
 		}
 	}
 }
@@ -319,30 +313,30 @@ function LuDiAIAfterFix::PerformTownActions()
 {
 	if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) return;
 
-	local cC = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassRoad : AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
-	local cargo_type = Utils.GetCargoType(cC);
+	local cargo_class = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassWater : AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL)) ? AIBase.Chance(1, 2) ? AICargo.CC_PASSENGERS : AICargo.CC_MAIL : AICargo.CC_PASSENGERS;
+	local cargo_type = Utils.GetCargoType(cargo_class);
 
-	local stationList = AIStationList(AIStation.STATION_ANY);
+	local station_list = AIStationList(AIStation.STATION_ANY);
 	local stationTowns = AIList();
 	local townList = AIList();
 	local statuecount = 0;
-	for (local st = stationList.Begin(); !stationList.IsEnd(); st = stationList.Next()) {
-		if (AIStation.HasCargoRating(st, cargo_type)/* && !AIVehicleList_Station(st).IsEmpty()*/) { // too slow
-			local neartown = AIStation.GetNearestTown(st);
+	for (local station_id = station_list.Begin(); !station_list.IsEnd(); station_id = station_list.Next()) {
+		if (AIStation.HasCargoRating(station_id, cargo_type)/* && !AIVehicleList_Station(station_id).IsEmpty()*/) { // too slow
+			local neartown = AIStation.GetNearestTown(station_id);
 			if (!townList.HasItem(neartown)) {
 				townList.AddItem(neartown, 0);
 				if (AITown.HasStatue(neartown)) {
 					statuecount++;
 				}
 			}
-			if (AIStation.GetCargoRating(st, cargo_type) < 50 && AIStation.GetCargoWaiting(st, cargo_type) <= 100) {
+			if (AIStation.GetCargoRating(station_id, cargo_type) < 50 && AIStation.GetCargoWaiting(station_id, cargo_type) <= 100) {
 				if (!stationTowns.HasItem(neartown)) {
-					stationTowns.AddItem(neartown, st);
+					stationTowns.AddItem(neartown, station_id);
 				} else {
 //					AILog.Info(AITown.GetName(neartown) + " to existing station " + AIBaseStation.GetName(stationTowns.GetValue(neartown)) + " (" + AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(stationTowns.GetValue(neartown))) + " manhattan tiles)");
-//					AILog.Info(AITown.GetName(neartown) + " to checking station " + AIBaseStation.GetName(st) + " (" + AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(st)) + " manhattan tiles)");
-					if (AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(stationTowns.GetValue(neartown))) < AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(st))) {
-						stationTowns.SetValue(neartown, st);
+//					AILog.Info(AITown.GetName(neartown) + " to checking station " + AIBaseStation.GetName(station_id) + " (" + AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(station_id)) + " manhattan tiles)");
+					if (AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(stationTowns.GetValue(neartown))) < AITown.GetDistanceManhattanToTile(neartown, AIBaseStation.GetLocation(station_id))) {
+						stationTowns.SetValue(neartown, station_id);
 					}
 				}
 			}
@@ -409,7 +403,7 @@ function LuDiAIAfterFix::PerformTownActions()
 				}
 			}
 
-			if (AIController.GetSetting("fund_buildings") && TownManager.GetLastMonthProductionDiffRate(town_id, cargo_type) <= TownManager.CARGO_TYPE_LIMIT[cC]) {
+			if (AIController.GetSetting("fund_buildings") && TownManager.GetLastMonthProductionDiffRate(town_id, cargo_type) <= TownManager.CARGO_TYPE_LIMIT[cargo_class]) {
 				local action = AITown.TOWN_ACTION_FUND_BUILDINGS;
 				if (AITown.IsActionAvailable(town_id, action) && AITown.GetFundBuildingsDuration(town_id) == 0) {
 					local perform_action = true;
@@ -522,7 +516,7 @@ function LuDiAIAfterFix::Save()
 	table.rawset("rail_route_manager", rail_route_manager.SaveRouteManager());
 	table.rawset("rail_build_manager", rail_build_manager.SaveBuildManager());
 
-	table.rawset("scheduled_removals_table", ::scheduledRemovalsTable);
+	table.rawset("scheduled_removals_table", ::scheduled_removals_table);
 
 	table.rawset("best_routes_built", bestRoutesBuilt);
 	table.rawset("all_routes_built", allRoutesBuilt);
@@ -545,10 +539,7 @@ function LuDiAIAfterFix::Save()
 	table.rawset("reserved_money_air", reservedMoneyAir);
 	table.rawset("reserved_money_rail", reservedMoneyRail);
 
-	table.rawset("cargo_class_road", cargoClassRoad);
 	table.rawset("cargo_class_water", cargoClassWater);
-	table.rawset("cargo_class_air", cargoClassAir);
-	table.rawset("cargo_class_rail", cargoClassRail);
 
 	table.rawset("caches", ::caches.SaveCaches());
 
@@ -618,7 +609,7 @@ function LuDiAIAfterFix::Start()
 			}
 
 			if (loadData[1].rawin("scheduled_removals_table")) {
-				::scheduledRemovalsTable = loadData[1].rawget("scheduled_removals_table");
+				::scheduled_removals_table = loadData[1].rawget("scheduled_removals_table");
 			}
 
 			if (loadData[1].rawin("best_routes_built")) {
@@ -681,20 +672,8 @@ function LuDiAIAfterFix::Start()
 				reservedMoneyRail = loadData[1].rawget("reserved_money_rail");
 			}
 
-			if (loadData[1].rawin("cargo_class_road")) {
-				cargoClassRoad = loadData[1].rawget("cargo_class_road");
-			}
-
 			if (loadData[1].rawin("cargo_class_water")) {
 				cargoClassWater = loadData[1].rawget("cargo_class_water");
-			}
-
-			if (loadData[1].rawin("cargo_class_air")) {
-				cargoClassAir = loadData[1].rawget("cargo_class_air");
-			}
-
-			if (loadData[1].rawin("cargo_class_rail")) {
-				cargoClassRail = loadData[1].rawget("cargo_class_rail");
 			}
 
 			if (loadData[1].rawin("caches")) {
@@ -712,7 +691,7 @@ function LuDiAIAfterFix::Start()
 			/* Name company */
 			local cargostr = "";
 			if (AIController.GetSetting("select_town_cargo") != 2) {
-				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClassRoad));
+				cargostr += " " + AICargo.GetCargoLabel(Utils.GetCargoType(cargoClassWater));
 			}
 			if (!AICompany.SetName("LuDiAI AfterFix" + cargostr)) {
 				local i = 2;

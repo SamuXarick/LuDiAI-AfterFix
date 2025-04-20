@@ -4,10 +4,12 @@ class AirRouteManager
 {
 	m_town_route_array = null;
 	m_sent_to_depot_air_group = null;
+	m_cargo_class_air = null;
 
 	constructor()
 	{
 		this.m_town_route_array = [];
+		this.m_cargo_class_air = this.SwapCargoClass();
 	}
 
 	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
@@ -94,6 +96,42 @@ class AirRouteManager
 //		AILog.Info("city_from = " + AITown.GetName(city_from) + " ; city_from_count = " + city_from_count + " ; max_town_station_from = " + max_town_station_from + " ; city_to = " + AITown.GetName(city_to) + " ; city_to_count = " + city_to_count + " ; max_town_station_to = " + max_town_station_to);
 
 		return city_from_count >= max_town_station_from || city_to_count >= max_town_station_to;
+	}
+
+	function SwapCargoClass()
+	{
+		switch (AIController.GetSetting("select_town_cargo")) {
+			case 0: { // Passengers
+				this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+				return this.m_cargo_class_air;
+			}
+			case 1: { // Mail
+				if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+					this.m_cargo_class_air = AICargo.CC_MAIL;
+				} else {
+					this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+				}
+				return this.m_cargo_class_air;
+			}
+			case 2: { // Passengers and Mail
+				if (this.m_cargo_class_air == AICargo.CC_PASSENGERS) {
+					if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+						this.m_cargo_class_air = AICargo.CC_MAIL;
+					} else {
+						this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+					}
+				} else if (this.m_cargo_class_air == AICargo.CC_MAIL) {
+					this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+				} else if (this.m_cargo_class_air == null) {
+					if (AIBase.Chance(1, 2)) {
+						this.m_cargo_class_air = AICargo.CC_MAIL;
+					} else {
+						this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+					}
+				}
+				return this.m_cargo_class_air;
+			}
+		}
 	}
 
 	function SaveRouteManager()
