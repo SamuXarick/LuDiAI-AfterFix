@@ -29,15 +29,6 @@ class LuDiAIAfterFix extends AIController
 	bestRoutesBuilt = null;
 	allRoutesBuilt = null;
 
-	lastWaterManagedArray = -1;
-	lastWaterManagedManagement = -1;
-
-	lastAirManagedArray = -1;
-	lastAirManagedManagement = -1;
-
-	lastRailManagedArray = -1;
-	lastRailManagedManagement = -1;
-
 	cargo_class_rotation = null;
 
 	roadTownManager = null;
@@ -641,15 +632,6 @@ function LuDiAIAfterFix::Save()
 	table.rawset("best_routes_built", bestRoutesBuilt);
 	table.rawset("all_routes_built", allRoutesBuilt);
 
-	table.rawset("last_water_managed_array", lastWaterManagedArray);
-	table.rawset("last_water_managed_management", lastWaterManagedManagement);
-
-	table.rawset("last_air_managed_array", lastAirManagedArray);
-	table.rawset("last_air_managed_management", lastAirManagedManagement);
-
-	table.rawset("last_rail_managed_array", lastRailManagedArray);
-	table.rawset("last_rail_managed_management", lastRailManagedManagement);
-
 	table.rawset("reserved_money", reservedMoney);
 	table.rawset("reserved_money_road", reservedMoneyRoad);
 	table.rawset("reserved_money_water", reservedMoneyWater);
@@ -737,30 +719,6 @@ function LuDiAIAfterFix::Start()
 				allRoutesBuilt = loadData[1].rawget("all_routes_built");
 			}
 
-			if (loadData[1].rawin("last_water_managed_array")) {
-				lastWaterManagedArray = loadData[1].rawget("last_water_managed_array");
-			}
-
-			if (loadData[1].rawin("last_water_managed_management")) {
-				lastWaterManagedManagement = loadData[1].rawget("last_water_managed_management");
-			}
-
-			if (loadData[1].rawin("last_air_managed_array")) {
-				lastAirManagedArray = loadData[1].rawget("last_air_managed_array");
-			}
-
-			if (loadData[1].rawin("last_air_managed_management")) {
-				lastAirManagedManagement = loadData[1].rawget("last_air_managed_management");
-			}
-
-			if (loadData[1].rawin("last_rail_managed_array")) {
-				lastRailManagedArray = loadData[1].rawget("last_rail_managed_array");
-			}
-
-			if (loadData[1].rawin("last_rail_managed_management")) {
-				lastRailManagedManagement = loadData[1].rawget("last_rail_managed_management");
-			}
-
 			if (loadData[1].rawin("reserved_money")) {
 				reservedMoney = loadData[1].rawget("reserved_money");
 			}
@@ -817,7 +775,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageRoadvehRoutes");
-		road_route_manager.ManageRoadvehRoutes();
+		road_route_manager.ManageRoadvehRoutes(roadTownManager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageRoadvehRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -829,7 +787,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageAircraftRoutes");
-		ManageAircraftRoutes();
+		air_route_manager.ManageAircraftRoutes(airTownManager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageAircraftRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -841,7 +799,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageShipRoutes");
-		ManageShipRoutes();
+		ship_route_manager.ManageShipRoutes(shipTownManager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageShipRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -853,7 +811,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageTrainRoutes");
-		ManageTrainRoutes();
+		rail_route_manager.ManageTrainRoutes(railTownManager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageTrainRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
