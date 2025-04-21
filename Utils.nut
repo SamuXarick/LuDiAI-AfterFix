@@ -222,7 +222,7 @@ class Utils
 	function GetCargoType(cargo_class)
 	{
 		local cargo_type = 0xFF;
-		for (local cargo_type2 = ::caches.m_cargo_type_list.Begin(); !::caches.m_cargo_type_list.IsEnd(); cargo_type2 = ::caches.m_cargo_type_list.Next()) {
+		foreach (cargo_type2, _ in ::caches.m_cargo_type_list) {
 			if (AICargo.HasCargoClass(cargo_type2, cargo_class)) {
 				cargo_type = cargo_type2;
 				break;

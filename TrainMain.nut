@@ -7,7 +7,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 		local city_from = null;
 		local city_to = null;
 		local best_rail_type;
-		local cargo_class = this.rail_route_manager.m_cargo_class_rail;
+		local cargo_class = this.rail_route_manager.m_cargo_class;
 		if (!unfinished) {
 			this.rail_route_manager.SwapCargoClass();
 			local cargo_type = Utils.GetCargoType(cargo_class);
@@ -822,7 +822,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 					all_tiles_found[tile] = 0;
 				}
 				foreach (i, route in this.rail_route_manager.m_town_route_array) {
-					if (route.m_station_from == tile || route.m_town_route_array[i].m_station_to == tile) {
+					if (route.m_station_from == tile || route.m_station_to == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						local station_tiles = AITileList_StationType(AIStation.GetStationID(tile), station_type);
 						station_tiles.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);

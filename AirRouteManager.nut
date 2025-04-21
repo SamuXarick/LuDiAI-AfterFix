@@ -3,28 +3,30 @@ require("AirBuildManager.nut");
 class AirRouteManager
 {
 	m_town_route_array = null;
-	m_sent_to_depot_air_group = null;
-	m_cargo_class_air = null;
+	m_sent_to_depot_group = null;
+	m_cargo_class = null;
+	m_last_route_index_managed = -1;
+	m_last_management_managed = -1;
 
 	constructor()
 	{
 		this.m_town_route_array = [];
-		this.m_cargo_class_air = this.SwapCargoClass();
+		this.m_cargo_class = this.SwapCargoClass();
 	}
 
 	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
 	{
-		if (this.m_sent_to_depot_air_group == null) {
-			this.m_sent_to_depot_air_group = [];
+		if (this.m_sent_to_depot_group == null) {
+			this.m_sent_to_depot_group = [];
 			for (local i = 0; i <= 1; i++) {
-				this.m_sent_to_depot_air_group.append(AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID));
-				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_air_group[i]));
+				this.m_sent_to_depot_group.append(AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID));
+				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_group[i]));
 			}
-			assert(AIGroup.SetName(this.m_sent_to_depot_air_group[0], "0: Aircraft to sell"));
-			assert(AIGroup.SetName(this.m_sent_to_depot_air_group[1], "1: Aircraft to renew"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_group[0], "0: Aircraft to sell"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_group[1], "1: Aircraft to renew"));
 		}
 
-		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_air_group, best_routes_built, all_routes_built);
+		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_group, best_routes_built, all_routes_built);
 		if (route != null && route != 0) {
 			this.m_town_route_array.append(route);
 			air_build_manager.SetRouteFinished();
@@ -102,34 +104,38 @@ class AirRouteManager
 	{
 		switch (AIController.GetSetting("select_town_cargo")) {
 			case 0: { // Passengers
-				this.m_cargo_class_air = AICargo.CC_PASSENGERS;
-				return this.m_cargo_class_air;
+				this.m_cargo_class = AICargo.CC_PASSENGERS;
+				return this.m_cargo_class;
 			}
 			case 1: { // Mail
 				if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
-					this.m_cargo_class_air = AICargo.CC_MAIL;
+					this.m_cargo_class = AICargo.CC_MAIL;
 				} else {
-					this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+					this.m_cargo_class = AICargo.CC_PASSENGERS;
 				}
-				return this.m_cargo_class_air;
+				return this.m_cargo_class;
 			}
 			case 2: { // Passengers and Mail
-				if (this.m_cargo_class_air == AICargo.CC_PASSENGERS) {
+				if (this.m_cargo_class == AICargo.CC_PASSENGERS) {
 					if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
-						this.m_cargo_class_air = AICargo.CC_MAIL;
+						this.m_cargo_class = AICargo.CC_MAIL;
 					} else {
-						this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+						this.m_cargo_class = AICargo.CC_PASSENGERS;
 					}
-				} else if (this.m_cargo_class_air == AICargo.CC_MAIL) {
-					this.m_cargo_class_air = AICargo.CC_PASSENGERS;
-				} else if (this.m_cargo_class_air == null) {
+				} else if (this.m_cargo_class == AICargo.CC_MAIL) {
+					this.m_cargo_class = AICargo.CC_PASSENGERS;
+				} else if (this.m_cargo_class == null) {
 					if (AIBase.Chance(1, 2)) {
-						this.m_cargo_class_air = AICargo.CC_MAIL;
+						if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+							this.m_cargo_class = AICargo.CC_MAIL;
+						} else {
+							this.m_cargo_class = AICargo.CC_PASSENGERS;
+						}
 					} else {
-						this.m_cargo_class_air = AICargo.CC_PASSENGERS;
+						this.m_cargo_class = AICargo.CC_PASSENGERS;
 					}
 				}
-				return this.m_cargo_class_air;
+				return this.m_cargo_class;
 			}
 		}
 	}
@@ -141,7 +147,7 @@ class AirRouteManager
 			town_route_array.append(route.SaveRoute());
 		}
 
-		return [town_route_array, this.m_sent_to_depot_air_group];
+		return [town_route_array, this.m_sent_to_depot_group, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed];
 	}
 
 	function LoadRouteManager(data)
@@ -154,6 +160,9 @@ class AirRouteManager
 		}
 		AILog.Info("Loaded " + this.m_town_route_array.len() + " air routes.");
 
-		this.m_sent_to_depot_air_group = data[1];
+		this.m_sent_to_depot_group = data[1];
+		this.m_cargo_class = data[2];
+		this.m_last_route_index_managed = data[3];
+		this.m_last_management_managed = data[4];
 	}
 };

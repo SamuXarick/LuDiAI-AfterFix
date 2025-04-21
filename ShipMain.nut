@@ -7,9 +7,9 @@ function LuDiAIAfterFix::BuildWaterRoute()
 		local city_from = null;
 		local city_to = null;
 		local cheaper_route = false;
-		local cargo_class = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassWater : (!unfinished ? cargoClassWater : (cargoClassWater == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS));
+		local cargo_class = ship_route_manager.m_cargo_class;
 		if (!unfinished) {
-			cargoClassWater = AIController.GetSetting("select_town_cargo") != 2 ? cargoClassWater : (cargo_class == AICargo.CC_PASSENGERS ? AICargo.CC_MAIL : AICargo.CC_PASSENGERS);
+			ship_route_manager.SwapCargoClass();
 
 			local cargo_type = Utils.GetCargoType(cargo_class);
 			local tempList = AIEngineList(AIVehicle.VT_WATER);
@@ -21,7 +21,6 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 
 			if (engineList.IsEmpty()) {
-//				cargoClassWater = cargo_class;
 				return;
 			}
 
@@ -48,7 +47,6 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			if (!Utils.HasMoney(estimated_costs + reservedMoney - reservedMoneyWater)) {
 				/* Try a cheaper route */
 				if ((((bestRoutesBuilt >> 2) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 1 || !Utils.HasMoney(estimated_costs - canal_costs - clear_costs + reservedMoney - reservedMoneyWater)) {
-//					cargoClassWater = cargo_class;
 					return;
 				} else {
 					cheaper_route = true;

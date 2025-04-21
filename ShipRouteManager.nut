@@ -3,28 +3,30 @@ require("ShipBuildManager.nut");
 class ShipRouteManager
 {
 	m_town_route_array = null;
-	m_sent_to_depot_water_group = null;
-	m_cargo_class_water = null;
+	m_sent_to_depot_group = null;
+	m_cargo_class = null;
+	m_last_route_index_managed = -1;
+	m_last_management_managed = -1;
 
 	constructor()
 	{
 		this.m_town_route_array = [];
-		this.m_cargo_class_water = this.SwapCargoClass();
+		this.m_cargo_class = this.SwapCargoClass();
 	}
 
 	function BuildRoute(ship_build_manager, city_from, city_to, cargo_class, cheaper_route, best_routes_built)
 	{
-		if (this.m_sent_to_depot_water_group == null) {
-			this.m_sent_to_depot_water_group = [];
+		if (this.m_sent_to_depot_group == null) {
+			this.m_sent_to_depot_group = [];
 			for (local i = 0; i <= 1; i++) {
-				this.m_sent_to_depot_water_group.append(AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID));
-				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_water_group[i]));
+				this.m_sent_to_depot_group.append(AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID));
+				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_group[i]));
 			}
-			assert(AIGroup.SetName(this.m_sent_to_depot_water_group[0], "0: Ships to sell"));
-			assert(AIGroup.SetName(this.m_sent_to_depot_water_group[1], "1: Ships to renew"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_group[0], "0: Ships to sell"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_group[1], "1: Ships to renew"));
 		}
 
-		local route = ship_build_manager.BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, this.m_sent_to_depot_water_group, best_routes_built);
+		local route = ship_build_manager.BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, this.m_sent_to_depot_group, best_routes_built);
 		if (route != null && route != 0) {
 			this.m_town_route_array.append(route);
 			ship_build_manager.SetRouteFinished();
@@ -102,38 +104,42 @@ class ShipRouteManager
 	{
 		switch (AIController.GetSetting("select_town_cargo")) {
 			case 0: { // Passengers
-				this.m_cargo_class_water = AICargo.CC_PASSENGERS;
-				return this.m_cargo_class_water;
+				this.m_cargo_class = AICargo.CC_PASSENGERS;
+				return this.m_cargo_class;
 			}
 			case 1: { // Mail
 				if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
-					this.m_cargo_class_water = AICargo.CC_MAIL;
+					this.m_cargo_class = AICargo.CC_MAIL;
 				} else {
-					this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+					this.m_cargo_class = AICargo.CC_PASSENGERS;
 				}
-				return this.m_cargo_class_water;
+				return this.m_cargo_class;
 			}
 			case 2: { // Passengers and Mail
-				if (this.m_cargo_class_water == AICargo.CC_PASSENGERS) {
+				if (this.m_cargo_class == AICargo.CC_PASSENGERS) {
 					if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
-						this.m_cargo_class_water = AICargo.CC_MAIL;
+						this.m_cargo_class = AICargo.CC_MAIL;
 					} else {
-						this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+						this.m_cargo_class = AICargo.CC_PASSENGERS;
 					}
-				} else if (this.m_cargo_class_water == AICargo.CC_MAIL) {
-					this.m_cargo_class_water = AICargo.CC_PASSENGERS;
-				} else if (this.m_cargo_class_water == null) {
+				} else if (this.m_cargo_class == AICargo.CC_MAIL) {
+					this.m_cargo_class = AICargo.CC_PASSENGERS;
+				} else if (this.m_cargo_class == null) {
 					if (AIBase.Chance(1, 2)) {
-						this.m_cargo_class_water = AICargo.CC_MAIL;
+						if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+							this.m_cargo_class = AICargo.CC_MAIL;
+						} else {
+							this.m_cargo_class = AICargo.CC_PASSENGERS;
+						}
 					} else {
-						this.m_cargo_class_water = AICargo.CC_PASSENGERS;
+						this.m_cargo_class = AICargo.CC_PASSENGERS;
 					}
 				}
-				return this.m_cargo_class_water;
+				return this.m_cargo_class;
 			}
 		}
 	}
-	
+
 	function SaveRouteManager()
 	{
 		local town_route_array = [];
@@ -141,7 +147,7 @@ class ShipRouteManager
 			town_route_array.append(route.SaveRoute());
 		}
 
-		return [town_route_array, this.m_sent_to_depot_water_group];
+		return [town_route_array, this.m_sent_to_depot_group, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed];
 	}
 
 	function LoadRouteManager(data)
@@ -154,6 +160,9 @@ class ShipRouteManager
 		}
 		AILog.Info("Loaded " + this.m_town_route_array.len() + " water routes.");
 
-		this.m_sent_to_depot_water_group = data[1];
+		this.m_sent_to_depot_group = data[1];
+		this.m_cargo_class = data[2];
+		this.m_last_route_index_managed = data[3];
+		this.m_last_management_managed = data[4];
 	}
 };

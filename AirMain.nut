@@ -6,7 +6,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(AIGameSettings.GetValue("max_aircraft") - 10, 10)) && ((this.allRoutesBuilt >> 4) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
-		local cargo_class = this.air_route_manager.m_cargo_class_air;
+		local cargo_class = this.air_route_manager.m_cargo_class;
 		if (!unfinished) {
 			this.air_route_manager.SwapCargoClass();
 

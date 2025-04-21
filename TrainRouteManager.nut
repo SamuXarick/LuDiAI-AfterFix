@@ -3,28 +3,30 @@ require("TrainBuildManager.nut");
 class RailRouteManager
 {
 	m_town_route_array = null;
-	m_sent_to_depot_rail_group = null;
-	m_cargo_class_rail = null;
+	m_sent_to_depot_group = null;
+	m_cargo_class = null;
+	m_last_route_index_managed = -1;
+	m_last_management_managed = -1;
 
 	constructor()
 	{
 		this.m_town_route_array = [];
-		this.m_cargo_class_rail = this.SwapCargoClass();
+		this.m_cargo_class = this.SwapCargoClass();
 	}
 
 	function BuildRoute(rail_build_manager, city_from, city_to, cargo_class, best_routes_built, rail_type)
 	{
-		if (this.m_sent_to_depot_rail_group == null) {
-			this.m_sent_to_depot_rail_group = [];
+		if (this.m_sent_to_depot_group == null) {
+			this.m_sent_to_depot_group = [];
 			for (local i = 0; i <= 1; i++) {
-				this.m_sent_to_depot_rail_group.append(AIGroup.CreateGroup(AIVehicle.VT_RAIL, AIGroup.GROUP_INVALID));
-				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_rail_group[i]));
+				this.m_sent_to_depot_group.append(AIGroup.CreateGroup(AIVehicle.VT_RAIL, AIGroup.GROUP_INVALID));
+				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_group[i]));
 			}
-			assert(AIGroup.SetName(this.m_sent_to_depot_rail_group[0], "0: Trains to sell"));
-			assert(AIGroup.SetName(this.m_sent_to_depot_rail_group[1], "1: Trains to renew"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_group[0], "0: Trains to sell"));
+			assert(AIGroup.SetName(this.m_sent_to_depot_group[1], "1: Trains to renew"));
 		}
 
-		local route = rail_build_manager.BuildRailRoute(city_from, city_to, cargo_class, this.m_sent_to_depot_rail_group, best_routes_built, rail_type);
+		local route = rail_build_manager.BuildRailRoute(city_from, city_to, cargo_class, this.m_sent_to_depot_group, best_routes_built, rail_type);
 		if (route != null && route != 0) {
 			this.m_town_route_array.append(route);
 			rail_build_manager.SetRouteFinished();
@@ -102,34 +104,38 @@ class RailRouteManager
 	{
 		switch (AIController.GetSetting("select_town_cargo")) {
 			case 0: { // Passengers
-				this.m_cargo_class_rail = AICargo.CC_PASSENGERS;
-				return this.m_cargo_class_rail;
+				this.m_cargo_class = AICargo.CC_PASSENGERS;
+				return this.m_cargo_class;
 			}
 			case 1: { // Mail
 				if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
-					this.m_cargo_class_rail = AICargo.CC_MAIL;
+					this.m_cargo_class = AICargo.CC_MAIL;
 				} else {
-					this.m_cargo_class_rail = AICargo.CC_PASSENGERS;
+					this.m_cargo_class = AICargo.CC_PASSENGERS;
 				}
-				return this.m_cargo_class_rail;
+				return this.m_cargo_class;
 			}
 			case 2: { // Passengers and Mail
-				if (this.m_cargo_class_rail == AICargo.CC_PASSENGERS) {
+				if (this.m_cargo_class == AICargo.CC_PASSENGERS) {
 					if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
-						this.m_cargo_class_rail = AICargo.CC_MAIL;
+						this.m_cargo_class = AICargo.CC_MAIL;
 					} else {
-						this.m_cargo_class_rail = AICargo.CC_PASSENGERS;
+						this.m_cargo_class = AICargo.CC_PASSENGERS;
 					}
-				} else if (this.m_cargo_class_rail == AICargo.CC_MAIL) {
-					this.m_cargo_class_rail = AICargo.CC_PASSENGERS;
-				} else if (this.m_cargo_class_rail == null) {
+				} else if (this.m_cargo_class == AICargo.CC_MAIL) {
+					this.m_cargo_class = AICargo.CC_PASSENGERS;
+				} else if (this.m_cargo_class == null) {
 					if (AIBase.Chance(1, 2)) {
-						this.m_cargo_class_rail = AICargo.CC_MAIL;
+						if (AICargo.IsValidCargo(Utils.GetCargoType(AICargo.CC_MAIL))) {
+							this.m_cargo_class = AICargo.CC_MAIL;
+						} else {
+							this.m_cargo_class = AICargo.CC_PASSENGERS;
+						}
 					} else {
-						this.m_cargo_class_rail = AICargo.CC_PASSENGERS;
+						this.m_cargo_class = AICargo.CC_PASSENGERS;
 					}
 				}
-				return this.m_cargo_class_rail;
+				return this.m_cargo_class;
 			}
 		}
 	}
@@ -141,7 +147,7 @@ class RailRouteManager
 			town_route_array.append(route.SaveRoute());
 		}
 
-		return [town_route_array, this.m_sent_to_depot_rail_group];
+		return [town_route_array, this.m_sent_to_depot_group, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed];
 	}
 
 	function LoadRouteManager(data)
@@ -156,6 +162,9 @@ class RailRouteManager
 		}
 		AILog.Info("Loaded " + this.m_town_route_array.len() + " rail routes with " + num_bridges + " bridges.");
 
-		this.m_sent_to_depot_rail_group = data[1];
+		this.m_sent_to_depot_group = data[1];
+		this.m_cargo_class = data[2];
+		this.m_last_route_index_managed = data[3];
+		this.m_last_management_managed = data[4];
 	}
 };
