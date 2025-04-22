@@ -269,94 +269,32 @@ class Utils
 
 	function EstimateTownRectangle(town_id)
 	{
-		local townLocation = AITown.GetLocation(town_id);
-		local rectangleIncreaseKoeficient = 1;
+		local town_location = AITown.GetLocation(town_id);
+		local top_bottom_tiles = [town_location, town_location];
 
-		local topCornerTile = townLocation;
-		local bottomCornerTile = townLocation;
+		while (true) {
+			local max_expanded_counter = 0;
+			foreach (offset in [-1, AIMap.GetMapSizeX(), 1, -AIMap.GetMapSizeX()]) {
+				local tile = (offset > 0).tointeger(); // 0 == top, 1 == bottom
+				local offset_tile = top_bottom_tiles[tile] + offset;
 
-		local isMaxExpanded = false;
-		while (!isMaxExpanded) {
-			local maxExpandedCounter = 0;
-			for (local i = 0; i < 4; ++i) {
-				switch(i) {
-					case 0:
-						local offsetTile = Utils.GetOffsetTile(topCornerTile, -1 * rectangleIncreaseKoeficient, 0);
-
-						if (offsetTile == AIMap.TILE_INVALID) {
-							++maxExpandedCounter;
-							continue;
-						}
-
-						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
-							topCornerTile = offsetTile;
-						}
-						else {
-							++maxExpandedCounter;
-							continue;
-						}
-						break;
-
-					case 1:
-						local offsetTile = Utils.GetOffsetTile(bottomCornerTile, 0, rectangleIncreaseKoeficient);
-
-						if (offsetTile == AIMap.TILE_INVALID) {
-							++maxExpandedCounter;
-							continue;
-						}
-
-						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
-							bottomCornerTile = offsetTile;
-						}
-						else {
-							++maxExpandedCounter;
-							continue;
-						}
-						break;
-
-					case 2:
-						local offsetTile = Utils.GetOffsetTile(bottomCornerTile, rectangleIncreaseKoeficient, 0);
-
-						if (offsetTile == AIMap.TILE_INVALID) {
-							++maxExpandedCounter;
-							continue;
-						}
-
-						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
-							bottomCornerTile = offsetTile;
-						}
-						else {
-							++maxExpandedCounter;
-							continue;
-						}
-						break;
-
-					case 3:
-						local offsetTile = Utils.GetOffsetTile(topCornerTile, 0, -1 * rectangleIncreaseKoeficient);
-
-						if (offsetTile == AIMap.TILE_INVALID) {
-							++maxExpandedCounter;
-						}
-
-						if (AITown.IsWithinTownInfluence(town_id, offsetTile)) {
-							topCornerTile = offsetTile;
-						}
-						else {
-							++maxExpandedCounter;
-						}
-						break;
-
-					default:
-						break;
+				if (!AIMap.IsValidTile(offset_tile)) {
+					++max_expanded_counter;
+					continue;
 				}
+
+				if (!AITown.IsWithinTownInfluence(town_id, offset_tile)) {
+					++max_expanded_counter;
+					continue;
+				}
+
+				top_bottom_tiles[tile] = offset_tile;
 			}
 
-			if (maxExpandedCounter == 4) {
-				isMaxExpanded = true;
+			if (max_expanded_counter == 4) {
+				return top_bottom_tiles;
 			}
 		}
-
-		return [topCornerTile, bottomCornerTile];
 	}
 
 	/**
