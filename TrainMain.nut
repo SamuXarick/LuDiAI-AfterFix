@@ -277,31 +277,30 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine_id, wagon_id, rail_
 	local wagon_max_speed = AIEngine.GetMaxSpeed(wagon_id) == 0 ? 65535 : AIEngine.GetMaxSpeed(wagon_id);
 	local train_max_speed = min(engine_max_speed, wagon_max_speed);
 
-	local rail_types_list = AIList();
+	local rail_types_above_train_speed = AIList();
 	for (local rail_type = 0; rail_type < 64; rail_type++) {
 		if (!(rail_types_mask & (1 << rail_type))) continue;
 		local rail_type_max_speed = AIRail.GetMaxSpeed(rail_type) == 0 ? 65535 : AIRail.GetMaxSpeed(rail_type);
-		rail_types_list.AddItem(rail_type, rail_type_max_speed);
+		rail_types_above_train_speed.AddItem(rail_type, rail_type_max_speed);
 	}
 
-	local railtypes_below_train_speed = AIList();
-	railtypes_below_train_speed.AddList(rail_types_list);
-	railtypes_below_train_speed.KeepBelowValue(train_max_speed);
-	rail_types_list.RemoveBelowValue(train_max_speed);
+	local rail_types_below_train_speed = AIList();
+	rail_types_below_train_speed.AddList(rail_types_above_train_speed);
+	rail_types_below_train_speed.KeepBelowValue(train_max_speed);
+	rail_types_above_train_speed.RemoveBelowValue(train_max_speed);
 
 	local best_rail_types = [];
-	if (rail_types_list.IsEmpty()) {
-		/* Get the fastest ones */
-		railtypes_below_train_speed.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING);
-		railtypes_below_train_speed.KeepValue(railtypes_below_train_speed.GetValue(railtypes_below_train_speed.Begin()));
-		for (local rail_type = railtypes_below_train_speed.Begin(); !railtypes_below_train_speed.IsEnd(); rail_type = railtypes_below_train_speed.Next()) {
+	if (rail_types_above_train_speed.IsEmpty()) {
+		/* Get the fastest one(s) below train speed */
+		rail_types_below_train_speed.KeepValue(rail_types_below_train_speed.GetValue(rail_types_below_train_speed.Begin()));
+		foreach (rail_type, _ in rail_types_below_train_speed) {
 			best_rail_types.append(rail_type);
 		}
 	} else {
-		/* Get the slowest ones */
-		rail_types_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
-		rail_types_list.KeepValue(rail_types_list.GetValue(rail_types_list.Begin()));
-		for (local rail_type = rail_types_list.Begin(); !rail_types_list.IsEnd(); rail_type = rail_types_list.Next()) {
+		/* Get the slowest one(s) above train speed */
+		rail_types_above_train_speed.Sort(AIList.SORT_BY_VALUE, AIList.SORT_ASCENDING);
+		rail_types_above_train_speed.KeepValue(rail_types_above_train_speed.GetValue(rail_types_above_train_speed.Begin()));
+		foreach (rail_type, _ in rail_types_above_train_speed) {
 			best_rail_types.append(rail_type);
 		}
 	}

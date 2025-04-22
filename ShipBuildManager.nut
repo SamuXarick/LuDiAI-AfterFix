@@ -101,7 +101,7 @@ class DockStation
 
 	function IsEqual(dock_station)
 	{
-		if (dock_station == null) {
+		if (!dock_station) {
 			return false;
 		}
 
@@ -642,7 +642,9 @@ class ShipBuildManager
 
 			local built_dock_tile_canal = false;
 			if (!AITile.IsWaterTile(dock_tile)) {
-				if (this.m_cheaper_route) continue;
+				if (this.m_cheaper_route) {
+					continue;
+				}
 
 				local counter = 0;
 				do {
@@ -919,9 +921,9 @@ class ShipBuildManager
 					if (this.m_pathfinder_tries < this.m_max_pathfinder_tries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							AILog.Info("canal pathfinder: FindPath iterated: " + count);
-//							local signList = AISignList();
-//							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
-//								if (signList.Count() < 64000) break;
+//							local sign_list = AISignList();
+//							foreach (sign, _ in sign_list) {
+//								if (sign_list.Count() < 64000) break;
 //								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
 //							}
 							return [null, pathfinder_instance];

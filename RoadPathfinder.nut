@@ -235,10 +235,10 @@ function Road::_Cost(self, path, new_tile,
 {
 	/* path == null means this is the first node of a path, so the cost is 0. */
 	if (path == null) return 0;
-//	local signList = AISignList();
-//	signList.Valuate(AISign.GetLocation);
-//	signList.KeepValue(new_tile);
-//	if (signList.IsEmpty()) AIExecMode() && AISign.BuildSign(new_tile, "x");
+//	local sign_list = AISignList();
+//	sign_list.Valuate(AISign.GetLocation);
+//	sign_list.KeepValue(new_tile);
+//	if (sign_list.IsEmpty()) AIExecMode() && AISign.BuildSign(new_tile, "x");
 	local prev_tile = path._tile;
 	local dist = AIMap.DistanceManhattan(new_tile, prev_tile);
 

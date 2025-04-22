@@ -465,7 +465,7 @@ class RoadRoute extends RoadRouteManager
 				} else {
 					local shared_list = AIVehicleList_SharedOrders(vehicle_id);
 					local copy_orders_vid = AIVehicle.VEHICLE_INVALID;
-					for (local v = shared_list.Begin(); !shared_list.IsEnd(); v = shared_list.Next()) {
+					foreach (v, _ in shared_list) {
 						if (v != vehicle_id) {
 							copy_orders_vid = v;
 							break;

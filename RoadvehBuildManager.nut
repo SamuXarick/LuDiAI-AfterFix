@@ -924,7 +924,7 @@ class RoadBuildManager
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							AILog.Info("road pathfinder: FindPath iterated: " + count);
 //							local sign_list = AISignList();
-//							for (local sign = sign_list.Begin(); !sign_list.IsEnd(); sign = sign_list.Next()) {
+//							foreach (sign, _ in sign_list) {
 //								if (sign_list.Count() < 64000) break;
 //								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
 //							}

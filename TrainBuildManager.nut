@@ -1441,9 +1441,9 @@ class RailBuildManager
 					if (m_pathfinder_tries < max_pathfinderTries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							if (!silent_mode) AILog.Info("rail pathfinder: FindPath iterated: " + count);
-//							local signList = AISignList();
-//							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
-//								if (signList.Count() < 64000) break;
+//							local sign_list = AISignList();
+//							foreach (sign, _ in sign_list) {
+//								if (sign_list.Count() < 64000) break;
 //								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
 //							}
 							return [null, pathfinder];
@@ -1709,9 +1709,9 @@ class RailBuildManager
 					if (m_pathfinder_tries < max_pathfinderTries) {
 						if (AIDate.GetCurrentDate() - cur_date > 1) {
 //							if (!silent_mode) AILog.Info("rail pathfinder: FindPath iterated: " + count);
-//							local signList = AISignList();
-//							for (local sign = signList.Begin(); !signList.IsEnd(); sign = signList.Next()) {
-//								if (signList.Count() < 64000) break;
+//							local sign_list = AISignList();
+//							foreach (sign, _ in sign_list) {
+//								if (sign_list.Count() < 64000) break;
 //								if (AISign.GetName(sign) == "x") AISign.RemoveSign(sign);
 //							}
 							return [null, pathfinder];
