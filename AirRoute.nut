@@ -36,7 +36,7 @@ class AirRoute extends AirRouteManager
 		this.m_airport_to = airport_to;
 		this.m_cargo_class = cargo_class;
 		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
-		
+
 		this.m_group = AIGroup.GROUP_INVALID;
 		this.m_last_vehicle_added = 0;
 		this.m_last_vehicle_removed = AIDate.GetCurrentDate();
@@ -50,7 +50,7 @@ class AirRoute extends AirRouteManager
 		this.m_station_name_to = AIBaseStation.GetName(this.m_station_id_to);
 		this.m_cargo_type = Utils.GetCargoType(cargo_class);
 		this.m_squared_dist = AIMap.DistanceSquare(airport_from, airport_to);
-		this.m_fake_dist = WrightAI.DistanceRealFake(airport_from, airport_to);
+		this.m_fake_dist = Utils.DistanceRealFake(airport_from, airport_to);
 		this.m_airport_type_from = AIAirport.GetAirportType(airport_from);
 		this.m_airport_type_to = AIAirport.GetAirportType(airport_to);
 
@@ -136,7 +136,7 @@ class AirRoute extends AirRouteManager
 					engine_list[engine_id] = null;
 					continue;
 				}
-				if (WrightAI.GetMaximumOrderDistance(engine_id) < this.m_squared_dist) {
+				if (Utils.GetMaximumOrderDistance(engine_id) < this.m_squared_dist) {
 					engine_list[engine_id] = null;
 					continue;
 				}
@@ -276,11 +276,46 @@ class AirRoute extends AirRouteManager
 		}
 	}
 
+	function GetNumTerminals(aircraft_type, airport_type)
+	{
+		switch (airport_type) {
+			case AIAirport.AT_INTERCON:
+				return aircraft_type != AIAirport.PT_HELICOPTER ? 8 : 2;
+
+			case AIAirport.AT_INTERNATIONAL:
+				return aircraft_type != AIAirport.PT_HELICOPTER ? 6 : 2;
+
+			case AIAirport.AT_METROPOLITAN:
+				return 3;
+
+			case AIAirport.AT_LARGE:
+				return 3;
+
+			case AIAirport.AT_COMMUTER:
+				return aircraft_type != AIAirport.PT_HELICOPTER ? 3 : 2;
+
+			case AIAirport.AT_SMALL:
+				return 2;
+
+			case AIAirport.AT_HELISTATION:
+				return aircraft_type != AIAirport.PT_HELICOPTER ? 0 : 3;
+
+			case AIAirport.AT_HELIDEPOT:
+				return aircraft_type != AIAirport.PT_HELICOPTER ? 0 : 1;
+
+			case AIAirport.AT_HELIPORT:
+				return aircraft_type != AIAirport.PT_HELICOPTER ? 0 : 1;
+
+			default:
+				throw "Invalid airport_type in GetNumTerminals";
+		}
+	}
+
 	function OptimalVehicleCount()
 	{
 		local count_interval = (AIEngine.GetMaxSpeed(this.m_engine) * 2 * 74 * AirBuildManager.DAYS_INTERVAL / 256) / 16;
 		local aircraft_type = AIEngine.GetPlaneType(this.m_engine);
-		local num_terminals = WrightAI.GetNumTerminals(aircraft_type, this.m_airport_type_from) + WrightAI.GetNumTerminals(aircraft_type, this.m_airport_type_to);
+		local num_terminals = this.GetNumTerminals(aircraft_type, this.m_airport_type_from) + this.GetNumTerminals(aircraft_type, this.m_airport_type_to);
 		return (count_interval > 0 ? (this.m_fake_dist / count_interval) : 0) + num_terminals;
 	}
 

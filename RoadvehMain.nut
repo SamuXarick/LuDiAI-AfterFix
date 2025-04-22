@@ -42,7 +42,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
-			local best_engine_info = WrightAI().GetBestEngineIncome(engine_list, cargo_type, RoadRoute.START_VEHICLE_COUNT[cargo_class], false);
+			local best_engine_info = Utils.GetBestEngineIncome(engine_list, cargo_type, RoadRoute.START_VEHICLE_COUNT[cargo_class], false);
 			local max_distance = (ROAD_DAYS_IN_TRANSIT * 2 * 3 * 74 * AIEngine.GetMaxSpeed(best_engine_info[0]) / 4) / (192 * 16);
 			local min_distance = max(20, max_distance * 2 / 3);
 //			AILog.Info("best_engine_info: best_engine = " + AIEngine.GetName(best_engine_info[0]) + "; best_distance = " + best_engine_info[1] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);

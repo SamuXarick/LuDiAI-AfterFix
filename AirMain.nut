@@ -34,7 +34,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
-//			local best_engine_id_info = WrightAI().GetBestEngineIncome(engine_list, cargo_type, AirBuildManager.DAYS_INTERVAL);
+//			local best_engine_id_info = Utils.GetBestEngineIncome(engine_list, cargo_type, AirBuildManager.DAYS_INTERVAL);
 //			if (best_engine_id_info[0] == null) {
 //				return;
 //			}
@@ -42,7 +42,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			local fake_dist = best_engine_id_info[1];
 //			local infrastructure = AIGameSettings.GetValue("infrastructure_maintenance");
 
-//			local max_order_dist = WrightAI.GetMaximumOrderDistance(best_engine_id_info[0]);
+//			local max_order_dist = Utils.GetMaximumOrderDistance(best_engine_id_info[0]);
 //			local max_dist = max_order_dist > AIMap.GetMapSize() ? AIMap.GetMapSize() : max_order_dist;
 //			local min_order_dist = (fake_dist / 2) * (fake_dist / 2);
 //			local min_dist = min_order_dist > max_dist * 3 / 4 ? !infrastructure && max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : max_dist * 3 / 4 : min_order_dist;

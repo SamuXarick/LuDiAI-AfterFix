@@ -239,18 +239,38 @@ class Utils
 	 */
 	function GetEngineTileDist(engine_id, days_in_transit)
 	{
-		local veh_type = AIEngine.GetVehicleType(engine_id);
 		/* Assuming going in axis, it is the same as distancemanhattan */
-		if (veh_type == AIVehicle.VT_ROAD) {
-			/* ((max_speed * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16) */
-			return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 444 / 12288;
-		} else if (veh_type == AIVehicle.VT_WATER) {
-			/* (max_speed * 2 * 74 * days_in_transit) / (256 * 16) */
-			return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 148 / 4096;
-		} else {
+		switch (AIEngine.GetVehicleType(engine_id)) {
+			case AIVehicle.VT_ROAD: {
+				/* ((max_speed * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16) */
+				return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 444 / 12288;
+			}
+			case AIVehicle.VT_WATER:
+			case AIVehicle.VT_AIR:
+			case AIVehicle.VT_RAIL: {
+				/* (max_speed * 2 * 74 * days_in_transit) / (256 * 16) */
+				return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 148 / 4096;
+			}
+			default: {
+				assert(!AIEngine.IsValidEngine(engine_id) || !AIEngine.IsBuildable(engine_id));
+				return 0;
+			}
+		}
+	}
+
+	function GetEngineBrokenRealFakeDist(engine_id, days_in_transit)
+	{
+		/* For aircraft only */
+		if (AIEngine.GetVehicleType(engine_id) != AIVehicle.VT_AIR) {
 			assert(!AIEngine.IsValidEngine(engine_id) || !AIEngine.IsBuildable(engine_id));
 			return 0;
 		}
+
+		local speed_limit_broken = 320 / AIGameSettings.GetValue("plane_speed");
+		local max_speed = AIEngine.GetMaxSpeed(engine_id);
+		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
+		local broken_speed = breakdowns && max_speed < speed_limit_broken ? max_speed : speed_limit_broken;
+		return (broken_speed * 2 * 74 * days_in_transit / 256) / 16;
 	}
 
 	function GetEngineReliabilityMultiplier(engine_id)
@@ -265,6 +285,116 @@ class Utils
 			default:
 				return reliability;
 		}
+	}
+
+	function GetMaximumOrderDistance(engine_id)
+	{
+		local dist = AIEngine.GetMaximumOrderDistance(engine_id);
+		return dist == 0 ? 0xFFFFFFFF : dist;
+	}
+
+	function DistanceRealFake(t0, t1)
+	{
+		/* This type of distance is for aircraft only */
+		local t0x = AIMap.GetTileX(t0);
+		local t0y = AIMap.GetTileY(t0);
+		local t1x = AIMap.GetTileX(t1);
+		local t1y = AIMap.GetTileY(t1);
+		local dx = t0x > t1x ? t0x - t1x : t1x - t0x;
+		local dy = t0y > t1y ? t0y - t1y : t1y - t0y;
+		return dx > dy ? ((dx - dy) * 3 + dy * 4) / 3 : ((dy - dx) * 3 + dx * 4) / 3;
+	}
+
+	function GetBestEngineIncome(engine_list, cargo_type, days_int, aircraft = true, airport_tile = null, airport_type = null)
+	{
+		local best_income = null;
+		local best_distance = 0;
+		local best_engine = null;
+		foreach (engine_id, _ in engine_list) {
+			local optimized = Utils.GetEngineOptimalDaysInTransit(engine_id, cargo_type, days_int, aircraft, airport_tile, airport_type);
+			if (best_income == null || optimized[0] > best_income) {
+				best_income = optimized[0];
+				best_distance = optimized[1];
+				best_engine = engine_id;
+			}
+		}
+		return [best_engine, best_distance];
+	}
+
+	function GetEngineOptimalDaysInTransit(engine_id, cargo_type, days_int, aircraft, airport_tile = null, airport_type = null)
+	{
+		local infrastructure = AIGameSettings.GetValue("infrastructure_maintenance");
+		local distance_max_speed = Utils.GetEngineTileDist(engine_id, 1000);
+		local distance_broken_speed = aircraft ? Utils.GetEngineBrokenRealFakeDist(engine_id, 1000) : distance_max_speed;
+		local running_cost = AIEngine.GetRunningCost(engine_id);
+		local primary_capacity = ::caches.GetCapacity(engine_id, cargo_type);
+		local secondary_capacity = (aircraft && AIController.GetSetting("select_town_cargo") == 2) ? ::caches.GetSecondaryCapacity(engine_id) : 0;
+
+		local days_in_transit = 0;
+		local best_income = -100000000;
+		local best_distance = 0;
+//		local min_distance = 0;
+		local min_count = 1000;
+		local max_count = 1;
+		local best_count = 1;
+		local multiplier = Utils.GetEngineReliabilityMultiplier(engine_id);
+		local breakdowns = AIGameSettings.GetValue("vehicle_breakdowns");
+		local count_interval = Utils.GetEngineTileDist(engine_id, days_int);
+		local infra_cost = 0;
+		if (aircraft && infrastructure && airport_tile != null && airport_tile > 0) {
+			infra_cost = AIAirport.GetMonthlyMaintenanceCost(airport_type);
+			if (airport_type == AIAirport.AT_HELIDEPOT || airport_type == AIAirport.AT_HELISTATION) {
+				local heliport = AIAirport.GetMonthlyMaintenanceCost(AIAirport.AT_HELIPORT);
+				if (!AIAirport.IsValidAirportType(AIAirport.AT_HELIPORT) || infra_cost < heliport) {
+					infra_cost += infra_cost;
+				} else {
+					infra_cost += heliport;
+				}
+			}
+		}
+		local aircraft_type = AIEngine.GetPlaneType(engine_id);
+		local max_days = breakdowns ? 150 - 30 * breakdowns : 180;
+		for (local days = days_int * 3; days <= max_days; days++) {
+			if (aircraft && infrastructure && airport_tile != null && airport_tile > 0) {
+				local fake_dist = distance_max_speed * days / 1000;
+				max_count = (count_interval > 0 ? (fake_dist / count_interval) : max_count) + AirRoute.GetNumTerminals(aircraft_type, airport_type) + AirRoute.GetNumTerminals(aircraft_type, airport_type);
+			}
+			local income_primary = primary_capacity * AICargo.GetCargoIncome(cargo_type, distance_max_speed * days / 1000, days);
+			local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
+			local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
+			local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_max_speed * days / 1000, days) : 0;
+			local income_max_speed = (income_primary + income_secondary - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count)/* * multiplier / 100*/;
+			if (income_max_speed > 0 && max_count < min_count && max_count != 1) {
+				min_count = max_count;
+//			} else if (income_max_speed <= 0 && max_count <= min_count && max_count != 1) {
+//				min_count = 1000;
+			}
+//			AILog.Info("engine = " + AIEngine.GetName(engine_id) + " ; days_in_transit = " + days + " ; distance = " + (distance_max_speed * days / 1000) + " ; income = " + income_max_speed + " ; " + (aircraft ? "fake_dist" : "tiledist") + " = " + Utils.GetEngineTileDist(engine_id, days) + " ; max_count = " + max_count);
+			if (breakdowns) {
+				local income_primary_broken_speed = primary_capacity * AICargo.GetCargoIncome(cargo_type, distance_broken_speed * days / 1000, days);
+				local income_secondary_broken_speed = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, distance_broken_speed * days / 1000, days) : 0;
+				local income_broken_speed = (income_primary_broken_speed + income_secondary_broken_speed - running_cost * days / 365 - infra_cost * 12 * days / 365 / max_count);
+				if (income_max_speed > 0 && income_broken_speed > 0 && income_max_speed > best_income) {
+					best_income = income_max_speed;
+					best_distance = distance_max_speed * days / 1000;
+					days_in_transit = days;
+					best_count = max_count;
+//					if (min_distance == 0) min_distance = best_distance;
+				}
+			} else {
+				if (income_max_speed > 0 && income_max_speed > best_income) {
+					best_income = income_max_speed;
+					best_distance = distance_max_speed * days / 1000;
+					days_in_transit = days;
+					best_count = max_count;
+//					if (min_distance == 0) min_distance = best_distance;
+				}
+			}
+		}
+//		AILog.Info("engine = " + AIEngine.GetName(engine_id) + " ; max speed = " + AIEngine.GetMaxSpeed(engine_id) + " ; capacity = " + primary_capacity + "/" + secondary_capacity + " ; running cost = " + running_cost + " ; infra cost = " + infra_cost);
+//		AILog.Info("days in transit = " + days_in_transit + " ; min/best distance = " + min_distance + "/" + best_distance + " ; best_income = " + best_income + " ; " + (aircraft ? "fake_dist" : "tiledist") + " = " + Utils.GetEngineTileDist(engine_id, days_in_transit) + " ; min/best count = " + min_count + "/" + best_count);
+
+		return [best_income, best_distance, min_count];
 	}
 
 	function EstimateTownRectangle(town_id)

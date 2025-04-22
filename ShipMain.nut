@@ -33,7 +33,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 				return;
 			}
 
-			local best_engine_info = WrightAI().GetBestEngineIncome(engine_list, cargo_type, ShipRoute.COUNT_INTERVAL, false);
+			local best_engine_info = Utils.GetBestEngineIncome(engine_list, cargo_type, ShipRoute.COUNT_INTERVAL, false);
 			local max_distance = (WATER_DAYS_IN_TRANSIT * 2 * 74 * AIEngine.GetMaxSpeed(best_engine_info[0])) / (256 * 16);
 			local min_distance = max(20, max_distance * 2 / 3);
 //			AILog.Info("best_engine_info: best_engine = " + AIEngine.GetName(best_engine_info[0]) + "; best_distance = " + best_engine_info[1] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);

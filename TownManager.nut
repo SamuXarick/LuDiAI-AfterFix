@@ -208,7 +208,7 @@ class TownManager
 		foreach (town_id, _ in unused_cities_list) {
 			local unused_town_location = AITown.GetLocation(town_id);
 			local distance = this.DistanceFunction(max_fake_dist, from_city, unused_town_location);
-			local fake = max_fake_dist != 0 ? WrightAI.DistanceRealFake(from_city_location, unused_town_location) : 0;
+			local fake = max_fake_dist != 0 ? Utils.DistanceRealFake(from_city_location, unused_town_location) : 0;
 			if (distance > max_distance || distance < min_distance || fake > max_fake_dist) {
 				unused_cities_list[town_id] = null;
 			}

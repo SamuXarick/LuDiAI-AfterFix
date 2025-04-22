@@ -15,7 +15,6 @@ require("TrainBuildManager.nut");
 
 require("TownManager.nut");
 require("Utils.nut");
-require("WrightAI.nut");
 require("Caches.nut");
 
 class LuDiAIAfterFix extends AIController
