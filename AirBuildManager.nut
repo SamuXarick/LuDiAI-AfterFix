@@ -638,6 +638,7 @@ class AirBuildManager
 		}
 		foreach (t, _ in town_list) {
 			local town_tile = AITown.GetLocation(t);
+			local town_rectangle = null;
 
 			foreach (a, _ in this.m_airport_types) {
 				if (!AIAirport.IsValidAirportType(a)) {
@@ -750,8 +751,11 @@ class AirBuildManager
 				local airport_y = AIAirport.GetAirportHeight(a);
 				local airport_rad = AIAirport.GetAirportCoverageRadius(a);
 
-				local town_rectangle = Utils.EstimateTownRectangle(t);
-				local town_rectangle_expanded = OrthogonalTileArea.CreateArea(town_rectangle[0], town_rectangle[1]);
+				if (town_rectangle == null) {
+					town_rectangle = Utils.EstimateTownRectangle(t);
+					town_rectangle = OrthogonalTileArea.CreateArea(town_rectangle[0], town_rectangle[1]);
+				}
+				local town_rectangle_expanded = clone town_rectangle;
 				town_rectangle_expanded.Expand(airport_x - 1, airport_y - 1, false);
 				town_rectangle_expanded.Expand(airport_rad, airport_rad);
 
