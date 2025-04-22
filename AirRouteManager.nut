@@ -266,7 +266,7 @@ class AirRouteManager
 			local cargo_class = this.m_town_route_array[i].m_cargo_class;
 			if (this.m_town_route_array[i].RemoveIfUnserviced()) {
 				this.m_town_route_array.remove(i);
-				this.airTownManager.ResetCityPair(city_from, city_to, cargo_class, true);
+				air_town_manager.ResetCityPair(city_from, city_to, cargo_class, true);
 			}
 			if (this.InterruptAirManagement(cur_date)) return;
 		}

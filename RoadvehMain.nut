@@ -10,8 +10,8 @@ function LuDiAIAfterFix::BuildRoadRoute()
 		local cargo_class = this.road_route_manager.m_cargo_class;
 		if (!unfinished) {
 			this.road_route_manager.SwapCargoClass();
-
 			local cargo_type = Utils.GetCargoType(cargo_class);
+
 			local engine_list = AIEngineList(AIVehicle.VT_ROAD);
 			foreach (engine_id, _ in engine_list) {
 				if (!AIEngine.IsValidEngine(engine_id)) {

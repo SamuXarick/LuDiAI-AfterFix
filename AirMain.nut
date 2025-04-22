@@ -9,7 +9,6 @@ function LuDiAIAfterFix::BuildAirRoute()
 		local cargo_class = this.air_route_manager.m_cargo_class;
 		if (!unfinished) {
 			this.air_route_manager.SwapCargoClass();
-
 			local cargo_type = Utils.GetCargoType(cargo_class);
 
 			local engine_list = AIEngineList(AIVehicle.VT_AIR);

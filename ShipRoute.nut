@@ -25,12 +25,12 @@ class ShipRoute extends ShipRouteManager
 
 	m_vehicle_list = null;
 
-	constructor(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sent_to_depot_water_group, is_loaded = 0)
+	constructor(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, sent_to_depot_water_group, is_loaded = 0)
 	{
 		m_city_from = city_from;
 		m_city_to = city_to;
-		m_dock_from = dockFrom;
-		m_dock_to = dockTo;
+		m_dock_from = dock_from;
+		m_dock_to = dock_to;
 		m_depot_tile = depot_tile;
 		m_cargo_class = cargo_class;
 
@@ -716,10 +716,10 @@ class ShipRoute extends ShipRouteManager
 				(AIDate.GetCurrentDate() - m_last_vehicle_added >= 90) && m_last_vehicle_added > 0)) {
 			m_active_route = false;
 
-			local dockFrom_name = AIBaseStation.GetName(AIStation.GetStationID(m_dock_from));
+			local dock_from_name = AIBaseStation.GetName(AIStation.GetStationID(m_dock_from));
 			::scheduled_removals_table.Ship.rawset(m_dock_from, 0);
 
-			local dockTo_name = AIBaseStation.GetName(AIStation.GetStationID(m_dock_to));
+			local dock_to_name = AIBaseStation.GetName(AIStation.GetStationID(m_dock_to));
 			::scheduled_removals_table.Ship.rawset(m_dock_to, 0);
 
 			::scheduled_removals_table.Ship.rawset(m_depot_tile, 0);
@@ -727,7 +727,7 @@ class ShipRoute extends ShipRouteManager
 			if (AIGroup.IsValidGroup(m_group)) {
 				AIGroup.DeleteGroup(m_group);
 			}
-			AILog.Warning("Removing unserviced water route from " + dockFrom_name + " to " + dockTo_name);
+			AILog.Warning("Removing unserviced water route from " + dock_from_name + " to " + dock_to_name);
 			return true;
 		}
 		return false;
@@ -764,14 +764,14 @@ class ShipRoute extends ShipRouteManager
 	{
 		local city_from = data[0];
 		local city_to = data[1];
-		local dockFrom = data[2];
-		local dockTo = data[3];
+		local dock_from = data[2];
+		local dock_to = data[3];
 		local depot_tile = data[4];
 		local cargo_class = data[5];
 
 		local sent_to_depot_water_group = data[9];
 
-		local route = ShipRoute(city_from, city_to, dockFrom, dockTo, depot_tile, cargo_class, sent_to_depot_water_group, 1);
+		local route = ShipRoute(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, sent_to_depot_water_group, 1);
 
 		route.m_last_vehicle_added = data[6];
 		route.m_last_vehicle_removed = data[7];
