@@ -103,66 +103,61 @@ class LuDiAIAfterFix extends AIController
 
 function LuDiAIAfterFix::RemoveLeftovers()
 {
-	local clearedList = AIList();
-	local toclearList = AIList();
+	local cleared_list = AIList();
+	local to_clear_list = AIList();
 	if (::scheduled_removals_table.Aircraft.len() > 0) {
 		foreach (tile, value in ::scheduled_removals_table.Aircraft) {
 			if (AIAirport.IsAirportTile(tile)) {
 				if (TestRemoveAirport().TryRemove(tile)) {
-					clearedList.AddItem(tile, 0);
+					cleared_list[tile] = 0;
 				}
-				else {
-					/* there was nothing to remove */
-					clearedList.AddItem(tile, 0);
-				}
+			} else {
+				/* there was nothing to remove */
+				cleared_list[tile] = 0;
 			}
 		}
 
-		foreach (tile, _ in clearedList) {
+		foreach (tile, _ in cleared_list) {
 			::scheduled_removals_table.Aircraft.rawdelete(tile);
 		}
 	}
 
-	clearedList.Clear();
-	toclearList.Clear();
+	cleared_list.Clear();
+	to_clear_list.Clear();
 	if (::scheduled_removals_table.Road.len() > 0) {
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
 		foreach (tile, value in ::scheduled_removals_table.Road) {
 			if (value == 0) { // Remove without using demolish
 				if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile)) {
 					if (TestRemoveRoadStation().TryRemove(tile)) {
-						clearedList.AddItem(tile, 0);
+						cleared_list[tile] = 0;
 					}
-				}
-				else if (AIRoad.IsRoadDepotTile(tile)) {
+				} else if (AIRoad.IsRoadDepotTile(tile)) {
 					if (TestRemoveRoadDepot().TryRemove(tile)) {
-						clearedList.AddItem(tile, 0);
+						cleared_list[tile] = 0;
 					}
-				}
-				else {
+				} else {
 					/* there was nothing to remove */
-					clearedList.AddItem(tile, 0);
+					cleared_list[tile] = 0;
 				}
-			}
 			/* Remove using demolish */
-			else if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile) || AIRoad.IsRoadDepotTile(tile)) {
+			} else if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile) || AIRoad.IsRoadDepotTile(tile)) {
 				if (TestDemolishTile().TryDemolish(tile)) {
-					clearedList.AddItem(tile, 1);
+					cleared_list[tile] = 1;
 				}
-			}
-			else {
+			} else {
 				/* there was nothing to remove */
-				clearedList.AddItem(tile, 1);
+				cleared_list[tile] = 1;
 			}
 		}
 
-		foreach (tile, _ in clearedList) {
+		foreach (tile, _ in cleared_list) {
 			::scheduled_removals_table.Road.rawdelete(tile);
 		}
 	}
 
-	clearedList.Clear();
-	toclearList.Clear();
+	cleared_list.Clear();
+	to_clear_list.Clear();
 	if (::scheduled_removals_table.Ship.len() > 0) {
 		foreach (tile, value in ::scheduled_removals_table.Ship) {
 			if (AIMarine.IsDockTile(tile)) {
@@ -178,53 +173,45 @@ function LuDiAIAfterFix::RemoveLeftovers()
 						local tile2 = tile + offset;
 						if (AIMarine.IsCanalTile(tile2)) {
 							if (!TestRemoveCanal().TryRemove(tile2)) {
-								toclearList.AddItem(tile2, 0);
+								to_clear_list[tile2] = 0;
 							}
 						}
 						local tile3 = tile2 + offset;
 						if (AIMarine.IsCanalTile(tile3) && !ShipBuildManager().RemovingCanalBlocksConnection(tile3)) {
 							if (!TestRemoveCanal().TryRemove(tile3)) {
-								toclearList.AddItem(tile3, 0);
+								to_clear_list[tile3] = 0;
 							}
 						}
-						clearedList.AddItem(tile, 0);
+						cleared_list[tile] = 0;
 					}
 				} else {
 					/* Not our dock, someone overbuilt it on top of a canal tile */
-					clearedList.AddItem(tile, 0);
+					cleared_list[tile] = 0;
 				}
-			}
-			else if (AIMarine.IsCanalTile(tile) && !ShipBuildManager().RemovingCanalBlocksConnection(tile)) {
+			} else if (AIMarine.IsCanalTile(tile) && !ShipBuildManager().RemovingCanalBlocksConnection(tile)) {
 				if (TestRemoveCanal().TryRemove(tile)) {
-					clearedList.AddItem(tile, 0);
+					cleared_list[tile] = 0;
 				}
-			}
-			else if (AIMarine.IsWaterDepotTile(tile)) {
+			} else if (AIMarine.IsWaterDepotTile(tile)) {
 				if (TestRemoveWaterDepot().TryRemove(tile)) {
-					clearedList.AddItem(tile, 0);
+					cleared_list[tile] = 0;
 				}
-			}
-			else if (AIMarine.IsBuoyTile(tile)) {
-				if (TestRemoveBuoy().TryRemove(tile)) {
-					clearedList.AddItem(tile, 0);
-				}
-			}
-			else {
+			} else {
 				/* there was nothing to remove */
-				clearedList.AddItem(tile, 0);
+				cleared_list[tile] = 0;
 			}
 		}
 
-		foreach (tile, _ in clearedList) {
+		foreach (tile, _ in cleared_list) {
 			::scheduled_removals_table.Ship.rawdelete(tile);
 		}
-		foreach (tile, _ in toclearList) {
+		foreach (tile, _ in to_clear_list) {
 			::scheduled_removals_table.Ship.rawset(tile, 0);
 		}
 	}
 
-	clearedList.Clear();
-	toclearList.Clear();
+	cleared_list.Clear();
+	to_clear_list.Clear();
 	if (::scheduled_removals_table.Train.len() > 0) {
 		foreach (id, i in ::scheduled_removals_table.Train) {
 			local tile = i.m_tile;
@@ -238,61 +225,58 @@ function LuDiAIAfterFix::RemoveLeftovers()
 						AITile.GetOwner(tile) == ::caches.m_my_company_id && AITile.GetOwner(tile2) == ::caches.m_my_company_id &&
 						AIStation.GetStationID(tile) == AIStation.GetStationID(tile2)) {
 					if (TestRemoveRailStationTileRectangle().TryRemove(tile, tile2, false)) {
-						clearedList.AddItem(id, 0);
+						cleared_list[id] = 0;
 					}
 				} else {
 					/* Does not match the criteria */
-					clearedList.AddItem(id, 0);
+					cleared_list[id] = 0;
 				}
-			}
-			else if (struct == RailStructType.DEPOT) {
+			} else if (struct == RailStructType.DEPOT) {
 				if (AIRail.IsRailDepotTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id) {
 					if (TestDemolishTile().TryDemolish(tile)) {
-						clearedList.AddItem(id, 0);
+						cleared_list[id] = 0;
 					}
 				} else {
 					/* Does not match the criteria */
-					clearedList.AddItem(id, 0);
+					cleared_list[id] = 0;
 				}
-			}
-			else if (struct == RailStructType.BRIDGE) {
+			} else if (struct == RailStructType.BRIDGE) {
 				local tile2 = i.m_tile2;
 				if (AIBridge.IsBridgeTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) &&
 						AIBridge.GetOtherBridgeEnd(tile) == tile2 && AITile.GetOwner(tile) == ::caches.m_my_company_id) {
 					if (TestRemoveBridge().TryRemove(tile)) {
-						clearedList.AddItem(id, 0);
+						cleared_list[id] = 0;
 					}
 				} else {
 					/* Does not match the criteria */
-					clearedList.AddItem(id, 0);
+					cleared_list[id] = 0;
 				}
-			}
-			else if (struct == RailStructType.TUNNEL) {
+			} else if (struct == RailStructType.TUNNEL) {
 				local tile2 = i.m_tile2;
 				if (AITunnel.IsTunnelTile(tile) && AITile.HasTransportType(tile, AITile.TRANSPORT_RAIL) &&
 						AITunnel.GetOtherTunnelEnd(tile) == tile2 && AITile.GetOwner(tile) == ::caches.m_my_company_id) {
 					if (TestRemoveTunnel().TryRemove(tile)) {
-						clearedList.AddItem(id, 0);
+						cleared_list[id] = 0;
 					}
 				} else {
 					/* Does not match the criteria */
-					clearedList.AddItem(id, 0);
+					cleared_list[id] = 0;
 				}
-			}
-			else if (struct == RailStructType.RAIL) {
+			} else if (struct == RailStructType.RAIL) {
 				local tile_from = i.m_tile2;
 				local tile_to = i.m_tile3;
 				if (AIRail.IsRailTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id) {
 					if (TestRemoveRail().TryRemove(tile_from, tile, tile_to)) {
-						clearedList.AddItem(id, 0);
+						cleared_list[id] = 0;
 					}
 				} else {
 					/* Does not match the criteria */
-					clearedList.AddItem(id, 0);
+					cleared_list[id] = 0;
 				}
 			}
 		}
-		foreach (id, _ in clearedList) {
+
+		foreach (id, _ in cleared_list) {
 			::scheduled_removals_table.Train.remove(id);
 		}
 	}
