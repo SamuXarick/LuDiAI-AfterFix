@@ -192,7 +192,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 				this.reservedMoneyRail = 0;
 			}
 		} else {
-			if (!Utils.HasMoney(this.reservedMoneyRail / (this.rail_build_manager.m_builtWays + 1))) {
+			if (!Utils.HasMoney(this.reservedMoneyRail / (this.rail_build_manager.m_built_ways + 1))) {
 				return;
 			}
 		}

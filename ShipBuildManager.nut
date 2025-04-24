@@ -119,7 +119,7 @@ class DockStation
 
 		return dock_station.m_slope_dir == this.m_slope_dir;
 	}
-}
+};
 
 class ShipBuildManager
 {
@@ -131,8 +131,8 @@ class ShipBuildManager
 	m_depot_tile = -1;
 	m_cargo_class = -1;
 	m_cheaper_route = null;
-	m_built_tiles = null;
 	m_best_routes_built = null;
+	m_built_tiles = null;
 
 	/* These are not saved */
 	m_pathfinder_instance = null;
@@ -159,8 +159,9 @@ class ShipBuildManager
 		this.m_depot_tile = -1;
 		this.m_cargo_class = -1;
 		this.m_cheaper_route = null;
-		this.m_built_tiles = null;
 		this.m_best_routes_built = null;
+		this.m_built_tiles = null;
+
 		this.m_pathfinder_instance = null;
 		this.m_pathfinder_tries = -1;
 		this.m_sent_to_depot_water_group = null;
@@ -169,6 +170,7 @@ class ShipBuildManager
 		this.m_route_dist = -1;
 		this.m_city_from_name = null;
 		this.m_city_to_name = null;
+		this.m_max_pathfinder_tries = -1;
 	}
 
 	/**

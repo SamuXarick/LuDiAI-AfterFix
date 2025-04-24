@@ -58,12 +58,13 @@ class RoadBuildManager
 		this.m_bridge_tiles = null;
 		this.m_cargo_class = -1;
 		this.m_articulated = -1;
+		this.m_pathfinder_profile = -1;
+		this.m_best_routes_built = null;
+
 		this.m_pathfinder_instance = null;
 		this.m_pathfinder_tries = -1;
-		this.m_pathfinder_profile = -1;
 		this.m_built_tiles = null;
 		this.m_sent_to_depot_road_group = null;
-		this.m_best_routes_built = null;
 		this.m_route_dist = -1;
 		this.m_max_pathfinder_tries = -1;
 		this.m_city_from_name = null;

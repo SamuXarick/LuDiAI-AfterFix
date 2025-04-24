@@ -13,8 +13,8 @@ class AirBuildManager
 	m_airport_type_to = -1;
 	m_station_id_from = -1;
 	m_station_id_to = -1;
-	m_small_aircraft_route = null;
 	m_large_aircraft_route = null;
+	m_small_aircraft_route = null;
 	m_helicopter_route = null;
 	m_all_routes_built = null;
 
@@ -43,16 +43,17 @@ class AirBuildManager
 		this.m_airport_type_to = -1;
 		this.m_station_id_from = -1;
 		this.m_station_id_to = -1;
-		this.m_small_aircraft_route = null;
 		this.m_large_aircraft_route = null;
+		this.m_small_aircraft_route = null;
 		this.m_helicopter_route = null;
+		this.m_all_routes_built = null;
+
 		this.m_airport_types = null;
 		this.m_big_engine_list = null;
 		this.m_small_engine_list = null;
 		this.m_helicopter_list = null;
 		this.m_sent_to_depot_air_group = null;
 		this.m_cargo_type = -1;
-		this.m_all_routes_built = null;
 	}
 
 	function BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, sent_to_depot_air_group, best_routes_built, all_routes_built)
