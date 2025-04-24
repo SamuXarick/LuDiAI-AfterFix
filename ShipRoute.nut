@@ -791,7 +791,7 @@ class ShipRoute extends ShipRouteManager
 		}
 
 		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_water_group[1]);
-		for (local v = vehicle_list.Begin(); !vehicle_list.IsEnd(); v = vehicle_list.Next()) {
+		foreach (v, _ in vehicle_list) {
 			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_WATER) {
 				if (route.m_vehicle_list.HasItem(v)) {
 					route.m_vehicle_list[v] = 1;
