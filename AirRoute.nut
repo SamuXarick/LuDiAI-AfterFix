@@ -44,6 +44,7 @@ class AirRoute extends AirRouteManager
 		this.m_active_route = true;
 
 		this.m_vehicle_list = AIList();
+		this.m_vehicle_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
 		this.m_station_id_from = AIStation.GetStationID(airport_from);
 		this.m_station_id_to = AIStation.GetStationID(airport_to);
 		this.m_station_name_from = AIBaseStation.GetName(this.m_station_id_from);
@@ -127,36 +128,46 @@ class AirRoute extends AirRouteManager
 
 		local engine_list = AIEngineList(AIVehicle.VT_AIR);
 		foreach (engine_id, _ in engine_list) {
-			if (AIEngine.IsValidEngine(engine_id) && AIEngine.IsBuildable(engine_id) && AIEngine.CanRefitCargo(engine_id, this.m_cargo_type)) {
-				if (small_aircraft && AIEngine.GetPlaneType(engine_id) == AIAirport.PT_BIG_PLANE) {
-					engine_list[engine_id] = null;
-					continue;
-				}
-				if (helicopter && AIEngine.GetPlaneType(engine_id) != AIAirport.PT_HELICOPTER) {
-					engine_list[engine_id] = null;
-					continue;
-				}
-				if (Utils.GetMaximumOrderDistance(engine_id) < this.m_squared_dist) {
-					engine_list[engine_id] = null;
-					continue;
-				}
-				local primary_capacity = ::caches.GetBuildWithRefitCapacity(hangar, engine_id, this.m_cargo_type);
-				local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
-				local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
-				local secondary_capacity = (AIController.GetSetting("select_town_cargo") == 2 && is_valid_secondary_cargo) ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine_id) : 0;
-				local days_in_transit = (this.m_fake_dist * 256 * 16) / (2 * 74 * AIEngine.GetMaxSpeed(engine_id));
-				local multiplier = Utils.GetEngineReliabilityMultiplier(engine_id);
-				local income_primary = primary_capacity * AICargo.GetCargoIncome(this.m_cargo_type, this.m_fake_dist, days_in_transit);
-				local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, this.m_fake_dist, days_in_transit) : 0;
-				local running_cost = AIEngine.GetRunningCost(engine_id);
-				local engine_income = (income_primary + income_secondary - running_cost * days_in_transit / 365) * multiplier;
-//				AILog.Info("engine_id = " + AIEngine.GetName(engine_id) + "; engine_income = " + engine_income);
-				if (engine_income <= 0) {
-					engine_list[engine_id] = null;
-					continue;
-				}
-				engine_list[engine_id] = engine_income;
+			if (!AIEngine.IsValidEngine(engine_id)) {
+				engine_list[engine_id] = null;
+				continue;
 			}
+			if (!AIEngine.IsBuildable(engine_id)) {
+				engine_list[engine_id] = null;
+				continue;
+			}
+			if (!AIEngine.CanRefitCargo(engine_id, this.m_cargo_type)) {
+				engine_list[engine_id] = null;
+				continue;
+			}
+			if (small_aircraft && AIEngine.GetPlaneType(engine_id) == AIAirport.PT_BIG_PLANE) {
+				engine_list[engine_id] = null;
+				continue;
+			}
+			if (helicopter && AIEngine.GetPlaneType(engine_id) != AIAirport.PT_HELICOPTER) {
+				engine_list[engine_id] = null;
+				continue;
+			}
+			if (Utils.GetMaximumOrderDistance(engine_id) < this.m_squared_dist) {
+				engine_list[engine_id] = null;
+				continue;
+			}
+			local primary_capacity = ::caches.GetBuildWithRefitCapacity(hangar, engine_id, this.m_cargo_type);
+			local secondary_cargo = Utils.GetCargoType(AICargo.CC_MAIL);
+			local is_valid_secondary_cargo = AICargo.IsValidCargo(secondary_cargo);
+			local secondary_capacity = (AIController.GetSetting("select_town_cargo") == 2 && is_valid_secondary_cargo) ? ::caches.GetBuildWithRefitSecondaryCapacity(hangar, engine_id) : 0;
+			local days_in_transit = (this.m_fake_dist * 256 * 16) / (2 * 74 * AIEngine.GetMaxSpeed(engine_id));
+			local multiplier = Utils.GetEngineReliabilityMultiplier(engine_id);
+			local income_primary = primary_capacity * AICargo.GetCargoIncome(this.m_cargo_type, this.m_fake_dist, days_in_transit);
+			local income_secondary = is_valid_secondary_cargo ? secondary_capacity * AICargo.GetCargoIncome(secondary_cargo, this.m_fake_dist, days_in_transit) : 0;
+			local running_cost = AIEngine.GetRunningCost(engine_id);
+			local engine_income = (income_primary + income_secondary - running_cost * days_in_transit / 365) * multiplier;
+//			AILog.Info("engine_id = " + AIEngine.GetName(engine_id) + "; engine_income = " + engine_income);
+			if (engine_income <= 0) {
+				engine_list[engine_id] = null;
+				continue;
+			}
+			engine_list[engine_id] = engine_income;
 		}
 		if (engine_list.IsEmpty()) {
 			return this.m_engine == null ? -1 : this.m_engine;
@@ -313,7 +324,7 @@ class AirRoute extends AirRouteManager
 
 	function OptimalVehicleCount()
 	{
-		local count_interval = (AIEngine.GetMaxSpeed(this.m_engine) * 2 * 74 * AirBuildManager.DAYS_INTERVAL / 256) / 16;
+		local count_interval = Utils.GetEngineTileDist(this.m_engine, AirBuildManager.DAYS_INTERVAL);
 		local aircraft_type = AIEngine.GetPlaneType(this.m_engine);
 		local num_terminals = this.GetNumTerminals(aircraft_type, this.m_airport_type_from) + this.GetNumTerminals(aircraft_type, this.m_airport_type_to);
 		return (count_interval > 0 ? (this.m_fake_dist / count_interval) : 0) + num_terminals;
@@ -431,7 +442,7 @@ class AirRoute extends AirRouteManager
 		local cargo_waiting_to_any = AIStation.GetCargoWaitingVia(this.m_station_id_to, AIStation.STATION_INVALID, this.m_cargo_type);
 		local cargo_waiting_to = cargo_waiting_to_via_from + cargo_waiting_to_any;
 
-//		AILog.Info("cargoWaiting = " + (cargo_waiting_from + cargo_waiting_to));
+//		AILog.Info("cargo_waiting = " + (cargo_waiting_from + cargo_waiting_to));
 		if (cargo_waiting_from + cargo_waiting_to < 150) {
 			foreach (vehicle, _ in vehicle_list) {
 				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {

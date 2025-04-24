@@ -513,7 +513,7 @@ class RailRoute extends RailRouteManager
 		local cargoWaiting2any = AIStation.GetCargoWaitingVia(station2, AIStation.STATION_INVALID, cargo_type);
 		local cargoWaiting2 = cargoWaiting2via1 + cargoWaiting2any;
 
-//		AILog.Info("cargoWaiting = " + (cargoWaiting1 + cargoWaiting2));
+//		AILog.Info("cargo_waiting = " + (cargoWaiting1 + cargoWaiting2));
 		if (cargoWaiting1 + cargoWaiting2 < 150) {
 			for (local vehicle = vehicleList.Begin(); !vehicleList.IsEnd(); vehicle = vehicleList.Next()) {
 				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {

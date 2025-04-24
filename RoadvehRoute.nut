@@ -59,6 +59,7 @@ class RoadRoute extends RoadRouteManager
 		this.m_max_vehicle_count_mode = AIController.GetSetting("road_cap_mode");
 
 		this.m_vehicle_list = AIList();
+		this.m_vehicle_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
 		this.m_station_id_from = AIStation.GetStationID(station_from);
 		this.m_station_id_to = AIStation.GetStationID(station_to);
 		this.m_station_name_from = AIBaseStation.GetName(this.m_station_id_from);
@@ -68,6 +69,7 @@ class RoadRoute extends RoadRouteManager
 		this.m_station_type = this.m_vehicle_type == AIRoad.ROADVEHTYPE_BUS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP;
 		this.m_route_dist = AIMap.DistanceManhattan(this.m_station_from, this.m_station_to);
 
+		/* This requires the values above to be initialized */
 		this.m_engine = this.GetTruckEngine();
 
 		if (!is_loaded) {
@@ -185,7 +187,9 @@ class RoadRoute extends RoadRouteManager
 	function GetTruckEngine()
 	{
 		local engine_list = this.GetEngineList();
-		if (engine_list.IsEmpty()) return this.m_engine == null ? -1 : this.m_engine;
+		if (engine_list.IsEmpty()) {
+			return this.m_engine == null ? -1 : this.m_engine;
+		}
 
 		local best_income = null;
 		local best_engine = null;
@@ -369,12 +373,12 @@ class RoadRoute extends RoadRouteManager
 		if (this.m_max_vehicle_count_mode == 0) return 25;
 
 //		AILog.Info("this.m_route_dist = " + this.m_route_dist);
-		local articulated_engine = AIEngine.IsArticulated(this.m_engine);
 		local count_interval = Utils.GetEngineTileDist(this.m_engine, MIN_VEHICLE_START_COUNT);
 //		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + AIEngine.GetMaxSpeed(this.m_engine));
 		local vehicle_count = /*2 * */(count_interval > 0 ? (this.m_route_dist / count_interval) : 0);
 //		AILog.Info("vehicle_count = " + vehicle_count);
 
+		local articulated_engine = AIEngine.IsArticulated(this.m_engine);
 		local from_count = 0;
 		local from_tiles = AITileList_StationType(this.m_station_id_from, this.m_station_type);
 		foreach (tile, _ in from_tiles) {
@@ -540,7 +544,7 @@ class RoadRoute extends RoadRouteManager
 		local cargo_waiting_to_any = AIStation.GetCargoWaitingVia(this.m_station_id_to, AIStation.STATION_INVALID, this.m_cargo_type);
 		local cargo_waiting_to = cargo_waiting_to_via_from + cargo_waiting_to_any;
 
-//		AILog.Info("cargoWaiting = " + (cargo_waiting_from + cargo_waiting_to));
+//		AILog.Info("cargo_waiting = " + (cargo_waiting_from + cargo_waiting_to));
 		if (cargo_waiting_from + cargo_waiting_to < 150) {
 			foreach (vehicle, _ in vehicle_list) {
 				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {
@@ -671,8 +675,7 @@ class RoadRoute extends RoadRouteManager
 						cargo_waiting_from -= engine_capacity;
 					} else {
 						cargo_waiting_to -= engine_capacity;
-						AIOrder.SkipToOrder(added_vehicle, 3);
-						skipped_order = true;
+						skipped_order = AIOrder.SkipToOrder(added_vehicle, 3);
 					}
 					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + (this.m_max_vehicle_count_mode != 2 ? "/" + optimal_vehicle_count : "") + " road vehicle" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
 					if (num_vehicles >= this.m_max_vehicle_count_mode != 2 ? 1 : optimal_vehicle_count) {
