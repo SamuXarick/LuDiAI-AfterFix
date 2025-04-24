@@ -12,17 +12,17 @@ class WaterTile
 	m_tile = null;
 	m_type = null;
 
-	constructor(tile, type)
+	constructor(tile, water_type)
 	{
 		this.m_tile = tile;
-		this.m_type = type;
+		this.m_type = water_type;
 	}
 
-	function SetType(tile, watertype)
+	function SetType(tile, water_type)
 	{
 		return {
 			m_tile = tile,
-			m_type = watertype,
+			m_type = water_type,
 		};
 	}
 };
