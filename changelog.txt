@@ -17,6 +17,11 @@ v22 (24-04-2025)
 - Fixed a bug in estimating town area which could lead to an infinite loop
 - Fixed a bug when retrying to building rail tunnels for the SingleRail
   pathfinder mode
+- Prefer placing rail depots near the incoming lane
+- Alleviate rail station placement constraints to be able to cover more
+  houses at the cost of less optimal station direction choices
+- Improved formula for determining the number of trains a route can have
+- Improved rail signal spacing to make trains more tight
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0

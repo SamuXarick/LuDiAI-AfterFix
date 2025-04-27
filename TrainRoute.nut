@@ -2,9 +2,9 @@ require("TrainRouteManager.nut");
 
 class RailRoute extends RailRouteManager
 {
-	MAX_PLATFORM_LENGTH = 7;
-	MAX_NUM_PLATFORMS = 2;
-	STATION_LOADING_INTERVAL = 15;
+	static MAX_PLATFORM_LENGTH = 7;
+	static MAX_NUM_PLATFORMS = 2;
+	static STATION_LOADING_INTERVAL = 15;
 
 	m_city_from = null;
 	m_city_to = null;
@@ -17,6 +17,7 @@ class RailRoute extends RailRouteManager
 	m_rail_type = null;
 	m_station_from_dir = null;
 	m_station_to_dir = null;
+	m_num_signals = null;
 
 	m_platformLength = null;
 	m_routeDistance = null;
@@ -32,7 +33,7 @@ class RailRoute extends RailRouteManager
 
 	m_vehicle_list = null;
 
-	constructor(city_from, city_to, station_from, station_to, depot_tile_from, depot_tile_to, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, station_from_dir, station_to_dir, is_loaded = 0)
+	constructor(city_from, city_to, station_from, station_to, depot_tile_from, depot_tile_to, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, station_from_dir, station_to_dir, num_signals, is_loaded = false)
 	{
 		AIRail.SetCurrentRailType(rail_type);
 		m_city_from = city_from;
@@ -46,6 +47,7 @@ class RailRoute extends RailRouteManager
 		m_rail_type = rail_type;
 		m_station_from_dir = station_from_dir;
 		m_station_to_dir = station_to_dir;
+		m_num_signals = num_signals;
 
 		m_platformLength = GetPlatformLength();
 		m_routeDistance = GetRouteDistance();
@@ -391,16 +393,21 @@ class RailRoute extends RailRouteManager
 
 	function OptimalVehicleCount()
 	{
-//		AILog.Info("m_routeDistance = " + m_routeDistance);
-		local max_speed = this.m_engineWagonPair[3];
-		local count_interval = max_speed * 74 * STATION_LOADING_INTERVAL / (256 * 16);
-//		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + max_speed);
-		local vehicleCount = (count_interval > 0 ? (m_routeDistance / count_interval) : 0);
+//		AILog.Info("m_routeDistance = " + m_routeDistance + "; m_num_signals = " + m_num_signals + "; m_platformLength = " + m_platformLength);
+		local train_max_speed = this.m_engineWagonPair[3];
+//		AILog.Info("train_max_speed = " + train_max_speed);
+		local count_interval = train_max_speed * 74 * (STATION_LOADING_INTERVAL / 2) / (256 * 16);
+//		AILog.Info("count_interval = " + count_interval);
+//		local days_in_transit = (2 * m_routeDistance * 256 * 16) / (2 * 74 * train_max_speed) + STATION_LOADING_INTERVAL;
+//		AILog.Info("days_in_transit = " + days_in_transit);
+		local max_num_trains_by_interval = (count_interval > 0 ? (m_routeDistance / count_interval) : 0);
+//		AILog.Info("max_num_trains_by_interval = " + max_num_trains_by_interval);
+		local max_num_trains_by_distance = m_routeDistance / m_platformLength;
+//		AILog.Info("max_num_trains_by_distance = " + max_num_trains_by_distance);
+		local max_num_trains_by_signals = m_num_signals - 2;
+//		AILog.Info("max_num_trains_by_signals = " + max_num_trains_by_signals);
+		local vehicleCount = max(2, min(max_num_trains_by_interval, min(max_num_trains_by_distance, max_num_trains_by_signals)));
 //		AILog.Info("vehicleCount = " + vehicleCount);
-		local max_num_trains = m_routeDistance / m_platformLength;
-//		AILog.Info("max_num_trains = " + max_num_trains);
-		vehicleCount = max(2, vehicleCount);
-
 		return vehicleCount;
 	}
 
@@ -902,7 +909,7 @@ class RailRoute extends RailRouteManager
 
 	function SaveRoute()
 	{
-		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile_from, m_depot_tile_to, m_bridge_tiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sent_to_depot_rail_group, m_group, m_rail_type, m_station_from_dir, m_station_to_dir];
+		return [m_city_from, m_city_to, m_station_from, m_station_to, m_depot_tile_from, m_depot_tile_to, m_bridge_tiles, m_cargo_class, m_last_vehicle_added, m_last_vehicle_removed, m_active_route, m_sent_to_depot_rail_group, m_group, m_rail_type, m_station_from_dir, m_station_to_dir, m_num_signals];
 	}
 
 	function LoadRoute(data)
@@ -924,7 +931,9 @@ class RailRoute extends RailRouteManager
 		local station_from_dir = data[14];
 		local station_to_dir = data[15];
 
-		local route = RailRoute(city_from, city_to, station_from, station_to, depot_tile_from, depot_tile_to, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, station_from_dir, station_to_dir, 1);
+		local num_signals = data[16];
+
+		local route = RailRoute(city_from, city_to, station_from, station_to, depot_tile_from, depot_tile_to, bridge_tiles, cargo_class, sent_to_depot_rail_group, rail_type, station_from_dir, station_to_dir, num_signals, true);
 
 		route.m_last_vehicle_added = data[8];
 		route.m_last_vehicle_removed = data[9];

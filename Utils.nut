@@ -73,10 +73,10 @@ class OrthogonalTileArea
 		return this;
 	}
 
-	function Intersects(ta)
-	{
-		return ta.sx <= this.ex && ta.ex >= this.sx && ta.sy <= this.ey && ta.ey >= this.sy;
-	}
+//	function Intersects(ta)
+//	{
+//		return ta.sx <= this.ex && ta.ex >= this.sx && ta.sy <= this.ey && ta.ey >= this.sy;
+//	}
 
 	function Contains(tile)
 	{
@@ -207,11 +207,6 @@ class Utils
 		}
 
 		return adjacent_tiles;
-	}
-
-	function IsTileMyStationWithoutRailwayStation(tile)
-	{
-		return AITile.IsStationTile(tile) && AITile.GetOwner(tile) == ::caches.m_my_company_id && !AIStation.HasStationType(AIStation.GetStationID(tile), AIStation.STATION_TRAIN);
 	}
 
 	/**

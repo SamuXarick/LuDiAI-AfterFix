@@ -5,7 +5,7 @@ class LuDiAIAfterFix extends AIInfo
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
 	function GetVersion()       { return 22; }
 	function MinVersionToLoad() { return 22; }
-	function GetDate()          { return "24-04-2025"; }
+	function GetDate()          { return "27-04-2025"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "15"; }

@@ -430,7 +430,7 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine_id, wagon_id, rail_
 	/* Simplified method for estimated income. */
 	local multiplier = Utils.GetEngineReliabilityMultiplier(engine_id);
 	local distance_advanced = (train_max_speed * 2 * 74 * days_in_transit) / (256 * 16);
-	days_in_transit = days_in_transit + RailRoute.STATION_LOADING_INTERVAL;
+	days_in_transit += RailRoute.STATION_LOADING_INTERVAL;
 	local income = ((train_capacity * AICargo.GetCargoIncome(cargo_type, distance_advanced, days_in_transit) - train_running_cost * days_in_transit / 365) * 365 / days_in_transit) * multiplier;
 	return [income, distance_advanced, num_wagons, train_capacity, best_rail_types];
 }
