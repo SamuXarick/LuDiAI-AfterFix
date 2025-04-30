@@ -1002,7 +1002,7 @@ enum SegmentDir
 	SW_NE_CUSTOM,
 	SE_NW_CUSTOM,
 	NE_SW_CUSTOM,
-	NW_SE_CUSTOM
+	NW_SE_CUSTOM,
 };
 
 function DoubleRail::_GetMatchingSegmentDir(from, to)

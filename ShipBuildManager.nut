@@ -4,7 +4,7 @@ enum WaterTileType
 {
 	CANAL,
 	LOCK,
-	AQUEDUCT
+	AQUEDUCT,
 };
 
 class WaterTile

@@ -4,7 +4,7 @@ enum RoadTileType
 {
 	ROAD,
 	TUNNEL,
-	BRIDGE
+	BRIDGE,
 };
 
 class RoadTile
