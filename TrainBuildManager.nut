@@ -240,7 +240,8 @@ class RailStruct
 	m_tile2 = null;
 	m_tile3 = null;
 
-	constructor(tile, struct, rail_type = -1, tile2 = -1, tile3 = -1) {
+	constructor(tile, struct, rail_type = -1, tile2 = -1, tile3 = -1)
+	{
 		this.m_tile = tile;
 		this.m_struct = struct;
 		this.m_rail_type = rail_type;

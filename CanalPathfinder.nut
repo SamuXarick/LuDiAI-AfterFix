@@ -75,7 +75,8 @@ class Canal
 	 * @param ignored_tiles An array of tiles that cannot occur in the final path.
 	 * @see AyStar::InitializePath()
 	 */
-	function InitializePath(sources, goals, ignored_tiles = []) {
+	function InitializePath(sources, goals, ignored_tiles = [])
+	{
 		local nsources = [];
 		foreach (node in sources) {
 			nsources.push([node, 0xFF, []]);

@@ -208,7 +208,7 @@ class AyStar.Path
 		this._path_tiles = [];
 		if (old_path != null) this._path_tiles.extend(old_path._path_tiles);
 		this._path_tiles.append(new_tile);
-	};
+	}
 
 	/**
 	 * Return the tile where this (partial-)path ends.

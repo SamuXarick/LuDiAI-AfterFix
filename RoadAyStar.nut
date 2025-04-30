@@ -149,7 +149,7 @@ class AyStar.Path
 		this._tile = new_tile;
 		this._direction = new_direction;
 		this._cost = cost_callback(pf_instance, old_path, new_tile);
-	};
+	}
 
 	/**
 	 * Return the tile where this (partial-)path ends.
