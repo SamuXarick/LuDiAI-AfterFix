@@ -6,7 +6,7 @@ enum RailStationDir
 	NE,
 	SW,
 	NW,
-	SE
+	SE,
 };
 
 class RailStation
@@ -223,188 +223,12 @@ class RailStation
 	}
 };
 
-class RailStationPlatforms
-{
-	m_from1 = null;
-	m_to1 = null;
-	m_from2 = null;
-	m_to2 = null;
-
-	constructor(station_from, station_to)
-	{
-		if (typeof(station_to) == "bool") {
-			switch (station_from.m_dir) {
-				case RailStationDir.NE:
-				case RailStationDir.SE: {
-					switch (station_to) {
-						case false:
-							this.m_from1 = 1;
-							this.m_from2 = 2;
-							break;
-
-						case true:
-							this.m_from1 = 2;
-							this.m_from2 = 1;
-							break;
-					}
-					break;
-				}
-				case RailStationDir.NW:
-				case RailStationDir.SW: {
-					switch (station_to) {
-						case false:
-							this.m_from1 = 2;
-							this.m_from2 = 1;
-							break;
-
-						case true:
-							this.m_from1 = 1;
-							this.m_from2 = 2;
-							break;
-					}
-					break;
-				}
-			}
-		} else if (typeof(station_to) == "instance") {
-			switch (station_from.m_dir) {
-				case RailStationDir.NE:
-					switch (station_to.m_dir) {
-						case RailStationDir.NE:
-							this.m_from1 = 1;
-							this.m_to1 = 2;
-							this.m_from2 = 2;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.NW:
-							this.m_from1 = 1;
-							this.m_to1 = 1;
-							this.m_from2 = 2;
-							this.m_to2 = 2;
-							break;
-
-						case RailStationDir.SE:
-							this.m_from1 = 1;
-							this.m_to1 = 2;
-							this.m_from2 = 2;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.SW:
-							this.m_from1 = 1;
-							this.m_to1 = 1;
-							this.m_from2 = 2;
-							this.m_to2 = 2;
-							break;
-					}
-					break;
-
-				case RailStationDir.NW:
-					switch (station_to.m_dir) {
-						case RailStationDir.NE:
-							this.m_from1 = 2;
-							this.m_to1 = 2;
-							this.m_from2 = 1;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.NW:
-							this.m_from1 = 2;
-							this.m_to1 = 1;
-							this.m_from2 = 1;
-							this.m_to2 = 2;
-							break;
-
-						case RailStationDir.SE:
-							this.m_from1 = 2;
-							this.m_to1 = 2;
-							this.m_from2 = 1;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.SW:
-							this.m_from1 = 2;
-							this.m_to1 = 1;
-							this.m_from2 = 1;
-							this.m_to2 = 2;
-							break;
-					}
-					break;
-
-				case RailStationDir.SE:
-					switch (station_to.m_dir) {
-						case RailStationDir.NE:
-							this.m_from1 = 1;
-							this.m_to1 = 2;
-							this.m_from2 = 2;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.NW:
-							this.m_from1 = 1;
-							this.m_to1 = 1;
-							this.m_from2 = 2;
-							this.m_to2 = 2;
-							break;
-
-						case RailStationDir.SE:
-							this.m_from1 = 1;
-							this.m_to1 = 2;
-							this.m_from2 = 2;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.SW:
-							this.m_from1 = 1;
-							this.m_to1 = 1;
-							this.m_from2 = 2;
-							this.m_to2 = 2;
-							break;
-					}
-					break;
-
-				case RailStationDir.SW:
-					switch (station_to.m_dir) {
-						case RailStationDir.NE:
-							this.m_from1 = 2;
-							this.m_to1 = 2;
-							this.m_from2 = 1;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.NW:
-							this.m_from1 = 2;
-							this.m_to1 = 1;
-							this.m_from2 = 1;
-							this.m_to2 = 2;
-							break;
-
-						case RailStationDir.SE:
-							this.m_from1 = 2;
-							this.m_to1 = 2;
-							this.m_from2 = 1;
-							this.m_to2 = 1;
-							break;
-
-						case RailStationDir.SW:
-							this.m_from1 = 2;
-							this.m_to1 = 1;
-							this.m_from2 = 1;
-							this.m_to2 = 2;
-							break;
-					}
-					break;
-			}
-		}
-	}
-};
-
-class RailStructType {
-	RAIL = 0;
-	TUNNEL = 1;
-	BRIDGE = 2;
-	STATION = 3;
-	DEPOT = 4;
+enum RailStructType {
+	RAIL,
+	TUNNEL,
+	BRIDGE,
+	STATION,
+	DEPOT,
 };
 
 class RailStruct {
@@ -837,6 +661,7 @@ class RailBuildManager
 					this.RemoveFailedRouteTracks();
 				}
 			} else if (this.m_pathfinder_profile == 0 && this.m_built_ways == 1) {
+				this.m_pathfinder_tries = 0;
 				return 0;
 			}
 		}
@@ -1361,7 +1186,7 @@ class RailBuildManager
 	{
 		if (this.m_station_from != this.m_station_to) {
 			if (this.m_max_pathfinder_tries == -1) {
-				this.m_max_pathfinder_tries = 600 * this.m_route_dist;
+				this.m_max_pathfinder_tries = 300 * this.m_route_dist;
 			}
 
 			/* Print the names of the towns we'll try to connect. */
@@ -2265,12 +2090,11 @@ class RailBuildManager
 
 	function BuildSignals()
 	{
-		local station_from = RailStation.CreateFromTile(this.m_station_from, this.m_station_from_dir);
-		local station_to = RailStation.CreateFromTile(this.m_station_to, this.m_station_to_dir);
-		local plats = RailStationPlatforms(station_from, station_to);
-		local length = station_from.m_length * 2;
+		local rail_station = RailStation.CreateFromTile(this.m_station_to, this.m_station_to_dir);
+		local length = rail_station.m_length * 2;
 
-		local current = [station_to.GetExitTile(plats.m_to2, 1), station_to.GetExitTile(plats.m_to2)];
+		local line = rail_station.GetPlatformLine(1);
+		local current = [rail_station.GetExitTile(line, 1), rail_station.GetExitTile(line)];
 		local result = this.BuildSignalsInLine(current, length);
 		if (!result[0]) {
 			return -1;
@@ -2279,7 +2103,9 @@ class RailBuildManager
 		local num_signals = result[2];
 		local signal_cost = result[1];
 
-		current = [station_from.GetExitTile(plats.m_from1, 1), station_from.GetExitTile(plats.m_from1)];
+		rail_station = RailStation.CreateFromTile(this.m_station_from, this.m_station_from_dir);
+		line = rail_station.GetPlatformLine(1);
+		current = [rail_station.GetExitTile(line, 1), rail_station.GetExitTile(line)];
 		result = this.BuildSignalsInLine(current, length);
 		if (!result[0]) {
 			return -1;
