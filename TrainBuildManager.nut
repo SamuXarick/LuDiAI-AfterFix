@@ -1208,7 +1208,7 @@ class RailBuildManager
 /*100*/			pathfinder_instance.cost.tile;
 /*70*/			pathfinder_instance.cost.diagonal_tile;
 /*50*/			pathfinder_instance.cost.turn45 = 190;
-/*300*/			pathfinder_instance.cost.turn90 = AIGameSettings.GetValue("forbid_90_deg") ? pathfinder_instance.cost.max_cost : pathfinder_instance.cost.turn90;
+/*300*/			pathfinder_instance.cost.turn90 = AIGameSettings.GetValue("forbid_90_deg") ? pathfinder_instance.cost.max_cost : pathfinder_instance.cost.turn45 * 6;
 /*250*/			pathfinder_instance.cost.consecutive_turn = 460;
 /*100*/			pathfinder_instance.cost.slope = AIGameSettings.GetValue("train_acceleration_model") ? AIGameSettings.GetValue("train_slope_steepness") * 20 : pathfinder_instance.cost.slope;
 /*400*/			pathfinder_instance.cost.consecutive_slope;
@@ -1485,7 +1485,7 @@ class RailBuildManager
 /*100*/			pathfinder_instance.cost.tile;
 /*70*/			pathfinder_instance.cost.diagonal_tile;
 /*50*/			pathfinder_instance.cost.turn45 = 190;
-/*300*/			pathfinder_instance.cost.turn90 = AIGameSettings.GetValue("forbid_90_deg") ? pathfinder_instance.cost.max_cost : pathfinder_instance.cost.turn90;
+/*300*/			pathfinder_instance.cost.turn90 = AIGameSettings.GetValue("forbid_90_deg") ? pathfinder_instance.cost.max_cost : pathfinder_instance.cost.turn45 * 6;
 /*250*/			pathfinder_instance.cost.consecutive_turn = 460;
 /*100*/			pathfinder_instance.cost.slope = AIGameSettings.GetValue("train_acceleration_model") ? AIGameSettings.GetValue("train_slope_steepness") * 20 : pathfinder_instance.cost.slope;
 /*400*/			pathfinder_instance.cost.consecutive_slope;
@@ -1531,9 +1531,9 @@ class RailBuildManager
 //				}
 
 				/* DoubleRail */
-				AILog.Info("station_from_entry_1 = " + station_from_entry_1 + "; station_from_exit_1 = " + station_from_exit_1 + "; station_to_entry_2 = " + station_to_entry_2 + "; station_to_exit_2 = " + station_to_exit_2);
-				AILog.Info("station_from_entry_2 = " + station_from_entry_2 + "; station_from_exit_2 = " + station_from_exit_2 + "; station_to_entry_1 = " + station_to_entry_1 + "; station_to_exit_1 = " + station_to_exit_1);
-				AILog.Info(ignore_tiles_text);
+//				AILog.Info("station_from_entry_1 = " + station_from_entry_1 + "; station_from_exit_1 = " + station_from_exit_1 + "; station_to_entry_2 = " + station_to_entry_2 + "; station_to_exit_2 = " + station_to_exit_2);
+//				AILog.Info("station_from_entry_2 = " + station_from_entry_2 + "; station_from_exit_2 = " + station_from_exit_2 + "; station_to_entry_1 = " + station_to_entry_1 + "; station_to_exit_1 = " + station_to_exit_1);
+//				AILog.Info(ignore_tiles_text);
 				pathfinder_instance.InitializePath(
 					[[station_from_entry_1, station_from_exit_1], [station_from_entry_2, station_from_exit_2]],
 					[[station_to_exit_2, station_to_entry_2], [station_to_exit_1, station_to_entry_1]],
