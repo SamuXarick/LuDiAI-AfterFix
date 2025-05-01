@@ -1,6 +1,6 @@
 function LuDiAIAfterFix::BuildWaterRoute()
 {
-	if (!AIController.GetSetting("water_support")) return;
+	if (!AIController.GetSetting("water_support")) return 0;
 
 	local unfinished = this.ship_build_manager.HasUnfinishedRoute();
 	if (unfinished || (this.ship_route_manager.GetShipCount() < max(AIGameSettings.GetValue("max_ships") - 10, 10)) && ((this.allRoutesBuilt >> 2) & 3) != 3) {
@@ -30,7 +30,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 
 			if (engine_list.IsEmpty()) {
-				return;
+				return 0;
 			}
 
 			local best_engine_info = Utils.GetBestEngineIncome(engine_list, cargo_type, ShipRoute.COUNT_INTERVAL, false);
@@ -54,7 +54,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			if (!Utils.HasMoney(estimated_costs + this.reservedMoney - this.reservedMoneyWater)) {
 				/* Try a cheaper route */
 				if ((((this.bestRoutesBuilt >> 2) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 1 || !Utils.HasMoney(estimated_costs - canal_costs - clear_costs + this.reservedMoney - this.reservedMoneyWater)) {
-					return;
+					return 0;
 				} else {
 					cheaper_route = true;
 					this.reservedMoneyWater = estimated_costs - canal_costs - clear_costs;
@@ -125,7 +125,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 		} else {
 			if (!Utils.HasMoney(this.reservedMoneyWater)) {
-				return;
+				return 0;
 			}
 		}
 
@@ -150,15 +150,19 @@ function LuDiAIAfterFix::BuildWaterRoute()
 					this.reservedMoney -= this.reservedMoneyWater;
 					this.reservedMoneyWater = 0;
 					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " water route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + this.buildTimerWater + " day" + (this.buildTimerWater != 1 ? "s" : "") + ".");
+					return true;
 				}
+				return 0;
 			} else {
 				this.reservedMoney -= this.reservedMoneyWater;
 				this.reservedMoneyWater = 0;
 				this.shipTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
 				AILog.Error("s:" + this.buildTimerWater + " day" + (this.buildTimerWater != 1 ? "s" : "") + " wasted!");
+				return false;
 			}
 		}
 	}
+	return false;
 }
 
 function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()

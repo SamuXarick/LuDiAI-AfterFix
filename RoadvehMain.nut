@@ -1,6 +1,6 @@
 function LuDiAIAfterFix::BuildRoadRoute()
 {
-	if (!AIController.GetSetting("road_support")) return;
+	if (!AIController.GetSetting("road_support")) return 0;
 
 	local unfinished = this.road_build_manager.HasUnfinishedRoute();
 	if (unfinished || (this.road_route_manager.GetRoadVehicleCount() < max(AIGameSettings.GetValue("max_roadveh") - 10, 10)) && ((this.allRoutesBuilt >> 0) & 3) != 3) {
@@ -37,7 +37,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 			}
 
 			if (engine_list.IsEmpty()) {
-				return;
+				return 0;
 			}
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
@@ -61,7 +61,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 			estimated_costs += engine_costs + road_costs + clear_costs + station_costs + depot_cost;
 //			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + ", road_costs = " + road_costs + ", clear_costs = " + clear_costs + ", station_costs = " + station_costs + ", depot_cost = " + depot_cost);
 			if (!Utils.HasMoney(estimated_costs + this.reservedMoney - this.reservedMoneyRoad)) {
-				return;
+				return 0;
 			} else {
 				this.reservedMoneyRoad = estimated_costs;
 				this.reservedMoney += this.reservedMoneyRoad;
@@ -127,7 +127,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 			}
 		} else {
 			if (!Utils.HasMoney(this.reservedMoneyRoad)) {
-				return;
+				return 0;
 			}
 		}
 
@@ -152,15 +152,19 @@ function LuDiAIAfterFix::BuildRoadRoute()
 					this.reservedMoney -= this.reservedMoneyRoad;
 					this.reservedMoneyRoad = 0;
 					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " road route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + this.buildTimerRoad + " day" + (this.buildTimerRoad != 1 ? "s" : "") + ".");
+					return true;
 				}
+				return 0;
 			} else {
 				this.reservedMoney -= this.reservedMoneyRoad;
 				this.reservedMoneyRoad = 0;
 				this.roadTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
 				AILog.Error("r:" + this.buildTimerRoad + " day" + (this.buildTimerRoad != 1 ? "s" : "") + " wasted!");
+				return false;
 			}
 		}
 	}
+	return false;
 }
 
 function LuDiAIAfterFix::CheckForUnfinishedRoadRoute()

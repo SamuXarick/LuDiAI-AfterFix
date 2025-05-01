@@ -1,6 +1,6 @@
 function LuDiAIAfterFix::BuildAirRoute()
 {
-	if (!AIController.GetSetting("air_support")) return;
+	if (!AIController.GetSetting("air_support")) return 0;
 
 	local unfinished = this.air_build_manager.HasUnfinishedRoute();
 	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(AIGameSettings.GetValue("max_aircraft") - 10, 10)) && ((this.allRoutesBuilt >> 4) & 3) != 3) {
@@ -29,14 +29,14 @@ function LuDiAIAfterFix::BuildAirRoute()
 			}
 
 			if (engine_list.IsEmpty()) {
-				return;
+				return 0;
 			}
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
 //			local best_engine_id_info = Utils.GetBestEngineIncome(engine_list, cargo_type, AirBuildManager.DAYS_INTERVAL);
 //			if (best_engine_id_info[0] == null) {
-//				return;
+//				return 0;
 //			}
 
 //			local fake_dist = best_engine_id_info[1];
@@ -107,7 +107,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			}
 //		} else {
 //			if (!Utils.HasMoney(this.reservedMoneyAir)) {
-//				return;
+//				return 0;
 //			}
 		}
 
@@ -132,13 +132,17 @@ function LuDiAIAfterFix::BuildAirRoute()
 					this.reservedMoney -= this.reservedMoneyAir;
 					this.reservedMoneyAir = 0;
 					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " air route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + this.buildTimerAir + " day" + (this.buildTimerAir != 1 ? "s" : "") + ".");
+					return true;
 				}
+				return 0;
 			} else {
 				this.reservedMoney -= this.reservedMoneyAir;
 				this.reservedMoneyAir = 0;
 				if (city_to != null) this.airTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
 				AILog.Error("a:" + this.buildTimerAir + " day" + (this.buildTimerAir != 1 ? "s" : "") + " wasted!");
+				return false;
 			}
 		}
 	}
+	return false;
 }

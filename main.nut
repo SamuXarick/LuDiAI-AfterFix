@@ -61,6 +61,8 @@ class LuDiAIAfterFix extends AIController
 	reservedMoneyAir = 0;
 	reservedMoneyRail = 0;
 
+	sleep_longer = false;
+
 	constructor()
 	{
 		/* ::caches must exist before calling any RouteManager or SwapCargoClass */
@@ -743,7 +745,8 @@ function LuDiAIAfterFix::Start()
 		loading = false;
 	}
 
-	while (AIController.Sleep(1)) {
+	while (AIController.Sleep(this.sleep_longer ? 74 : 1)) {
+		this.sleep_longer = false;
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . RepayLoan");
 		Utils.RepayLoan();
@@ -764,7 +767,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildRoadRoute");
-		BuildRoadRoute();
+		this.sleep_longer = this.BuildRoadRoute() == 0 || this.sleep_longer;
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildRoadRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -776,7 +779,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildAirRoute");
-		BuildAirRoute();
+		this.sleep_longer = this.BuildAirRoute() == 0 || this.sleep_longer;
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildAirRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -788,7 +791,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildWaterRoute");
-		BuildWaterRoute();
+		this.sleep_longer = this.BuildWaterRoute() == 0 || this.sleep_longer;
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildWaterRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -800,7 +803,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildRailRoute");
-		BuildRailRoute();
+		this.sleep_longer = this.BuildRailRoute() == 0 || this.sleep_longer;
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildRailRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 

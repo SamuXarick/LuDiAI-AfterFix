@@ -1,6 +1,6 @@
 function LuDiAIAfterFix::BuildRailRoute()
 {
-	if (!AIController.GetSetting("rail_support")) return;
+	if (!AIController.GetSetting("rail_support")) return 0;
 
 	local unfinished = this.rail_build_manager.HasUnfinishedRoute();
 	if (unfinished || (this.rail_route_manager.GetTrainCount() < max(AIGameSettings.GetValue("max_trains") - 10, 10)) && ((this.allRoutesBuilt >> 6) & 3) != 3) {
@@ -45,7 +45,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 
 			if (engine_list.IsEmpty() || wagon_list.IsEmpty()) {
-				return;
+				return 0;
 			}
 
 			local engine_wagon_pairs = AIList();
@@ -86,7 +86,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 
 			local best_pair_info = LuDiAIAfterFix.GetBestTrainIncome(engine_wagon_pairs, cargo_type, RAIL_DAYS_IN_TRANSIT, platform_length);
 			if (best_pair_info[0][0] == -1) {
-				return;
+				return 0;
 			}
 			local engine_max_speed = AIEngine.GetMaxSpeed(best_pair_info[0][0]);
 			local wagon_max_speed = AIEngine.GetMaxSpeed(best_pair_info[0][1]);
@@ -124,11 +124,8 @@ function LuDiAIAfterFix::BuildRailRoute()
 			estimated_costs += engine_costs + wagon_costs + rail_costs + clear_costs + foundation_costs + station_costs + depot_costs;
 //			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + "; wagon_costs = " + wagon_costs + ", rail_costs = " + rail_costs + ", clear_costs = " + clear_costs + ", foundation_costs = " + foundation_costs + ", station_costs = " + station_costs + ", depot_costs = " + depot_costs);
 			if (!Utils.HasMoney(estimated_costs + this.reservedMoney - this.reservedMoneyRail)) {
-				return;
+				return 0;
 			} else {
-//				AIController.Sleep(100);
-//				AIController.Break(" ");
-//				return;
 				this.reservedMoneyRail = estimated_costs;
 				this.reservedMoney += this.reservedMoneyRail;
 			}
@@ -193,7 +190,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 		} else {
 			if (!Utils.HasMoney(this.reservedMoneyRail / (this.rail_build_manager.m_built_ways + 1))) {
-				return;
+				return 0;
 			}
 		}
 
@@ -218,15 +215,19 @@ function LuDiAIAfterFix::BuildRailRoute()
 					this.reservedMoney -= this.reservedMoneyRail;
 					this.reservedMoneyRail = 0;
 					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " rail route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + this.buildTimerRail + " day" + (this.buildTimerRail != 1 ? "s" : "") + ".");
+					return true;
 				}
+				return 0;
 			} else {
 				this.reservedMoney -= this.reservedMoneyRail;
 				this.reservedMoneyRail = 0;
 				this.railTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
 				AILog.Error("t:" + this.buildTimerRail + " day" + (this.buildTimerRail != 1 ? "s" : "") + " wasted!");
+				return false;
 			}
 		}
 	}
+	return false;
 }
 
 function LuDiAIAfterFix::GetBestTrainIncome(engine_wagon_pairs, cargo_type, days_in_transit, platform_length)
