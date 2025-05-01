@@ -223,13 +223,13 @@ class RailStation
 	}
 };
 
-class RailStructType
+enum RailStructType
 {
-	RAIL = 0;
-	TUNNEL = 1;
-	BRIDGE = 2;
-	STATION = 3;
-	DEPOT = 4;
+	RAIL,
+	TUNNEL,
+	BRIDGE,
+	STATION,
+	DEPOT,
 };
 
 class RailStruct
