@@ -1,15 +1,16 @@
 function LuDiAIAfterFix::BuildRailRoute()
 {
-	if (!AIController.GetSetting("rail_support")) return 0;
+	if (!AIController.GetSetting("rail_support")) return true; // assume true to keep rotating this.transport_mode_rotation
 
 	local unfinished = this.rail_build_manager.HasUnfinishedRoute();
-	if (unfinished || (this.rail_route_manager.GetTrainCount() < max(AIGameSettings.GetValue("max_trains") - 10, 10)) && ((this.allRoutesBuilt >> 6) & 3) != 3) {
+	if (unfinished || (this.rail_route_manager.GetTrainCount() < max(AIGameSettings.GetValue("max_trains") - 10, 10)) && ((this.all_routes_built >> 6) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
 		local best_rail_type;
 		local cargo_class = this.rail_route_manager.m_cargo_class;
 		if (!unfinished) {
-			this.rail_route_manager.SwapCargoClass();
+			if (!this.rail_route_manager.IsDateTimerRunning()) this.rail_route_manager.StartDateTimer();
+//			if (this.rail_route_manager.m_reserved_money == 0) this.rail_route_manager.SwapCargoClass();
 			local cargo_type = Utils.GetCargoType(cargo_class);
 
 			local rail_types = AIRailTypeList();
@@ -45,7 +46,11 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 
 			if (engine_list.IsEmpty() || wagon_list.IsEmpty()) {
-				return 0;
+				if (this.rail_route_manager.m_reserved_money != 0) {
+					this.rail_route_manager.ResetMoneyReservation();
+				}
+				this.rail_route_manager.SwapCargoClass();
+				return true;
 			}
 
 			local engine_wagon_pairs = AIList();
@@ -86,7 +91,11 @@ function LuDiAIAfterFix::BuildRailRoute()
 
 			local best_pair_info = LuDiAIAfterFix.GetBestTrainIncome(engine_wagon_pairs, cargo_type, RAIL_DAYS_IN_TRANSIT, platform_length);
 			if (best_pair_info[0][0] == -1) {
-				return 0;
+				if (this.rail_route_manager.m_reserved_money != 0) {
+					this.rail_route_manager.ResetMoneyReservation();
+				}
+				this.rail_route_manager.SwapCargoClass();
+				return true;
 			}
 			local engine_max_speed = AIEngine.GetMaxSpeed(best_pair_info[0][0]);
 			local wagon_max_speed = AIEngine.GetMaxSpeed(best_pair_info[0][1]);
@@ -123,29 +132,38 @@ function LuDiAIAfterFix::BuildRailRoute()
 			local depot_costs = AIRail.GetBuildCost(best_rail_type, AIRail.BT_DEPOT) * 2;
 			estimated_costs += engine_costs + wagon_costs + rail_costs + clear_costs + foundation_costs + station_costs + depot_costs;
 //			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + "; wagon_costs = " + wagon_costs + ", rail_costs = " + rail_costs + ", clear_costs = " + clear_costs + ", foundation_costs = " + foundation_costs + ", station_costs = " + station_costs + ", depot_costs = " + depot_costs);
-			if (!Utils.HasMoney(estimated_costs + this.reservedMoney - this.reservedMoneyRail)) {
-				return 0;
+
+			if (this.rail_route_manager.m_reserved_money != 0) {
+				this.rail_route_manager.UpdateMoneyReservation(estimated_costs);
 			} else {
-				this.reservedMoneyRail = estimated_costs;
-				this.reservedMoney += this.reservedMoneyRail;
+				this.rail_route_manager.SetMoneyReservation(estimated_costs);
+			}
+			if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.rail_route_manager.GetNonPausedReservedMoney())) {
+				if (this.rail_route_manager.DaysElapsed() <= 60) {
+					return 0;
+				}
+				if (!this.rail_route_manager.IsMoneyReservationPaused()) {
+					this.rail_route_manager.PauseMoneyReservation();
+				}
+				return 2; // allow skipping to next transport mode
 			}
 
 			if (city_from == null) {
-				city_from = this.railTownManager.GetUnusedCity(((((this.bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
+				city_from = this.rail_town_manager.GetUnusedCity(((((this.best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
 				if (city_from == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						this.railTownManager.m_used_cities_list[cargo_class].Clear();
-					} else if ((((this.bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
-						this.bestRoutesBuilt = this.bestRoutesBuilt | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
-						this.railTownManager.m_used_cities_list[cargo_class].Clear();
-//						this.railTownManager.m_near_city_pair_array[cargo_class].clear();
+						this.rail_town_manager.m_used_cities_list[cargo_class].Clear();
+					} else if ((((this.best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+						this.best_routes_built = this.best_routes_built | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+						this.rail_town_manager.m_used_cities_list[cargo_class].Clear();
+//						this.rail_town_manager.m_near_city_pair_array[cargo_class].clear();
 						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " rail routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 					} else {
-//						this.railTownManager.m_near_city_pair_array[cargo_class].clear();
-						if ((((this.allRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+//						this.rail_town_manager.m_near_city_pair_array[cargo_class].clear();
+						if ((((this.all_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " rail routes have been used!");
 						}
-						this.allRoutesBuilt = this.allRoutesBuilt | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+						this.all_routes_built = this.all_routes_built | (1 << (6 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
 					}
 				}
 			}
@@ -153,21 +171,21 @@ function LuDiAIAfterFix::BuildRailRoute()
 			if (city_from != null) {
 //				AILog.Info("New city found: " + AITown.GetName(city_from));
 
-				this.railTownManager.FindNearCities(city_from, min_dist, max_dist, ((((this.bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
+				this.rail_town_manager.FindNearCities(city_from, min_dist, max_dist, ((((this.best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
 
-				if (!this.railTownManager.m_near_city_pair_array[cargo_class].len()) {
+				if (!this.rail_town_manager.m_near_city_pair_array[cargo_class].len()) {
 					AILog.Info("No near city available");
 					city_from = null;
 				}
 			}
 
 			if (city_from != null) {
-				foreach (near_city_pair in this.railTownManager.m_near_city_pair_array[cargo_class]) {
+				foreach (near_city_pair in this.rail_town_manager.m_near_city_pair_array[cargo_class]) {
 					if (city_from == near_city_pair[0]) {
 						if (!this.rail_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
 							city_to = near_city_pair[1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && ((((this.allRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && this.rail_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+							if (AIController.GetSetting("pick_mode") != 1 && ((((this.all_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && this.rail_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
 //								AILog.Info("this.rail_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.rail_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								city_to = null;
 								continue;
@@ -185,12 +203,18 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 
 			if (city_from == null && city_to == null) {
-				this.reservedMoney -= this.reservedMoneyRail;
-				this.reservedMoneyRail = 0;
+				this.rail_route_manager.ResetMoneyReservation();
+				this.rail_route_manager.SwapCargoClass();
 			}
 		} else {
-			if (!Utils.HasMoney(this.reservedMoneyRail / (this.rail_build_manager.m_built_ways + 1))) {
-				return 0;
+			if (!Utils.HasMoney(this.rail_route_manager.GetReservedMoney() / (this.rail_build_manager.m_built_ways + 1))) {
+				if (this.rail_route_manager.DaysElapsed() <= 60) {
+					return 0;
+				}
+				if (!this.rail_route_manager.IsMoneyReservationPaused()) {
+					this.rail_route_manager.PauseMoneyReservation();
+				}
+				return 2; // allow skipping to next transport mode
 			}
 		}
 
@@ -200,34 +224,16 @@ function LuDiAIAfterFix::BuildRailRoute()
 				AILog.Info("t:New near city found: " + AITown.GetName(city_to));
 			}
 
-			if (!unfinished) this.buildTimerRail = 0;
 			city_from = unfinished ? this.rail_build_manager.m_city_from : city_from;
 			city_to = unfinished ? this.rail_build_manager.m_city_to : city_to;
 			cargo_class = unfinished ? this.rail_build_manager.m_cargo_class : cargo_class;
-			local best_routes = unfinished ? this.rail_build_manager.m_best_routes_built : ((((this.bestRoutesBuilt >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
+			local best_built = unfinished ? this.rail_build_manager.m_best_routes_built : ((((this.best_routes_built >> 6) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 			best_rail_type = unfinished ? this.rail_build_manager.m_rail_type : best_rail_type;
 
-			local start_date = AIDate.GetCurrentDate();
-			local route_result = this.rail_route_manager.BuildRoute(this.rail_build_manager, city_from, city_to, cargo_class, best_routes, best_rail_type);
-			this.buildTimerRail += AIDate.GetCurrentDate() - start_date;
-			if (route_result[0] != null) {
-				if (route_result[0] != 0) {
-					this.reservedMoney -= this.reservedMoneyRail;
-					this.reservedMoneyRail = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " rail route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + this.buildTimerRail + " day" + (this.buildTimerRail != 1 ? "s" : "") + ".");
-					return true;
-				}
-				return 0;
-			} else {
-				this.reservedMoney -= this.reservedMoneyRail;
-				this.reservedMoneyRail = 0;
-				this.railTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
-				AILog.Error("t:" + this.buildTimerRail + " day" + (this.buildTimerRail != 1 ? "s" : "") + " wasted!");
-				return false;
-			}
+			return this.rail_route_manager.BuildRoute(this.rail_build_manager, city_from, city_to, cargo_class, best_built, best_rail_type);
 		}
 	}
-	return false;
+	return true;
 }
 
 function LuDiAIAfterFix::GetBestTrainIncome(engine_wagon_pairs, cargo_type, days_in_transit, platform_length)

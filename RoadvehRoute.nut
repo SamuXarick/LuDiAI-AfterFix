@@ -1,6 +1,6 @@
 require("RoadvehRouteManager.nut");
 
-class RoadRoute extends RoadRouteManager
+class RoadRoute
 {
 	static START_VEHICLE_COUNT = {
 	    [AICargo.CC_PASSENGERS] = 10,

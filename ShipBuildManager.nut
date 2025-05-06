@@ -486,7 +486,7 @@ class ShipBuildManager
 			local canal_array = this.PathfindBuildCanal(ship_docking_tile_from, ship_docking_tile_to, this.m_pathfinder_instance);
 			this.m_pathfinder_instance = canal_array[1];
 			if (canal_array[0] == null && this.m_pathfinder_instance != null) {
-				return 0;
+				return 1;
 			}
 			this.m_depot_tile = this.BuildRouteShipDepot(canal_array[0]);
 		}

@@ -114,6 +114,73 @@ class OrthogonalTileArea
 
 class Utils
 {
+	function ListHasValue(list, value)
+	{
+		local list_type = typeof(list);
+		assert(list_type == "table" || list_type == "array" || (list_type == "instance" && (list_type instanceof AIList || list_type instanceof AITileList)));
+
+		switch (list_type) {
+			case "instance":
+				if (typeof(value) == "bool") value = value.tointeger();
+				assert(typeof(value) == "integer");
+			case "array":
+			case "table":
+			case "instance":
+				foreach (_, val in list) {
+					if (val == value) return true;
+				}
+		}
+		return false;
+	}
+
+//	function HasBit(x, y)
+//	{
+//		assert(typeof(x) == "integer");
+//		assert(typeof(y) == "integer");
+//
+//		assert(y >= 0);
+//		assert(y < 64);
+//
+//		return (x & (1 << y)) != 0;
+//	}
+
+//	function FindLastBit(value)
+//	{
+//		assert(typeof(value) == "integer");
+//
+//		local pos = 0;
+//		while (value != 0) {
+//			pos++;
+//			value = value >> 1;
+//		}
+//		return pos;
+//	}
+
+//	function SB(x, s, n, d)
+//	{
+//		assert(typeof(x) == "integer");
+//		assert(typeof(s) == "integer");
+//		assert(typeof(n) == "integer");
+//		assert(typeof(d) == "integer");
+//
+//		assert(s >= 0);
+//		assert(s < 64);
+//		assert(n > 0);
+//		assert(n <= 64);
+//		assert(s + n <= 64);
+//		assert(Utils.FindLastBit(d) < n);
+//
+//		x = x & ~(((1 << n) - 1) << s);
+//		return x | (d << s);
+//	}
+
+//	function AssignBit(x, y, value)
+//	{
+//		assert(typeof(value) == "bool");
+//
+//		return Utils.SB(x, y, 1, value.tointeger());
+//	}
+
 	function CountBits(value)
 	{
 		assert(typeof(value) == "integer");
@@ -238,13 +305,13 @@ class Utils
 		switch (AIEngine.GetVehicleType(engine_id)) {
 			case AIVehicle.VT_ROAD: {
 				/* ((max_speed * 2 * 74 * days_in_transit * 3) / 4) / (192 * 16) */
-				return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 444 / 12288;
+				return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 37 / 1024;
 			}
 			case AIVehicle.VT_WATER:
 			case AIVehicle.VT_AIR:
 			case AIVehicle.VT_RAIL: {
 				/* (max_speed * 2 * 74 * days_in_transit) / (256 * 16) */
-				return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 148 / 4096;
+				return AIEngine.GetMaxSpeed(engine_id) * days_in_transit * 37 / 1024;
 			}
 			default: {
 				assert(!AIEngine.IsValidEngine(engine_id) || !AIEngine.IsBuildable(engine_id));
@@ -467,11 +534,11 @@ class MoneyTest
 {
 	function DoMoneyTest()
 	{
-		local price = GetPrice();
+		local price = this.GetPrice();
 		if (Utils.HasMoney(price)) {
 			Utils.GetMoney(price);
 		}
-		if (DoAction()) {
+		if (this.DoAction()) {
 			Utils.RepayLoan();
 			return true;
 		}
@@ -487,20 +554,20 @@ class TestDemolishTile extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AITile.DemolishTile(l);
+		return AIExecMode() && AITile.DemolishTile(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AITile.DemolishTile(l);
+		AITestMode() && AITile.DemolishTile(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryDemolish(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -510,20 +577,20 @@ class TestRemoveRoadStation extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRoad.RemoveRoadStation(l);
+		return AIExecMode() && AIRoad.RemoveRoadStation(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRoad.RemoveRoadStation(l);
+		AITestMode() && AIRoad.RemoveRoadStation(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -533,20 +600,20 @@ class TestRemoveRoadDepot extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRoad.RemoveRoadDepot(l);
+		return AIExecMode() && AIRoad.RemoveRoadDepot(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRoad.RemoveRoadDepot(l);
+		AITestMode() && AIRoad.RemoveRoadDepot(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -557,21 +624,21 @@ class TestBuildRoad extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRoad.BuildRoad(s, e);
+		return AIExecMode() && AIRoad.BuildRoad(this.s, this.e);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRoad.BuildRoad(s, e);
+		AITestMode() && AIRoad.BuildRoad(this.s, this.e);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(start, end)
 	{
-		s = start;
-		e = end;
-		return DoMoneyTest();
+		this.s = start;
+		this.e = end;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -582,21 +649,21 @@ class TestBuildTunnel extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AITunnel.BuildTunnel(t, l);
+		return AIExecMode() && AITunnel.BuildTunnel(this.t, this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AITunnel.BuildTunnel(t, l);
+		AITestMode() && AITunnel.BuildTunnel(this.t, this.l);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(vehicleType, location)
+	function TryBuild(vehicle_type, location)
 	{
-		t = vehicleType;
-		l = location;
-		return DoMoneyTest();
+		this.t = vehicle_type;
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -606,20 +673,20 @@ class TestRemoveTunnel extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AITunnel.RemoveTunnel(t);
+		return AIExecMode() && AITunnel.RemoveTunnel(this.t);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AITunnel.RemoveTunnel(t);
+		AITestMode() && AITunnel.RemoveTunnel(this.t);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(tile)
 	{
-		t = tile;
-		return DoMoneyTest();
+		this.t = tile;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -632,23 +699,23 @@ class TestBuildBridge extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIBridge.BuildBridge(t, i, s, e);
+		return AIExecMode() && AIBridge.BuildBridge(this.t, this.i, this.s, this.e);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIBridge.BuildBridge(t, i, s, e);
+		AITestMode() && AIBridge.BuildBridge(this.t, this.i, this.s, this.e);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(vehicleType, bridgeId, start, end)
+	function TryBuild(vehicle_type, bridge_type, start, end)
 	{
-		t = vehicleType;
-		i = bridgeId;
-		s = start;
-		e = end;
-		return DoMoneyTest();
+		this.t = vehicle_type;
+		this.i = bridge_type;
+		this.s = start;
+		this.e = end;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -658,20 +725,20 @@ class TestRemoveBridge extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIBridge.RemoveBridge(t);
+		return AIExecMode() && AIBridge.RemoveBridge(this.t);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIBridge.RemoveBridge(t);
+		AITestMode() && AIBridge.RemoveBridge(this.t);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(tile)
 	{
-		t = tile;
-		return DoMoneyTest();
+		this.t = tile;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -684,23 +751,23 @@ class TestBuildRoadStation extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRoad.BuildRoadStation(l, e, t, i);
+		return AIExecMode() && AIRoad.BuildRoadStation(this.l, this.e, this.t, this.i);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRoad.BuildRoadStation(l, e, t, i);
+		AITestMode() && AIRoad.BuildRoadStation(this.l, this.e, this.t, this.i);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(location, exit, vehicleType, stationId)
+	function TryBuild(location, exit, vehicle_type, station_id)
 	{
-		l = location;
-		e = exit;
-		t = vehicleType;
-		i = stationId;
-		return DoMoneyTest();
+		this.l = location;
+		this.e = exit;
+		this.t = vehicle_type;
+		this.i = station_id;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -713,23 +780,23 @@ class TestBuildDriveThroughRoadStation extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRoad.BuildDriveThroughRoadStation(l, e, t, i);
+		return AIExecMode() && AIRoad.BuildDriveThroughRoadStation(this.l, this.e, this.t, this.i);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRoad.BuildDriveThroughRoadStation(l, e, t, i);
+		AITestMode() && AIRoad.BuildDriveThroughRoadStation(this.l, this.e, this.t, this.i);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(location, exit, vehicleType, stationId)
+	function TryBuild(location, exit, vehicle_type, station_id)
 	{
-		l = location;
-		e = exit;
-		t = vehicleType;
-		i = stationId;
-		return DoMoneyTest();
+		this.l = location;
+		this.e = exit;
+		this.t = vehicle_type;
+		this.i = station_id;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -740,21 +807,21 @@ class TestBuildRoadDepot extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRoad.BuildRoadDepot(l, e);
+		return AIExecMode() && AIRoad.BuildRoadDepot(this.l, this.e);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRoad.BuildRoadDepot(l, e);
+		AITestMode() && AIRoad.BuildRoadDepot(this.l, this.e);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(location, exit)
 	{
-		l = location;
-		e = exit;
-		return DoMoneyTest();
+		this.l = location;
+		this.e = exit;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -766,26 +833,22 @@ class TestBuildAirport extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIAirport.BuildAirport(l, t, i);
+		return AIExecMode() && AIAirport.BuildAirport(this.l, this.t, this.i);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIAirport.BuildAirport(l, t, i);
+		AITestMode() && AIAirport.BuildAirport(this.l, this.t, this.i);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(airport_location, airport_type, airport_stationId)
+	function TryBuild(location, airport_type, station_id)
 	{
-		l = airport_location;
-		t = airport_type;
-		i = airport_stationId;
-		if (DoMoneyTest()) {
-			return true;
-		}
-//		assert(AIError.GetLastError() != AIError.ERR_STATION_TOO_SPREAD_OUT);
-		return false;
+		this.l = location;
+		this.t = airport_type;
+		this.i = station_id;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -795,26 +858,20 @@ class TestRemoveAirport extends MoneyTest
 
 	function DoAction()
 	{
-		if (AIExecMode() && AIAirport.RemoveAirport(l)) {
-			return true;
-		}
-		return false;
+		return AIExecMode() && AIAirport.RemoveAirport(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIAirport.RemoveAirport(l);
+		AITestMode() && AIAirport.RemoveAirport(this.l);
 		return cost.GetCosts();
 	}
 
-	function TryRemove(airport_location)
+	function TryRemove(location)
 	{
-		l = airport_location;
-		if (DoMoneyTest()) {
-			return true;
-		}
-		return false;
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -824,20 +881,20 @@ class TestRemoveCanal extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.RemoveCanal(l);
+		return AIExecMode() && AIMarine.RemoveCanal(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.RemoveCanal(l);
+		AITestMode() && AIMarine.RemoveCanal(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -847,20 +904,20 @@ class TestBuildCanal extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.BuildCanal(l);
+		return AIExecMode() && AIMarine.BuildCanal(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.BuildCanal(l);
+		AITestMode() && AIMarine.BuildCanal(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -871,21 +928,21 @@ class TestBuildDock extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.BuildDock(l, i);
+		return AIExecMode() && AIMarine.BuildDock(this.l, this.i);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.BuildDock(l, i);
+		AITestMode() && AIMarine.BuildDock(this.l, this.i);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(location, stationId)
+	function TryBuild(location, station_id)
 	{
-		l = location;
-		i = stationId;
-		return DoMoneyTest();
+		this.l = location;
+		this.i = station_id;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -895,20 +952,20 @@ class TestBuildLock extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.BuildLock(l);
+		return AIExecMode() && AIMarine.BuildLock(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.BuildLock(l);
+		AITestMode() && AIMarine.BuildLock(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -918,20 +975,20 @@ class TestRemoveDock extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.RemoveDock(l);
+		return AIExecMode() && AIMarine.RemoveDock(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.RemoveDock(l);
+		AITestMode() && AIMarine.RemoveDock(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -942,21 +999,21 @@ class TestBuildWaterDepot extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.BuildWaterDepot(t, b);
+		return AIExecMode() && AIMarine.BuildWaterDepot(this.t, this.b);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.BuildWaterDepot(t, b);
+		AITestMode() && AIMarine.BuildWaterDepot(this.t, this.b);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(top, bottom)
 	{
-		t = top;
-		b = bottom;
-		return DoMoneyTest();
+		this.t = top;
+		this.b = bottom;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -966,20 +1023,20 @@ class TestRemoveWaterDepot extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIMarine.RemoveWaterDepot(l);
+		return AIExecMode() && AIMarine.RemoveWaterDepot(this.l);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIMarine.RemoveWaterDepot(l);
+		AITestMode() && AIMarine.RemoveWaterDepot(this.l);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(location)
 	{
-		l = location;
-		return DoMoneyTest();
+		this.l = location;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -993,24 +1050,24 @@ class TestBuildRailStation extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRail.BuildRailStation(t, d, n, l, s);
+		return AIExecMode() && AIRail.BuildRailStation(this.t, this.d, this.n, this.l, this.s);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRail.BuildRailStation(t, d, n, l, s);
+		AITestMode() && AIRail.BuildRailStation(this.t, this.d, this.n, this.l, this.s);
 		return cost.GetCosts();
 	}
 
-	function TryBuild(tile, direction, num_platforms, platform_length, stationId)
+	function TryBuild(tile, direction, num_platforms, platform_length, station_id)
 	{
-		t = tile;
-		d = direction;
-		n = num_platforms;
-		l = platform_length;
-		s = stationId;
-		return DoMoneyTest();
+		this.t = tile;
+		this.d = direction;
+		this.n = num_platforms;
+		this.l = platform_length;
+		this.s = station_id;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1022,22 +1079,22 @@ class TestBuildRail extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRail.BuildRail(f, l, t);
+		return AIExecMode() && AIRail.BuildRail(this.f, this.l, this.t);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRail.BuildRail(f, l, t);
+		AITestMode() && AIRail.BuildRail(this.f, this.l, this.t);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(from, location, to)
 	{
-		f = from;
-		l = location;
-		t = to;
-		return DoMoneyTest();
+		this.f = from;
+		this.l = location;
+		this.t = to;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1049,22 +1106,22 @@ class TestBuildRail extends MoneyTest
 
 // 	function DoAction()
 // 	{
-// 		return AIExecMode() && AIRail.ConvertRailType(s, e, c);
+// 		return AIExecMode() && AIRail.ConvertRailType(this.s, this.e, this.c);
 // 	}
 
 // 	function GetPrice()
 // 	{
 // 		local cost = AIAccounting();
-// 		AITestMode() && AIRail.ConvertRailType(s, e, c);
+// 		AITestMode() && AIRail.ConvertRailType(this.s, this.e, this.c);
 // 		return cost.GetCosts();
 // 	}
 
 // 	function TryConvert(start_tile, end_tile, convert_to)
 // 	{
-// 		s = start_tile;
-// 		e = end_tile;
-// 		c = convert_to;
-// 		return DoMoneyTest();
+// 		this.s = start_tile;
+// 		this.e = end_tile;
+// 		this.c = convert_to;
+// 		return this.DoMoneyTest();
 // 	}
 // };
 
@@ -1075,21 +1132,21 @@ class TestBuildRailDepot extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRail.BuildRailDepot(t, f);
+		return AIExecMode() && AIRail.BuildRailDepot(this.t, this.f);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRail.BuildRailDepot(t, f);
+		AITestMode() && AIRail.BuildRailDepot(this.t, this.f);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(tile, front)
 	{
-		t = tile;
-		f = front;
-		return DoMoneyTest();
+		this.t = tile;
+		this.f = front;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1101,22 +1158,22 @@ class TestRemoveRailStationTileRectangle extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRail.RemoveRailStationTileRectangle(f, t, k);
+		return AIExecMode() && AIRail.RemoveRailStationTileRectangle(this.f, this.t, this.k);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRail.RemoveRailStationTileRectangle(f, t, k);
+		AITestMode() && AIRail.RemoveRailStationTileRectangle(this.f, this.t, this.k);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(from, to, keep_rail)
 	{
-		f = from;
-		t = to;
-		k = keep_rail;
-		return DoMoneyTest();
+		this.f = from;
+		this.t = to;
+		this.k = keep_rail;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1128,22 +1185,22 @@ class TestRemoveRail extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRail.RemoveRail(f, l, t);
+		return AIExecMode() && AIRail.RemoveRail(this.f, this.l, this.t);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRail.RemoveRail(f, l, t);
+		AITestMode() && AIRail.RemoveRail(this.f, this.l, this.t);
 		return cost.GetCosts();
 	}
 
 	function TryRemove(from, location, to)
 	{
-		f = from;
-		l = location;
-		t = to;
-		return DoMoneyTest();
+		this.f = from;
+		this.l = location;
+		this.t = to;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1155,22 +1212,22 @@ class TestBuildSignal extends MoneyTest
 
 	function DoAction()
 	{
-		return AIExecMode() && AIRail.BuildSignal(l, t, s);
+		return AIExecMode() && AIRail.BuildSignal(this.l, this.t, this.s);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIRail.BuildSignal(l, t, s);
+		AITestMode() && AIRail.BuildSignal(this.l, this.t, this.s);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(location, to, signal)
 	{
-		l = location;
-		t = to;
-		s = signal;
-		return DoMoneyTest();
+		this.l = location;
+		this.t = to;
+		this.s = signal;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1183,29 +1240,24 @@ class TestBuildVehicleWithRefit extends MoneyTest
 
 	function DoAction()
 	{
-		v = AIVehicle.BuildVehicleWithRefit(d, e, c);
-		if (!AIVehicle.IsValidVehicle(v)) {
-			return false;
-		}
-		return true;
+		this.v = AIVehicle.BuildVehicleWithRefit(this.d, this.e, this.c);
+		return AIVehicle.IsValidVehicle(this.v);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIVehicle.BuildVehicleWithRefit(d, e, c);
+		AITestMode() && AIVehicle.BuildVehicleWithRefit(this.d, this.e, this.c);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(depot, engine, cargo_type)
 	{
-		d = depot;
-		e = engine;
-		c = cargo_type;
-		if (DoMoneyTest()) {
-			return v;
-		}
-		return AIVehicle.VEHICLE_INVALID;
+		this.d = depot;
+		this.e = engine;
+		this.c = cargo_type;
+		this.DoMoneyTest();
+		return this.v;
 	}
 };
 
@@ -1218,29 +1270,24 @@ class TestCloneVehicle extends MoneyTest
 
 	function DoAction()
 	{
-		c = AIVehicle.CloneVehicle(d, v, s);
-		if (!AIVehicle.IsValidVehicle(c)) {
-			return false;
-		}
-		return true;
+		this.c = AIVehicle.CloneVehicle(this.d, this.v, this.s);
+		return AIVehicle.IsValidVehicle(this.c);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AIVehicle.CloneVehicle(d, v, s);
+		AITestMode() && AIVehicle.CloneVehicle(this.d, this.v, this.s);
 		return cost.GetCosts();
 	}
 
 	function TryClone(depot, vehicle, shared)
 	{
-		d = depot;
-		v = vehicle;
-		s = shared;
-		if (DoMoneyTest()) {
-			return c;
-		}
-		return AIVehicle.VEHICLE_INVALID;
+		this.d = depot;
+		this.v = vehicle;
+		this.s = shared;
+		this.DoMoneyTest();
+		return this.c;
 	}
 };
 
@@ -1251,31 +1298,28 @@ class TestPerformTownAction extends MoneyTest
 
 	function DoAction()
 	{
-		if (AIExecMode() && AITown.PerformTownAction(t, a)) {
-			return true;
-		}
-		return false;
+		return AIExecMode() && AITown.PerformTownAction(this.t, this.a);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AITown.PerformTownAction(t, a);
+		AITestMode() && AITown.PerformTownAction(this.t, this.a);
 		return cost.GetCosts();
 	}
 
 	function TryPerform(town_id, action)
 	{
-		t = town_id;
-		a = action;
-		return DoMoneyTest();
+		this.t = town_id;
+		this.a = action;
+		return this.DoMoneyTest();
 	}
 
 	function TestCost(town_id, action)
 	{
-		t = town_id;
-		a = action;
-		return GetPrice();
+		this.t = town_id;
+		this.a = action;
+		return this.GetPrice();
 	}
 };
 
@@ -1285,23 +1329,20 @@ class TestBuildHQ extends MoneyTest
 
 	function DoAction()
 	{
-		if (AIExecMode() && AICompany.BuildCompanyHQ(t)) {
-			return true;
-		}
-		return false;
+		return AIExecMode() && AICompany.BuildCompanyHQ(this.t);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AICompany.BuildCompanyHQ(t);
+		AITestMode() && AICompany.BuildCompanyHQ(this.t);
 		return cost.GetCosts();
 	}
 
 	function TryBuild(tile)
 	{
-		t = tile;
-		return DoMoneyTest();
+		this.t = tile;
+		return this.DoMoneyTest();
 	}
 };
 
@@ -1315,36 +1356,33 @@ class TestFoundTown extends MoneyTest
 
 	function DoAction()
 	{
-		if (AIExecMode() && AITown.FoundTown(t, s, c, l, n)) {
-			return true;
-		}
-		return false;
+		return AIExecMode() && AITown.FoundTown(this.t, this.s, this.c, this.l, this.n);
 	}
 
 	function GetPrice()
 	{
 		local cost = AIAccounting();
-		AITestMode() && AITown.FoundTown(t, s, c, l, n);
+		AITestMode() && AITown.FoundTown(this.t, this.s, this.c, this.l, this.n);
 		return cost.GetCosts();
 	}
 
 	function TryFound(tile, size, city, layout, name)
 	{
-		t = tile;
-		s = size;
-		c = city;
-		l = layout;
-		n = name;
-		return DoMoneyTest();
+		this.t = tile;
+		this.s = size;
+		this.c = city;
+		this.l = layout;
+		this.n = name;
+		return this.DoMoneyTest();
 	}
 
 	function TestCost(tile, size, city, layout, name)
 	{
-		t = tile;
-		s = size;
-		c = city;
-		l = layout;
-		n = name;
+		this.t = tile;
+		this.s = size;
+		this.c = city;
+		this.l = layout;
+		this.n = name;
 		return GetPrice();
 	}
 };

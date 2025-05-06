@@ -8,6 +8,7 @@ class Caches
 	m_vehicle_lengths = {}; // vehicle length of rail engines
 	m_attach_list = {}; // engine_id/wagon_id attachment results of rail engines
 	m_costs_with_refit = {};
+	m_reserved_money = 0;
 
 	/* These are not saved */
 	m_my_company_id = AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
@@ -257,7 +258,7 @@ class Caches
 
 	function SaveCaches()
 	{
-		return [this.m_depot_tile, this.m_pass_capacities_list, this.m_mail_capacities_list, this.m_secondary_capacities_list, this.m_vehicle_lengths, this.m_attach_list, this.m_costs_with_refit];
+		return [this.m_depot_tile, this.m_pass_capacities_list, this.m_mail_capacities_list, this.m_secondary_capacities_list, this.m_vehicle_lengths, this.m_attach_list, this.m_costs_with_refit, this.m_reserved_money];
 	}
 
 	function LoadCaches(data)
@@ -269,5 +270,6 @@ class Caches
 		this.m_vehicle_lengths = data[4];
 		this.m_attach_list = data[5];
 		this.m_costs_with_refit = data[6];
+		this.m_reserved_money = data[7];
 	}
 };

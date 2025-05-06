@@ -1,14 +1,15 @@
 function LuDiAIAfterFix::BuildAirRoute()
 {
-	if (!AIController.GetSetting("air_support")) return 0;
+	if (!AIController.GetSetting("air_support")) return true; // assume true to keep rotating this.transport_mode_rotation
 
 	local unfinished = this.air_build_manager.HasUnfinishedRoute();
-	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(AIGameSettings.GetValue("max_aircraft") - 10, 10)) && ((this.allRoutesBuilt >> 4) & 3) != 3) {
+	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(AIGameSettings.GetValue("max_aircraft") - 10, 10)) && ((this.all_routes_built >> 4) & 3) != 3) {
 		local city_from = null;
 		local city_to = null;
 		local cargo_class = this.air_route_manager.m_cargo_class;
 		if (!unfinished) {
-			this.air_route_manager.SwapCargoClass();
+			if (!this.air_route_manager.IsDateTimerRunning()) this.air_route_manager.StartDateTimer();
+//			if (this.air_route_manager.m_reserved_money == 0) this.air_route_manager.SwapCargoClass();
 			local cargo_type = Utils.GetCargoType(cargo_class);
 
 			local engine_list = AIEngineList(AIVehicle.VT_AIR);
@@ -29,14 +30,22 @@ function LuDiAIAfterFix::BuildAirRoute()
 			}
 
 			if (engine_list.IsEmpty()) {
-				return 0;
+				if (this.air_route_manager.m_reserved_money != 0) {
+					this.air_route_manager.ResetMoneyReservation();
+				}
+				this.air_route_manager.SwapCargoClass();
+				return true;
 			}
 
 //			engine_list.Sort(AIList.SORT_BY_VALUE, AIList.SORT_DESCENDING); // sort price
 
 //			local best_engine_id_info = Utils.GetBestEngineIncome(engine_list, cargo_type, AirBuildManager.DAYS_INTERVAL);
 //			if (best_engine_id_info[0] == null) {
-//				return 0;
+//				if (this.air_route_manager.m_reserved_money != 0) {
+//					this.air_route_manager.ResetMoneyReservation();
+//				}
+//				this.air_route_manager.SwapCargoClass();
+//				return true;
 //			}
 
 //			local fake_dist = best_engine_id_info[1];
@@ -48,21 +57,21 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			local min_dist = min_order_dist > max_dist * 3 / 4 ? !infrastructure && max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : max_dist * 3 / 4 : min_order_dist;
 
 			if (city_from == null) {
-				city_from = this.airTownManager.GetUnusedCity(((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
+				city_from = this.air_town_manager.GetUnusedCity(((((this.best_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class);
 				if (city_from == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						this.airTownManager.m_used_cities_list[cargo_class].Clear();
-					} else if ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
-						this.bestRoutesBuilt = this.bestRoutesBuilt | (1 << (4 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
-						this.airTownManager.m_used_cities_list[cargo_class].Clear();
-//						this.airTownManager.m_near_city_pair_array[cargo_class].clear();
+						this.air_town_manager.m_used_cities_list[cargo_class].Clear();
+					} else if ((((this.best_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+						this.best_routes_built = this.best_routes_built | (1 << (4 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+						this.air_town_manager.m_used_cities_list[cargo_class].Clear();
+//						this.air_town_manager.m_near_city_pair_array[cargo_class].clear();
 						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " air routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 					} else {
-//						this.airTownManager.m_near_city_pair_array[cargo_class].clear();
-						if ((((this.allRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+//						this.air_town_manager.m_near_city_pair_array[cargo_class].clear();
+						if ((((this.all_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
 							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " air routes have been used!");
 						}
-						this.allRoutesBuilt = this.allRoutesBuilt | (1 << (4 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+						this.all_routes_built = this.all_routes_built | (1 << (4 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
 					}
 				}
 			}
@@ -70,21 +79,21 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			if (city_from != null) {
 //				AILog.Info("New city found: " + AITown.GetName(city_from));
 
-//				this.airTownManager.FindNearCities(city_from, min_dist, max_dist, ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class, fake_dist);
+//				this.air_town_manager.FindNearCities(city_from, min_dist, max_dist, ((((this.best_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0), cargo_class, fake_dist);
 
-//				if (!this.airTownManager.m_near_city_pair_array[cargo_class].len()) {
+//				if (!this.air_town_manager.m_near_city_pair_array[cargo_class].len()) {
 //					AILog.Info("No near city available");
 //					city_from = null;
 //				}
 //			}
 
 //			if (city_from != null) {
-//				foreach (near_city_pair in this.airTownManager.m_near_city_pair_array[cargo_class]; ++i) {
+//				foreach (near_city_pair in this.air_town_manager.m_near_city_pair_array[cargo_class]; ++i) {
 //					if (city_from == near_city_pair[0]) {
 //						if (!this.air_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
 //							city_to = near_city_pair[1];
 
-//							if (AIController.GetSetting("pick_mode") != 1 && ((((this.allRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && this.air_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+//							if (AIController.GetSetting("pick_mode") != 1 && ((((this.all_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && this.air_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
 //								AILog.Info("this.air_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.air_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 //								city_to = null;
 //								continue;
@@ -101,14 +110,20 @@ function LuDiAIAfterFix::BuildAirRoute()
 //				}
 //			}
 
-//			if (city_from == null && city_to == null) {
-//				this.reservedMoney -= this.reservedMoneyAir;
-//				this.reservedMoneyAir = 0;
-//			}
-//		} else {
-//			if (!Utils.HasMoney(this.reservedMoneyAir)) {
-//				return 0;
-//			}
+			if (city_from == null && city_to == null) {
+				if (this.air_route_manager.m_reserved_money != 0) this.air_route_manager.ResetMoneyReservation();
+				this.air_route_manager.SwapCargoClass();
+			}
+		} else {
+			if (!Utils.HasMoney(this.air_route_manager.GetReservedMoney())) {
+				if (this.air_route_manager.DaysElapsed() <= 60) {
+					return 0;
+				}
+				if (!this.air_route_manager.IsMoneyReservationPaused()) {
+					this.air_route_manager.PauseMoneyReservation();
+				}
+				return 2; // allow skipping to next transport mode
+			}
 		}
 
 		if (unfinished || city_from != null/* && city_to != null*/) {
@@ -117,32 +132,14 @@ function LuDiAIAfterFix::BuildAirRoute()
 //				AILog.Info("New near city found: " + AITown.GetName(city_to));
 //			}
 
-			if (!unfinished) this.buildTimerAir = 0;
 			city_from = unfinished ? this.air_build_manager.m_city_from : city_from;
 			city_to = unfinished ? this.air_build_manager.m_city_to : city_to;
 			cargo_class = unfinished ? this.air_build_manager.m_cargo_class : cargo_class;
-			local best_routes_built = unfinished ? this.air_build_manager.m_best_routes_built : ((((this.bestRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
-			local all_routes_built = (((this.allRoutesBuilt >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0;
+			local best_built = unfinished ? this.air_build_manager.m_best_routes_built : ((((this.best_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
+			local all_built = unfinished ? this.air_build_manager.m_all_routes_built : ((((this.all_routes_built >> 4) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) != 0);
 
-			local start_date = AIDate.GetCurrentDate();
-			local route_result = this.air_route_manager.BuildRoute(this.air_route_manager, this.air_build_manager, this.airTownManager, city_from, city_to, cargo_class, best_routes_built, all_routes_built);
-			this.buildTimerAir += AIDate.GetCurrentDate() - start_date;
-			if (route_result[0] != null) {
-				if (route_result[0] != 0) {
-					this.reservedMoney -= this.reservedMoneyAir;
-					this.reservedMoneyAir = 0;
-					AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " air route between " + AIBaseStation.GetName(AIStation.GetStationID(route_result[1])) + " and " + AIBaseStation.GetName(AIStation.GetStationID(route_result[2])) + " in " + this.buildTimerAir + " day" + (this.buildTimerAir != 1 ? "s" : "") + ".");
-					return true;
-				}
-				return 0;
-			} else {
-				this.reservedMoney -= this.reservedMoneyAir;
-				this.reservedMoneyAir = 0;
-				if (city_to != null) this.airTownManager.ResetCityPair(city_from, city_to, cargo_class, false);
-				AILog.Error("a:" + this.buildTimerAir + " day" + (this.buildTimerAir != 1 ? "s" : "") + " wasted!");
-				return false;
-			}
+			return this.air_route_manager.BuildRoute(this.air_route_manager, this.air_build_manager, this.air_town_manager, city_from, city_to, cargo_class, best_built, all_built);
 		}
 	}
-	return false;
+	return true;
 }

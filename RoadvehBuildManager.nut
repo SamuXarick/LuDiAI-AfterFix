@@ -155,7 +155,7 @@ class RoadBuildManager
 			local road_array = this.PathfindBuildRoad(this.m_station_from, this.m_station_to, this.m_pathfinder_instance);
 			this.m_pathfinder_instance = road_array[1];
 			if (road_array[0] == null && this.m_pathfinder_instance != null) {
-				return 0;
+				return 1;
 			}
 			this.m_depot_tile = this.BuildRouteRoadDepot(road_array[0]);
 		}

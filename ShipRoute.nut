@@ -1,6 +1,6 @@
 require("ShipRouteManager.nut");
 
-class ShipRoute extends ShipRouteManager
+class ShipRoute
 {
 	static COUNT_INTERVAL = 20;
 	static STATION_RATING_INTERVAL = 40;

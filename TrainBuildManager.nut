@@ -303,7 +303,6 @@ class RailBuildManager
 	m_city_from_name = null;
 	m_city_to_name = null;
 	m_max_pathfinder_tries = -1;
-	m_num_signals = -1;
 
 	function HasUnfinishedRoute()
 	{
@@ -337,7 +336,6 @@ class RailBuildManager
 		this.m_city_from_name = null;
 		this.m_city_to_name = null;
 		this.m_max_pathfinder_tries = -1;
-		this.m_num_signals = -1;
 	}
 
 	function RemoveFailedRouteStation(station_tile, station_dir, depot_tile = null)
@@ -658,14 +656,14 @@ class RailBuildManager
 			this.m_pathfinder_instance = rail_array[1];
 			if (rail_array[0] == null) {
 				if (this.m_pathfinder_instance != null) {
-					return 0;
+					return 1;
 				}
 				if (this.m_built_tiles[0].len() != 0 || this.m_built_tiles[1].len() != 0) {
 					this.RemoveFailedRouteTracks();
 				}
 			} else if (this.m_pathfinder_profile == 0 && this.m_built_ways == 1) {
 				this.m_pathfinder_tries = 0;
-				return 0;
+				return 1;
 			}
 		}
 
@@ -676,7 +674,7 @@ class RailBuildManager
 			return null;
 		}
 
-		if (this.m_built_ways == 2 && this.m_num_signals == -1) {
+		if (this.m_built_ways == 2) {
 			local signals_built = this.BuildSignals();
 			if (signals_built == -1) {
 				this.RemoveFailedRouteStation(this.m_station_from, this.m_station_from_dir, this.m_depot_tile_from);
@@ -685,10 +683,9 @@ class RailBuildManager
 				this.SetRouteFinished();
 				return null;
 			}
-			this.m_num_signals = signals_built;
 		}
 
-		return RailRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile_from, this.m_depot_tile_to, this.m_bridge_tiles, this.m_cargo_class, this.m_sent_to_depot_rail_group, this.m_rail_type, this.m_station_from_dir, this.m_station_to_dir, this.m_num_signals);
+		return RailRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile_from, this.m_depot_tile_to, this.m_bridge_tiles, this.m_cargo_class, this.m_sent_to_depot_rail_group, this.m_rail_type, this.m_station_from_dir, this.m_station_to_dir);
 	}
 
 	function AreOtherRailwayStationsNearby(rail_station)
@@ -2117,7 +2114,7 @@ class RailBuildManager
 		num_signals += result[2];
 		signal_cost += result[1];
 
-		AILog.Info("Signals built! Actual cost for building signals: " + signal_cost);
+		AILog.Info("Signals built! Actual cost for building " + num_signals + " signals: " + signal_cost);
 		this.m_built_ways++;
 		return num_signals;
 	}

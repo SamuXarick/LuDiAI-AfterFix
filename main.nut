@@ -25,81 +25,96 @@ class LuDiAIAfterFix extends AIController
 
 	static MAX_DISTANCE_INCREASE = 25;
 
-	bestRoutesBuilt = null;
-	allRoutesBuilt = null;
+//	routes_built = null;
+	best_routes_built = null;
+	all_routes_built = null;
 
 	cargo_class_rotation = null;
+	transport_mode_rotation = null;
 
-	roadTownManager = null;
+	road_town_manager = null;
 	road_route_manager = null;
 	road_build_manager = null;
 
-	shipTownManager = null;
+	ship_town_manager = null;
 	ship_route_manager = null;
 	ship_build_manager = null;
 
-	airTownManager = null;
+	air_town_manager = null;
 	air_route_manager = null;
 	air_build_manager = null;
 
-	railTownManager = null;
+	rail_town_manager = null;
 	rail_route_manager = null;
 	rail_build_manager = null;
 
-	loading = null;
-	loadData = null;
+	is_loading = null;
+	load_data = null;
 
-	buildTimerRoad = 0;
-	buildTimerWater = 0;
-	buildTimerAir = 0;
-	buildTimerRail = 0;
-
-	reservedMoney = 0;
-
-	reservedMoneyRoad = 0;
-	reservedMoneyWater = 0;
-	reservedMoneyAir = 0;
-	reservedMoneyRail = 0;
-
-	sleep_longer = false;
+	sleep_longer = null;
 
 	constructor()
 	{
 		/* ::caches must exist before calling any RouteManager or SwapCargoClass */
 		::caches <- Caches();
 
-		roadTownManager = TownManager();
-		shipTownManager = TownManager();
-		airTownManager = TownManager();
-		railTownManager = TownManager();
+		this.road_town_manager = TownManager();
+		this.ship_town_manager = TownManager();
+		this.air_town_manager = TownManager();
+		this.rail_town_manager = TownManager();
 
 		this.SwapCargoClass();
 
+//		this.routes_built = {};
+//		foreach (member in ["best", "all"]) {
+//			this.routes_built.rawset(member, {});
+//			foreach (transport_mode in [AITile.TRANSPORT_RAIL, AITile.TRANSPORT_ROAD, AITile.TRANSPORT_WATER, AITile.TRANSPORT_AIR]) {
+//				this.routes_built[member].rawset(transport_mode, {});
+//				foreach (cargo_class in [AICargo.CC_PASSENGERS, AICargo.CC_MAIL]) {
+//					this.routes_built[member][transport_mode].rawset(cargo_class, false);
+//				}
+//			}
+//		}
+
 		/**
-		 * 'allRoutesBuilt' and 'bestRoutesBuilt' are bits:
+		 * 'all_routes_built' and 'best_routes_built' are bits:
 		 * bit 0 - Road/Passengers, bit 1 - Road/Mail
 		 * bit 2 - Water/Passengers, bit 3 - Water/Mail
 		 * bit 4 - Air/Passengers, bit 5 - Air/Mail
 		 * bit 6 - Rail/Passengers, bit 7 - Rail/Mail
 		 */
-		allRoutesBuilt = 0;
-		bestRoutesBuilt = 0
+		all_routes_built = 0;
+		best_routes_built = 0;
 
-		road_route_manager = RoadRouteManager();
-		road_build_manager = RoadBuildManager();
+		this.road_route_manager = RoadRouteManager(this.road_town_manager);
+		this.road_build_manager = RoadBuildManager();
 
-		ship_route_manager = ShipRouteManager();
-		ship_build_manager = ShipBuildManager();
+		this.ship_route_manager = ShipRouteManager(this.ship_town_manager);
+		this.ship_build_manager = ShipBuildManager();
 
-		air_route_manager = AirRouteManager();
-		air_build_manager = AirBuildManager();
+		this.air_route_manager = AirRouteManager(this.air_town_manager);
+		this.air_build_manager = AirBuildManager();
 
-		rail_route_manager = RailRouteManager();
-		rail_build_manager = RailBuildManager();
+		this.rail_route_manager = RailRouteManager(this.rail_town_manager);
+		this.rail_build_manager = RailBuildManager();
 
-		::scheduled_removals_table <- { Train = [], Road = {}, Ship = {}, Aircraft = {} };
+		::scheduled_removals_table <- {
+		    Train = [],
+		    Road = {},
+		    Ship = {},
+		    Aircraft = {},
+		};
 
-		loading = true;
+		this.transport_mode_rotation = 1 << AITile.TRANSPORT_RAIL;
+
+		this.is_loading = true;
+
+		this.sleep_longer = {
+			[AITile.TRANSPORT_RAIL] = true,
+			[AITile.TRANSPORT_ROAD] = true,
+			[AITile.TRANSPORT_WATER] = true,
+			[AITile.TRANSPORT_AIR] = true,
+		};
 	}
 };
 
@@ -305,7 +320,7 @@ function LuDiAIAfterFix::PerformSingleTownAction(town_id, town_action)
 		return false;
 	}
 
-	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
+	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (cost + ::caches.m_reserved_money)) {
 		return false;
 	}
 
@@ -519,7 +534,7 @@ function LuDiAIAfterFix::FoundTown()
 		return;
 	}
 
-	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= cost) {
+	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (cost + ::caches.m_reserved_money)) {
 		return;
 	}
 
@@ -528,27 +543,27 @@ function LuDiAIAfterFix::FoundTown()
 	}
 	AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 
-	if (allRoutesBuilt == 0) {
+	if (all_routes_built == 0) {
 		return;
 	}
 
-	allRoutesBuilt = 0;
-//	roadTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//	roadTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-	roadTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-	roadTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//	shipTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//	shipTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-	shipTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-	shipTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//	airTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//	airTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-	airTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-	airTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//	railTownManager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//	railTownManager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-	railTownManager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-	railTownManager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+	all_routes_built = 0;
+//	this.road_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//	this.road_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+	this.road_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+	this.road_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//	this.ship_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//	this.ship_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+	this.ship_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+	this.ship_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//	this.air_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//	this.air_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+	this.air_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+	this.air_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//	this.rail_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//	this.rail_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+	this.rail_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+	this.rail_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
 	AILog.Warning("Not all routes have been used at this time.");
 }
 
@@ -587,43 +602,66 @@ function LuDiAIAfterFix::NameCompany()
 	}
 }
 
+function LuDiAIAfterFix::ToggleTransportMode(transport_mode)
+{
+	this.transport_mode_rotation = this.transport_mode_rotation ^ (1 << transport_mode);
+}
+
+function LuDiAIAfterFix::IsTransportModeInRotation(transport_mode)
+{
+	return (this.transport_mode_rotation & (1 << transport_mode)) != 0;
+}
+
+// function LuDiAIAfterFix::SetNextTransportMode(transport_mode)
+// {
+// 	switch (transport_mode) {
+// 		case AITile.TRANSPORT_RAIL:
+// 			this.transport_mode_rotation = AITile.TRANSPORT_ROAD;
+// 			return;
+// 		case AITile.TRANSPORT_ROAD:
+// 			this.transport_mode_rotation = AITile.TRANSPORT_WATER;
+// 			return;
+// 		case AITile.TRANSPORT_WATER:
+// 			this.transport_mode_rotation = AITile.TRANSPORT_AIR;
+// 			return;
+// 		case AITile.TRANSPORT_AIR:
+// 			this.transport_mode_rotation = AITile.TRANSPORT_RAIL;
+// 			return;
+// 	}
+// }
+
 function LuDiAIAfterFix::Save()
 {
 	local ops = AIController.GetOpsTillSuspend();
-	if (loading) {
-		if (loadData != null) return loadData;
+	if (this.is_loading) {
+		if (this.load_data != null) return this.load_data;
 		AILog.Error("WARNING! AI didn't finish loading previously saved data. It will be saving partial data!")
 	}
 
 	local table = {};
-	table.rawset("road_town_manager", roadTownManager.SaveTownManager());
-	table.rawset("road_route_manager", road_route_manager.SaveRouteManager());
-	table.rawset("road_build_manager", road_build_manager.SaveBuildManager());
+	table.rawset("road_town_manager", this.road_town_manager.SaveTownManager());
+	table.rawset("road_route_manager", this.road_route_manager.SaveRouteManager());
+	table.rawset("road_build_manager", this.road_build_manager.SaveBuildManager());
 
-	table.rawset("ship_town_manager", shipTownManager.SaveTownManager());
-	table.rawset("ship_route_manager", ship_route_manager.SaveRouteManager());
-	table.rawset("ship_build_manager", ship_build_manager.SaveBuildManager());
+	table.rawset("this.ship_town_manager", this.ship_town_manager.SaveTownManager());
+	table.rawset("ship_route_manager", this.ship_route_manager.SaveRouteManager());
+	table.rawset("ship_build_manager", this.ship_build_manager.SaveBuildManager());
 
-	table.rawset("air_town_manager", airTownManager.SaveTownManager());
-	table.rawset("air_route_manager", air_route_manager.SaveRouteManager());
-	table.rawset("air_build_manager", air_build_manager.SaveBuildManager());
+	table.rawset("air_town_manager", this.air_town_manager.SaveTownManager());
+	table.rawset("air_route_manager", this.air_route_manager.SaveRouteManager());
+	table.rawset("air_build_manager", this.air_build_manager.SaveBuildManager());
 
-	table.rawset("rail_town_manager", railTownManager.SaveTownManager());
-	table.rawset("rail_route_manager", rail_route_manager.SaveRouteManager());
-	table.rawset("rail_build_manager", rail_build_manager.SaveBuildManager());
+	table.rawset("rail_town_manager", this.rail_town_manager.SaveTownManager());
+	table.rawset("rail_route_manager", this.rail_route_manager.SaveRouteManager());
+	table.rawset("rail_build_manager", this.rail_build_manager.SaveBuildManager());
 
 	table.rawset("scheduled_removals_table", ::scheduled_removals_table);
 
-	table.rawset("best_routes_built", bestRoutesBuilt);
-	table.rawset("all_routes_built", allRoutesBuilt);
-
-	table.rawset("reserved_money", reservedMoney);
-	table.rawset("reserved_money_road", reservedMoneyRoad);
-	table.rawset("reserved_money_water", reservedMoneyWater);
-	table.rawset("reserved_money_air", reservedMoneyAir);
-	table.rawset("reserved_money_rail", reservedMoneyRail);
+	table.rawset("best_routes_built", best_routes_built);
+	table.rawset("all_routes_built", all_routes_built);
 
 	table.rawset("cargo_class_rotation", this.cargo_class_rotation);
+	table.rawset("transport_mode_rotation", this.transport_mode_rotation);
 
 	table.rawset("caches", ::caches.SaveCaches());
 
@@ -633,8 +671,8 @@ function LuDiAIAfterFix::Save()
 
 function LuDiAIAfterFix::Load(version, data)
 {
-	loading = true;
-	loadData = [version, data];
+	this.is_loading = true;
+	this.load_data = [version, data];
 	AILog.Warning("Loading data from version " + version + "...");
 }
 
@@ -642,94 +680,78 @@ function LuDiAIAfterFix::Start()
 {
 	if (AICompany.GetAutoRenewStatus(::caches.m_my_company_id)) AICompany.SetAutoRenewStatus(false);
 
-	if (loading) {
-		if (loadData != null) {
-			if (loadData[1].rawin("road_town_manager")) {
-				roadTownManager.LoadTownManager(loadData[1].rawget("road_town_manager"));
+	if (this.is_loading) {
+		if (this.load_data != null) {
+			if (this.load_data[1].rawin("road_town_manager")) {
+				this.road_town_manager.LoadTownManager(this.load_data[1].rawget("road_town_manager"));
 			}
 
-			if (loadData[1].rawin("road_route_manager")) {
-				road_route_manager.LoadRouteManager(loadData[1].rawget("road_route_manager"));
+			if (this.load_data[1].rawin("road_route_manager")) {
+				this.road_route_manager.LoadRouteManager(this.load_data[1].rawget("road_route_manager"));
 			}
 
-			if (loadData[1].rawin("road_build_manager")) {
-				road_build_manager.LoadBuildManager(loadData[1].rawget("road_build_manager"));
+			if (this.load_data[1].rawin("road_build_manager")) {
+				this.road_build_manager.LoadBuildManager(this.load_data[1].rawget("road_build_manager"));
 			}
 
-			if (loadData[1].rawin("ship_town_manager")) {
-				shipTownManager.LoadTownManager(loadData[1].rawget("ship_town_manager"));
+			if (this.load_data[1].rawin("ship_town_manager")) {
+				this.ship_town_manager.LoadTownManager(this.load_data[1].rawget("ship_town_manager"));
 			}
 
-			if (loadData[1].rawin("ship_route_manager")) {
-				ship_route_manager.LoadRouteManager(loadData[1].rawget("ship_route_manager"));
+			if (this.load_data[1].rawin("ship_route_manager")) {
+				this.ship_route_manager.LoadRouteManager(this.load_data[1].rawget("ship_route_manager"));
 			}
 
-			if (loadData[1].rawin("ship_build_manager")) {
-				ship_build_manager.LoadBuildManager(loadData[1].rawget("ship_build_manager"));
+			if (this.load_data[1].rawin("ship_build_manager")) {
+				this.ship_build_manager.LoadBuildManager(this.load_data[1].rawget("ship_build_manager"));
 			}
 
-			if (loadData[1].rawin("air_town_manager")) {
-				airTownManager.LoadTownManager(loadData[1].rawget("air_town_manager"));
+			if (this.load_data[1].rawin("air_town_manager")) {
+				this.air_town_manager.LoadTownManager(this.load_data[1].rawget("air_town_manager"));
 			}
 
-			if (loadData[1].rawin("air_route_manager")) {
-				air_route_manager.LoadRouteManager(loadData[1].rawget("air_route_manager"));
+			if (this.load_data[1].rawin("air_route_manager")) {
+				this.air_route_manager.LoadRouteManager(this.load_data[1].rawget("air_route_manager"));
 			}
 
-			if (loadData[1].rawin("air_build_manager")) {
-				air_build_manager.LoadBuildManager(loadData[1].rawget("air_build_manager"));
+			if (this.load_data[1].rawin("air_build_manager")) {
+				this.air_build_manager.LoadBuildManager(this.load_data[1].rawget("air_build_manager"));
 			}
 
-			if (loadData[1].rawin("rail_town_manager")) {
-				railTownManager.LoadTownManager(loadData[1].rawget("rail_town_manager"));
+			if (this.load_data[1].rawin("rail_town_manager")) {
+				this.rail_town_manager.LoadTownManager(this.load_data[1].rawget("rail_town_manager"));
 			}
 
-			if (loadData[1].rawin("rail_route_manager")) {
-				rail_route_manager.LoadRouteManager(loadData[1].rawget("rail_route_manager"));
+			if (this.load_data[1].rawin("rail_route_manager")) {
+				this.rail_route_manager.LoadRouteManager(this.load_data[1].rawget("rail_route_manager"));
 			}
 
-			if (loadData[1].rawin("rail_build_manager")) {
-				rail_build_manager.LoadBuildManager(loadData[1].rawget("rail_build_manager"));
+			if (this.load_data[1].rawin("rail_build_manager")) {
+				this.rail_build_manager.LoadBuildManager(this.load_data[1].rawget("rail_build_manager"));
 			}
 
-			if (loadData[1].rawin("scheduled_removals_table")) {
-				::scheduled_removals_table = loadData[1].rawget("scheduled_removals_table");
+			if (this.load_data[1].rawin("scheduled_removals_table")) {
+				::scheduled_removals_table = this.load_data[1].rawget("scheduled_removals_table");
 			}
 
-			if (loadData[1].rawin("best_routes_built")) {
-				bestRoutesBuilt = loadData[1].rawget("best_routes_built");
+			if (this.load_data[1].rawin("best_routes_built")) {
+				best_routes_built = this.load_data[1].rawget("best_routes_built");
 			}
 
-			if (loadData[1].rawin("all_routes_built")) {
-				allRoutesBuilt = loadData[1].rawget("all_routes_built");
+			if (this.load_data[1].rawin("all_routes_built")) {
+				all_routes_built = this.load_data[1].rawget("all_routes_built");
 			}
 
-			if (loadData[1].rawin("reserved_money")) {
-				reservedMoney = loadData[1].rawget("reserved_money");
+			if (this.load_data[1].rawin("cargo_class_rotation")) {
+				this.cargo_class_rotation = this.load_data[1].rawget("cargo_class_rotation");
 			}
 
-			if (loadData[1].rawin("reserved_money_road")) {
-				reservedMoneyRoad = loadData[1].rawget("reserved_money_road");
+			if (this.load_data[1].rawin("transport_mode_rotation")) {
+				this.transport_mode_rotation = this.load_data[1].rawget("transport_mode_rotation");
 			}
 
-			if (loadData[1].rawin("reserved_money_water")) {
-				reservedMoneyWater = loadData[1].rawget("reserved_money_water");
-			}
-
-			if (loadData[1].rawin("reserved_money_air")) {
-				reservedMoneyAir = loadData[1].rawget("reserved_money_air");
-			}
-
-			if (loadData[1].rawin("reserved_money_rail")) {
-				reservedMoneyRail = loadData[1].rawget("reserved_money_rail");
-			}
-
-			if (loadData[1].rawin("cargo_class_rotation")) {
-				this.cargo_class_rotation = loadData[1].rawget("cargo_class_rotation");
-			}
-
-			if (loadData[1].rawin("caches")) {
-				::caches.LoadCaches(loadData[1].rawget("caches"));
+			if (this.load_data[1].rawin("caches")) {
+				::caches.LoadCaches(this.load_data[1].rawget("caches"));
 			}
 
 			CheckForUnfinishedRoadRoute();
@@ -737,16 +759,15 @@ function LuDiAIAfterFix::Start()
 			CheckForUnfinishedRailRoute();
 
 			AILog.Warning("Game loaded.");
-			loadData = null;
+			this.load_data = null;
 		} else {
 			/* Name company */
 			this.NameCompany();
 		}
-		loading = false;
+		this.is_loading = false;
 	}
 
-	while (AIController.Sleep(this.sleep_longer ? 74 : 1)) {
-		this.sleep_longer = false;
+	do {
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . RepayLoan");
 		Utils.RepayLoan();
@@ -755,55 +776,139 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . RemoveLeftovers");
-		RemoveLeftovers();
+		this.RemoveLeftovers();
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("RemoveLeftovers " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageRoadvehRoutes");
-		road_route_manager.ManageRoadvehRoutes(roadTownManager);
+		this.road_route_manager.ManageRoadvehRoutes(this.road_town_manager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageRoadvehRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildRoadRoute");
-		this.sleep_longer = this.BuildRoadRoute() == 0 || this.sleep_longer;
+		if (this.IsTransportModeInRotation(AITile.TRANSPORT_ROAD)) {
+			local built_road_route = this.BuildRoadRoute();
+			switch (typeof(built_road_route)) {
+				case "integer": {
+					this.sleep_longer[AITile.TRANSPORT_ROAD] = (built_road_route & 1) == 0;
+					if ((built_road_route & 2) != 0) {
+						if (!this.IsTransportModeInRotation(AITile.TRANSPORT_AIR)) {
+							this.ToggleTransportMode(AITile.TRANSPORT_AIR);
+						}
+					}
+					break;
+				}
+				case "bool": {
+					this.sleep_longer[AITile.TRANSPORT_ROAD] = built_road_route;
+					this.ToggleTransportMode(AITile.TRANSPORT_ROAD);
+					if (!this.IsTransportModeInRotation(AITile.TRANSPORT_AIR)) {
+						this.ToggleTransportMode(AITile.TRANSPORT_AIR);
+					}
+					break;
+				}
+			}
+		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildRoadRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageAircraftRoutes");
-		air_route_manager.ManageAircraftRoutes(airTownManager);
+		this.air_route_manager.ManageAircraftRoutes(this.air_town_manager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageAircraftRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildAirRoute");
-		this.sleep_longer = this.BuildAirRoute() == 0 || this.sleep_longer;
+		if (this.IsTransportModeInRotation(AITile.TRANSPORT_AIR)) {
+			local built_air_route = this.BuildAirRoute();
+			switch (typeof(built_air_route)) {
+				case "integer": {
+					this.sleep_longer[AITile.TRANSPORT_AIR] = (built_air_route & 1) == 0;
+					if ((built_air_route & 2) != 0) {
+						if (!this.IsTransportModeInRotation(AITile.TRANSPORT_WATER)) {
+							this.ToggleTransportMode(AITile.TRANSPORT_WATER);
+						}
+					}
+					break;
+				}
+				case "bool": {
+					this.sleep_longer[AITile.TRANSPORT_AIR] = built_air_route;
+					this.ToggleTransportMode(AITile.TRANSPORT_AIR);
+					if (!this.IsTransportModeInRotation(AITile.TRANSPORT_WATER)) {
+						this.ToggleTransportMode(AITile.TRANSPORT_WATER);
+					}
+					break;
+				}
+			}
+		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildAirRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageShipRoutes");
-		ship_route_manager.ManageShipRoutes(shipTownManager);
+		this.ship_route_manager.ManageShipRoutes(this.ship_town_manager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageShipRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildWaterRoute");
-		this.sleep_longer = this.BuildWaterRoute() == 0 || this.sleep_longer;
+		if (this.IsTransportModeInRotation(AITile.TRANSPORT_WATER)) {
+			local built_water_route = this.BuildWaterRoute();
+			switch (typeof(built_water_route)) {
+				case "integer": {
+					this.sleep_longer[AITile.TRANSPORT_WATER] = (built_water_route & 1) == 0;
+					if ((built_water_route & 2) != 0) {
+						if (!this.IsTransportModeInRotation(AITile.TRANSPORT_RAIL)) {
+							this.ToggleTransportMode(AITile.TRANSPORT_RAIL);
+						}
+					}
+					break;
+				}
+				case "bool": {
+					this.sleep_longer[AITile.TRANSPORT_WATER] = built_water_route;
+					this.ToggleTransportMode(AITile.TRANSPORT_WATER);
+					if (!this.IsTransportModeInRotation(AITile.TRANSPORT_RAIL)) {
+						this.ToggleTransportMode(AITile.TRANSPORT_RAIL);
+					}
+					break;
+				}
+			}
+		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildWaterRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageTrainRoutes");
-		rail_route_manager.ManageTrainRoutes(railTownManager);
+		this.rail_route_manager.ManageTrainRoutes(this.rail_town_manager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageTrainRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildRailRoute");
-		this.sleep_longer = this.BuildRailRoute() == 0 || this.sleep_longer;
+		if (this.IsTransportModeInRotation(AITile.TRANSPORT_RAIL)) {
+			local built_rail_route = this.BuildRailRoute();
+			switch (typeof(built_rail_route)) {
+				case "integer": {
+					this.sleep_longer[AITile.TRANSPORT_RAIL] = (built_rail_route & 1) == 0;
+					if ((built_rail_route & 2) != 0) {
+						if (!this.IsTransportModeInRotation(AITile.TRANSPORT_ROAD)) {
+							this.ToggleTransportMode(AITile.TRANSPORT_ROAD);
+						}
+					}
+					break;
+				}
+				case "bool": {
+					this.sleep_longer[AITile.TRANSPORT_RAIL] = built_rail_route;
+					this.ToggleTransportMode(AITile.TRANSPORT_RAIL);
+					if (!this.IsTransportModeInRotation(AITile.TRANSPORT_ROAD)) {
+						this.ToggleTransportMode(AITile.TRANSPORT_ROAD);
+					}
+					break;
+				}
+			}
+		}
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildRailRoute " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -815,16 +920,23 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . FoundTown");
-		FoundTown();
+		this.FoundTown();
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("FoundTown " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . BuildHQ");
-		BuildHQ();
+		this.BuildHQ();
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("BuildHQ " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
-	}
+
+//		AILog.Info("::caches.m_reserved_money: " + ::caches.m_reserved_money);
+//		AILog.Info("this.road_route_manager.m_reserved_money: " + this.road_route_manager.m_reserved_money);
+//		AILog.Info("this.ship_route_manager.m_reserved_money: " + this.ship_route_manager.m_reserved_money);
+//		AILog.Info("this.air_route_manager.m_reserved_money: " + this.air_route_manager.m_reserved_money);
+//		AILog.Info("this.rail_route_manager.m_reserved_money: " + this.rail_route_manager.m_reserved_money);
+//		AILog.Info("this.transport_mode_rotation: " + this.transport_mode_rotation);
+	} while (AIController.Sleep(Utils.ListHasValue(this.sleep_longer, false) ? 1 : 74));
 }
 
 require("RoadvehMain.nut");

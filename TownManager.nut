@@ -202,7 +202,7 @@ class TownManager
 		local unused_cities_list = AIList();
 		unused_cities_list.AddList(this.m_town_list);
 		unused_cities_list.RemoveList(this.m_used_cities_list[cargo_class]);
-		unused_cities_list.RemoveItem(from_city); // remove self
+		unused_cities_list[from_city] = null; // remove self
 
 		local from_city_location = AITown.GetLocation(from_city);
 		foreach (town_id, _ in unused_cities_list) {
@@ -246,7 +246,7 @@ class TownManager
 				}
 				local last_month_production = this.GetLastMonthProductionDiffRate(town_id, cargo_type);
 				if (!best_routes_built) {
-					if (pick_mode >= 2 && unused_cities_list[town_id] <= CARGO_TYPE_LIMIT[cargo_class]) {
+					if (pick_mode >= 2 && last_month_production <= CARGO_TYPE_LIMIT[cargo_class]) {
 						unused_cities_list[town_id] = null;
 						continue;
 					}
@@ -260,8 +260,8 @@ class TownManager
 
 			if (pick_mode >= 2) {
 				unused_cities_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
-				foreach (town_id, _ in unused_cities_list) {
-					unused_cities_list[town_id] = this.DistanceFunction(fake_dist, town_id, from_city_location);
+				foreach (town_id, value in unused_cities_list) {
+					unused_cities_list[town_id] = this.DistanceFunction(max_fake_dist, town_id, from_city_location);
 				}
 				unused_cities_list.Sort(AIList.SORT_BY_VALUE, (pick_mode == 2 ? AIList.SORT_ASCENDING : AIList.SORT_DESCENDING));
 			}
