@@ -196,8 +196,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 			local all_tiles_found = AITileList();
 			if (dock_from != -1) all_tiles_found[dock_from] = 0;
 			foreach (tile, _ in all_station_tiles) {
-				if (::scheduled_removals.Ship.rawin(tile)) {
-//					AILog.Info("scheduled_removals.Ship has tile " + tile);
+				if (::scheduled_removals[AITile.TRANSPORT_WATER].rawin(tile)) {
+//					AILog.Info("scheduled_removals[AITile.TRANSPORT_WATER] has tile " + tile);
 					all_tiles_found[tile] = 0;
 					break;
 				}
@@ -219,7 +219,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 				foreach (tile, _ in all_tiles_missing) {
 					if (AIMarine.IsDockTile(tile) && AITile.GetSlope(tile) != AITile.SLOPE_FLAT) {
 //						AILog.Info("Tile " + tile + " is missing");
-						::scheduled_removals.Ship.rawset(tile, 0);
+						::scheduled_removals[AITile.TRANSPORT_WATER].rawset(tile, 0);
 					}
 				}
 			}
@@ -230,8 +230,8 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 //			AILog.Info("all_depots_tiles has " + all_depots_tiles.Count() + " tiles");
 			local all_tiles_found = AITileList();
 			foreach (tile, _ in all_depots_tiles) {
-				if (::scheduled_removals.Ship.rawin(tile)) {
-//					AILog.Info("scheduled_removals.Ship has tile " + tile);
+				if (::scheduled_removals[AITile.TRANSPORT_WATER].rawin(tile)) {
+//					AILog.Info("scheduled_removals[AITile.TRANSPORT_WATER] has tile " + tile);
 					all_tiles_found[tile] = 0;
 					break;
 				}
@@ -251,7 +251,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 				all_tiles_missing.RemoveList(all_tiles_found);
 				foreach (tile, _ in all_tiles_missing) {
 //					AILog.Info("Tile " + tile + " is missing");
-					::scheduled_removals.Ship.rawset(tile, 0);
+					::scheduled_removals[AITile.TRANSPORT_WATER].rawset(tile, 0);
 				}
 			}
 		}

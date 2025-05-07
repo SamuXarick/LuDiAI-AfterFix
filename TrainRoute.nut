@@ -714,11 +714,11 @@ class RailRoute
 		local exit_tile_1 = station.GetExitTile(1);
 		local entry_tile_1 = station.GetEntryTile(1);
 		local rail_type = AIRail.GetRailType(top_tile);
-		::scheduled_removals.Train.append(RailStruct.SetStruct(top_tile, RailStructType.STATION, rail_type, bot_tile));
-		::scheduled_removals.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
-		::scheduled_removals.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
-		::scheduled_removals.Train.append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
-		::scheduled_removals.Train.append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(top_tile, RailStructType.STATION, rail_type, bot_tile));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 	}
 
 	function ScheduleRemoveDepot(depot)
@@ -728,10 +728,10 @@ class RailRoute
 		local depotRailb = 2 * depotFront - depotRaila;
 		local depotRailc = 2 * depotFront - depot;
 		local rail_type = AIRail.GetRailType(depot);
-		::scheduled_removals.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRaila));
-		::scheduled_removals.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailb));
-		::scheduled_removals.Train.append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailc));
-		::scheduled_removals.Train.append(RailStruct.SetStruct(depot, RailStructType.DEPOT, rail_type));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depotFront, rail_type, depot, depotRaila));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailb));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depotFront, rail_type, depot, depotRailc));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(depot, RailStructType.DEPOT, rail_type));
 	}
 
 	function ScheduleRemoveTracks(frontTile, prevTile)
@@ -823,7 +823,7 @@ class RailRoute
 				}
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduled_removals.Train.append(RailStruct.SetRail(frontTile, rail_type, prevTile, nextTile));
+				::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(frontTile, rail_type, prevTile, nextTile));
 				this.ScheduleRemoveTracks(nextTile, frontTile);
 			}
 		} else if (AIBridge.IsBridgeTile(frontTile)) {
@@ -834,7 +834,7 @@ class RailRoute
 				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduled_removals.Train.append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, rail_type, otherTile));
+				::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(frontTile, RailStructType.BRIDGE, rail_type, otherTile));
 				this.ScheduleRemoveTracks(nextTile, otherTile);
 			}
 		} else if (AITunnel.IsTunnelTile(frontTile)) {
@@ -845,7 +845,7 @@ class RailRoute
 				nextTile = otherTile + dir;
 			}
 			if (nextTile != AIMap.TILE_INVALID) {
-				::scheduled_removals.Train.append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, rail_type, otherTile));
+				::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(frontTile, RailStructType.TUNNEL, rail_type, otherTile));
 				this.ScheduleRemoveTracks(nextTile, otherTile);
 			}
 		}

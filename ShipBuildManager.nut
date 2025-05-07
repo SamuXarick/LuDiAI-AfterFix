@@ -364,7 +364,7 @@ class ShipBuildManager
 		} while (counter < 500);
 
 		if (counter == 500) {
-			::scheduled_removals.Ship.rawset(inclined_dock_tile, 0);
+			::scheduled_removals[AITile.TRANSPORT_WATER].rawset(inclined_dock_tile, 0);
 //			AILog.Error("Failed to remove dock tile at " + inclined_dock_tile + " - " + AIError.GetLastErrorString());
 		} else {
 			local slope = AITile.GetSlope(inclined_dock_tile);
@@ -389,7 +389,7 @@ class ShipBuildManager
 				} while (counter < 500);
 
 				if (counter == 500) {
-					::scheduled_removals.Ship.rawset(dock_tile, 0);
+					::scheduled_removals[AITile.TRANSPORT_WATER].rawset(dock_tile, 0);
 //					AILog.Error("Failed to remove canal tile at " + dock_tile + " - " + AIError.GetLastErrorString());
 				}
 			}
@@ -407,7 +407,7 @@ class ShipBuildManager
 				} while (counter < 500);
 
 				if (counter == 500) {
-					::scheduled_removals.Ship.rawset(ship_docking_tile, 0);
+					::scheduled_removals[AITile.TRANSPORT_WATER].rawset(ship_docking_tile, 0);
 //					AILog.Error("Failed to remove canal tile at " + ship_docking_tile + " - " + AIError.GetLastErrorString());
 				}
 			}
@@ -698,7 +698,7 @@ class ShipBuildManager
 						} while (counter < 500);
 
 						if (counter == 500) {
-							::scheduled_removals.Ship.rawset(dock_tile, 0);
+							::scheduled_removals[AITile.TRANSPORT_WATER].rawset(dock_tile, 0);
 //							AILog.Error("Failed to remove canal tile at " + dock_tile + " - " + AIError.GetLastErrorString());
 							continue;
 						} else {
@@ -760,7 +760,7 @@ class ShipBuildManager
 						} while (counter < 500);
 
 						if (counter == 500) {
-							::scheduled_removals.Ship.rawset(dock_tile, 0);
+							::scheduled_removals[AITile.TRANSPORT_WATER].rawset(dock_tile, 0);
 //							AILog.Error("Failed to remove canal tile at " + dock_tile + " - " + AIError.GetLastErrorString());
 //						} else {
 //							/* The first canal was successfully removed after failing to build the dock. Try it all over again in the next location */
@@ -780,7 +780,7 @@ class ShipBuildManager
 						} while (counter < 500);
 
 						if (counter == 500) {
-							::scheduled_removals.Ship.rawset(ship_docking_tile, 0);
+							::scheduled_removals[AITile.TRANSPORT_WATER].rawset(ship_docking_tile, 0);
 //							AILog.Error("Failed to remove canal tile at " + ship_docking_tile + " - " + AIError.GetLastErrorString());
 //						} else {
 //							/* The second canal was successfully removed after failing to build the dock. Try it all over again in the next location */
@@ -807,7 +807,7 @@ class ShipBuildManager
 					} while (counter < 500);
 
 					if (counter == 500) {
-						::scheduled_removals.Ship.rawset(dock_tile, 0);
+						::scheduled_removals[AITile.TRANSPORT_WATER].rawset(dock_tile, 0);
 //						AILog.Error("Failed to remove canal tile at " + dock_tile + " - " + AIError.GetLastErrorString());
 //					} else {
 //						/* The first canal was successfully removed after detecting a block. Try it all over again in the next location */
@@ -827,7 +827,7 @@ class ShipBuildManager
 					} while (counter < 500);
 
 					if (counter == 500) {
-						::scheduled_removals.Ship.rawset(ship_docking_tile, 0);
+						::scheduled_removals[AITile.TRANSPORT_WATER].rawset(ship_docking_tile, 0);
 //						AILog.Error("Failed to remove canal tile at " + ship_docking_tile + " - " + AIError.GetLastErrorString());
 //					} else {
 //						/* The second canal was successfully removed after detecting a block. Try it all over again in the next location */

@@ -718,9 +718,9 @@ class ShipRoute
 				(AIDate.GetCurrentDate() - this.m_last_vehicle_added >= 90) && this.m_last_vehicle_added > 0)) {
 			this.m_active_route = false;
 
-			::scheduled_removals.Ship.rawset(this.m_dock_from, 0);
-			::scheduled_removals.Ship.rawset(this.m_dock_to, 0);
-			::scheduled_removals.Ship.rawset(this.m_depot_tile, 0);
+			::scheduled_removals[AITile.TRANSPORT_WATER].rawset(this.m_dock_from, 0);
+			::scheduled_removals[AITile.TRANSPORT_WATER].rawset(this.m_dock_to, 0);
+			::scheduled_removals[AITile.TRANSPORT_WATER].rawset(this.m_depot_tile, 0);
 
 			if (AIGroup.IsValidGroup(this.m_group)) {
 				AIGroup.DeleteGroup(this.m_group);
