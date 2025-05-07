@@ -3,7 +3,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 	if (!AIController.GetSetting("water_support")) return true; // assume true to keep rotating this.transport_mode_rotation
 
 	local unfinished = this.ship_build_manager.HasUnfinishedRoute();
-	if (unfinished || (this.ship_route_manager.GetShipCount() < max(AIGameSettings.GetValue("max_ships") - 10, 10)) && ((this.all_routes_built >> 2) & 3) != 3) {
+	if (unfinished || (this.ship_route_manager.GetShipCount() < max(AIGameSettings.GetValue("max_ships") - 10, 10)) && Utils.ListHasValue(this.routes_built.all[AITile.TRANSPORT_WATER], false)) {
 		local city_from = null;
 		local city_to = null;
 		local cheaper_route = false;
@@ -100,10 +100,10 @@ function LuDiAIAfterFix::BuildWaterRoute()
 						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " water routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 					} else {
 //						this.ship_town_manager.m_near_city_pair_array[cargo_class].clear();
-						if ((((this.all_routes_built >> 2) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+						if (!this.routes_built.all[AITile.TRANSPORT_WATER][cargo_class]) {
 							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " water routes have been used!");
 						}
-						this.all_routes_built = this.all_routes_built | (1 << (2 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+						this.routes_built.all[AITile.TRANSPORT_WATER][cargo_class] = true;
 					}
 				}
 			}
@@ -125,7 +125,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 						if (!this.ship_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
 							city_to = near_city_pair[1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && ((((this.all_routes_built >> 2) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && this.ship_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+							if (AIController.GetSetting("pick_mode") != 1 && !this.routes_built.all[AITile.TRANSPORT_WATER][cargo_class] && this.ship_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
 //								AILog.Info("this.ship_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.ship_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								city_to = null;
 								continue;

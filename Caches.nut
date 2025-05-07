@@ -13,6 +13,7 @@ class Caches
 	/* These are not saved */
 	m_my_company_id = AICompany.ResolveCompanyID(AICompany.COMPANY_SELF);
 	m_cargo_type_list = AICargoList();
+	m_cargo_classes = [AICargo.CC_PASSENGERS, AICargo.CC_MAIL];
 
 	constructor()
 	{

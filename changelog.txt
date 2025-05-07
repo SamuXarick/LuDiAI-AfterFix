@@ -1,6 +1,6 @@
 LuDiAI AfterFix
 ===============
-v22 (06-05-2025)
+v22 (07-05-2025)
 - OpenTTD and API requirements set to 15.0
 - Fixed a bug that allowed road depots to be part of multiple routes
 - Silence cache related errors about train engines and wagons
@@ -26,6 +26,7 @@ v22 (06-05-2025)
 - Fixed a bug which prevented replacing old aircraft
 - Implemented a system to help focus time on each transport mode
   individually
+- Fixed a crash when loading a savegame with an incomplete rail route
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0

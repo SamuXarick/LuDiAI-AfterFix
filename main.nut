@@ -25,9 +25,8 @@ class LuDiAIAfterFix extends AIController
 
 	static MAX_DISTANCE_INCREASE = 25;
 
-//	routes_built = null;
+	routes_built = null;
 	best_routes_built = null;
-	all_routes_built = null;
 
 	cargo_class_rotation = null;
 	transport_mode_rotation = null;
@@ -65,25 +64,24 @@ class LuDiAIAfterFix extends AIController
 
 		this.SwapCargoClass();
 
-//		this.routes_built = {};
-//		foreach (member in ["best", "all"]) {
-//			this.routes_built.rawset(member, {});
-//			foreach (transport_mode in [AITile.TRANSPORT_RAIL, AITile.TRANSPORT_ROAD, AITile.TRANSPORT_WATER, AITile.TRANSPORT_AIR]) {
-//				this.routes_built[member].rawset(transport_mode, {});
-//				foreach (cargo_class in [AICargo.CC_PASSENGERS, AICargo.CC_MAIL]) {
-//					this.routes_built[member][transport_mode].rawset(cargo_class, false);
-//				}
-//			}
-//		}
+		this.routes_built = {};
+		foreach (member in ["best", "all"]) {
+			this.routes_built.rawset(member, {});
+			foreach (transport_mode in [AITile.TRANSPORT_RAIL, AITile.TRANSPORT_ROAD, AITile.TRANSPORT_WATER, AITile.TRANSPORT_AIR]) {
+				this.routes_built[member].rawset(transport_mode, {});
+				foreach (cargo_class in ::caches.m_cargo_classes) {
+					this.routes_built[member][transport_mode].rawset(cargo_class, false);
+				}
+			}
+		}
 
 		/**
-		 * 'all_routes_built' and 'best_routes_built' are bits:
+		 * 'best_routes_built' are bits:
 		 * bit 0 - Road/Passengers, bit 1 - Road/Mail
 		 * bit 2 - Water/Passengers, bit 3 - Water/Mail
 		 * bit 4 - Air/Passengers, bit 5 - Air/Mail
 		 * bit 6 - Rail/Passengers, bit 7 - Rail/Mail
 		 */
-		this.all_routes_built = 0;
 		this.best_routes_built = 0;
 
 		this.road_route_manager = RoadRouteManager(this.road_town_manager);
@@ -543,11 +541,22 @@ function LuDiAIAfterFix::FoundTown()
 	}
 	AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 
-	if (this.all_routes_built == 0) {
+	local any_all_built = false;
+	foreach (transport_mode in this.routes_built.all) {
+		if (Utils.ListHasValue(transport_mode, true)) {
+			any_all_built = true;
+			break;
+		}
+	}
+	if (!any_all_built) {
 		return;
 	}
 
-	this.all_routes_built = 0;
+	foreach (transport_mode in this.routes_built.all) {
+		foreach (cargo_class in ::caches.m_cargo_classes) {
+			transport_mode[cargo_class] = false;
+		}
+	}
 //	this.road_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
 //	this.road_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
 	this.road_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
@@ -639,8 +648,8 @@ function LuDiAIAfterFix::Save()
 
 	table.rawset("scheduled_removals", ::scheduled_removals);
 
+	table.rawset("routes_built", this.routes_built);
 	table.rawset("best_routes_built", this.best_routes_built);
-	table.rawset("all_routes_built", this.all_routes_built);
 
 	table.rawset("cargo_class_rotation", this.cargo_class_rotation);
 	table.rawset("transport_mode_rotation", this.transport_mode_rotation);
@@ -716,12 +725,12 @@ function LuDiAIAfterFix::Start()
 				::scheduled_removals = this.load_data[1].rawget("scheduled_removals");
 			}
 
-			if (this.load_data[1].rawin("best_routes_built")) {
-				this.best_routes_built = this.load_data[1].rawget("best_routes_built");
+			if (this.load_data[1].rawin("routes_built")) {
+				this.routes_built = this.load_data[1].rawget("routes_built");
 			}
 
-			if (this.load_data[1].rawin("all_routes_built")) {
-				this.all_routes_built = this.load_data[1].rawget("all_routes_built");
+			if (this.load_data[1].rawin("best_routes_built")) {
+				this.best_routes_built = this.load_data[1].rawget("best_routes_built");
 			}
 
 			if (this.load_data[1].rawin("cargo_class_rotation")) {

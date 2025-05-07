@@ -3,7 +3,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 	if (!AIController.GetSetting("road_support")) return true; // assume true to keep rotating this.transport_mode_rotation
 
 	local unfinished = this.road_build_manager.HasUnfinishedRoute();
-	if (unfinished || (this.road_route_manager.GetRoadVehicleCount() < max(AIGameSettings.GetValue("max_roadveh") - 10, 10)) && ((this.all_routes_built >> 0) & 3) != 3) {
+	if (unfinished || (this.road_route_manager.GetRoadVehicleCount() < max(AIGameSettings.GetValue("max_roadveh") - 10, 10)) && Utils.ListHasValue(this.routes_built.all[AITile.TRANSPORT_ROAD], false)) {
 		local city_from = null;
 		local city_to = null;
 		local articulated = true;
@@ -93,10 +93,10 @@ function LuDiAIAfterFix::BuildRoadRoute()
 						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " road routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 					} else {
 //						this.road_town_manager.m_near_city_pair_array[cargo_class].clear();
-						if ((((this.all_routes_built >> 0) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) {
+						if (!this.routes_built.all[AITile.TRANSPORT_ROAD][cargo_class]) {
 							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " road routes have been used!");
 						}
-						this.all_routes_built = this.all_routes_built | (1 << (0 + (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1)));
+						this.routes_built.all[AITile.TRANSPORT_ROAD][cargo_class] = true;
 					}
 				}
 			}
@@ -118,7 +118,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 						if (!this.road_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
 							city_to = near_city_pair[1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && ((((this.all_routes_built >> 0) & 3) & (1 << (cargo_class == AICargo.CC_PASSENGERS ? 0 : 1))) == 0) && this.road_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+							if (AIController.GetSetting("pick_mode") != 1 && !this.routes_built.all[AITile.TRANSPORT_ROAD][cargo_class] && this.road_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
 //								AILog.Info("this.road_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.road_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								city_to = null;
 								continue;

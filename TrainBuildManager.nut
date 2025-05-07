@@ -2142,7 +2142,7 @@ class RailBuildManager
 		this.m_pathfinder_profile = data[13];
 		this.m_built_ways = data[14];
 
-		if (this.m_built_tiles[0].len() != 0 || this.m_built_tiles[1].len() != 0) {
+		if (this.m_built_tiles != null && (this.m_built_tiles[0].len() != 0 || this.m_built_tiles[1].len() != 0)) {
 			/* incomplete route found most likely */
 			this.RemoveFailedRouteTracks();
 			this.m_built_ways = 0;
