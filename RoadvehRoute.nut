@@ -760,15 +760,15 @@ class RoadRoute
 
 			local from_tiles = AITileList_StationType(AIStation.GetStationID(this.m_station_from), this.m_cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 			foreach (tile, _ in from_tiles) {
-				::scheduled_removals_table.Road.rawset(tile, 0);
+				::scheduled_removals.Road.rawset(tile, 0);
 			}
 
 			local to_tiles = AITileList_StationType(AIStation.GetStationID(this.m_station_to), this.m_cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
 			foreach (tile, _ in  to_tiles) {
-				::scheduled_removals_table.Road.rawset(tile, 0);
+				::scheduled_removals.Road.rawset(tile, 0);
 			}
 
-			::scheduled_removals_table.Road.rawset(this.m_depot_tile, 0);
+			::scheduled_removals.Road.rawset(this.m_depot_tile, 0);
 
 			if (AIGroup.IsValidGroup(this.m_group)) {
 				AIGroup.DeleteGroup(this.m_group);

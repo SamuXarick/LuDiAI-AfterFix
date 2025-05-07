@@ -664,7 +664,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 			if (station_from != -1) all_tiles_found.AddTile(station_from);
 			foreach (tile, _ in all_station_tiles) {
 				local found = false;
-				foreach (id, i in ::scheduled_removals_table.Train) {
+				foreach (id, i in ::scheduled_removals.Train) {
 					local t = i.m_tile;
 					local struct = i.m_struct;
 					if (struct == RailStructType.STATION) {
@@ -675,7 +675,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 					}
 				}
 				if (found) {
-//					AILog.Info("scheduled_removals_table.Train has tile " + tile);
+//					AILog.Info("scheduled_removals.Train has tile " + tile);
 					all_tiles_found[tile] = 0;
 				}
 				foreach (i, route in this.rail_route_manager.m_town_route_array) {
@@ -710,7 +710,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 			if (depot_tile_from != -1) all_tiles_found[depot_tile_from] = 0;
 			foreach (tile, _ in all_depots_tiles) {
 				local found = false;
-				foreach (id, i in ::scheduled_removals_table.Train) {
+				foreach (id, i in ::scheduled_removals.Train) {
 					local t = i.m_tile;
 					local struct = i.m_struct;
 					if (struct == RailStructType.DEPOT) {
@@ -721,7 +721,7 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 					}
 				}
 				if (found) {
-//					AILog.Info("scheduled_removals_table.Train has tile " + tile);
+//					AILog.Info("scheduled_removals.Train has tile " + tile);
 					all_tiles_found[tile] = 0;
 				}
 				foreach (i, route in this.rail_route_manager.m_town_route_array) {

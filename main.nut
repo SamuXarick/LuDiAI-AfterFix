@@ -84,7 +84,7 @@ class LuDiAIAfterFix extends AIController
 		 * bit 6 - Rail/Passengers, bit 7 - Rail/Mail
 		 */
 		all_routes_built = 0;
-		best_routes_built = 0;
+		this.best_routes_built = 0;
 
 		this.road_route_manager = RoadRouteManager(this.road_town_manager);
 		this.road_build_manager = RoadBuildManager();
@@ -98,7 +98,7 @@ class LuDiAIAfterFix extends AIController
 		this.rail_route_manager = RailRouteManager(this.rail_town_manager);
 		this.rail_build_manager = RailBuildManager();
 
-		::scheduled_removals_table <- {
+		::scheduled_removals <- {
 		    Train = [],
 		    Road = {},
 		    Ship = {},
@@ -122,8 +122,8 @@ function LuDiAIAfterFix::RemoveLeftovers()
 {
 	local cleared_list = AIList();
 	local to_clear_list = AIList();
-	if (::scheduled_removals_table.Aircraft.len() > 0) {
-		foreach (tile, value in ::scheduled_removals_table.Aircraft) {
+	if (::scheduled_removals.Aircraft.len() > 0) {
+		foreach (tile, value in ::scheduled_removals.Aircraft) {
 			if (AIAirport.IsAirportTile(tile)) {
 				if (TestRemoveAirport().TryRemove(tile)) {
 					cleared_list[tile] = 0;
@@ -135,15 +135,15 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (tile, _ in cleared_list) {
-			::scheduled_removals_table.Aircraft.rawdelete(tile);
+			::scheduled_removals.Aircraft.rawdelete(tile);
 		}
 	}
 
 	cleared_list.Clear();
 	to_clear_list.Clear();
-	if (::scheduled_removals_table.Road.len() > 0) {
+	if (::scheduled_removals.Road.len() > 0) {
 		AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
-		foreach (tile, value in ::scheduled_removals_table.Road) {
+		foreach (tile, value in ::scheduled_removals.Road) {
 			if (value == 0) { // Remove without using demolish
 				if (AIRoad.IsRoadStationTile(tile) || AIRoad.IsDriveThroughRoadStationTile(tile)) {
 					if (TestRemoveRoadStation().TryRemove(tile)) {
@@ -169,14 +169,14 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (tile, _ in cleared_list) {
-			::scheduled_removals_table.Road.rawdelete(tile);
+			::scheduled_removals.Road.rawdelete(tile);
 		}
 	}
 
 	cleared_list.Clear();
 	to_clear_list.Clear();
-	if (::scheduled_removals_table.Ship.len() > 0) {
-		foreach (tile, value in ::scheduled_removals_table.Ship) {
+	if (::scheduled_removals.Ship.len() > 0) {
+		foreach (tile, value in ::scheduled_removals.Ship) {
 			if (AIMarine.IsDockTile(tile)) {
 				local slope = AITile.GetSlope(tile);
 				if (slope == AITile.SLOPE_NE || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW) {
@@ -220,17 +220,17 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (tile, _ in cleared_list) {
-			::scheduled_removals_table.Ship.rawdelete(tile);
+			::scheduled_removals.Ship.rawdelete(tile);
 		}
 		foreach (tile, _ in to_clear_list) {
-			::scheduled_removals_table.Ship.rawset(tile, 0);
+			::scheduled_removals.Ship.rawset(tile, 0);
 		}
 	}
 
 	cleared_list.Clear();
 	to_clear_list.Clear();
-	if (::scheduled_removals_table.Train.len() > 0) {
-		foreach (id, i in ::scheduled_removals_table.Train) {
+	if (::scheduled_removals.Train.len() > 0) {
+		foreach (id, i in ::scheduled_removals.Train) {
 			local tile = i.m_tile;
 			local struct = i.m_struct;
 			local rail_type = i.m_rail_type;
@@ -294,7 +294,7 @@ function LuDiAIAfterFix::RemoveLeftovers()
 		}
 
 		foreach (id, _ in cleared_list) {
-			::scheduled_removals_table.Train.remove(id);
+			::scheduled_removals.Train.remove(id);
 		}
 	}
 }
@@ -612,24 +612,6 @@ function LuDiAIAfterFix::IsTransportModeInRotation(transport_mode)
 	return (this.transport_mode_rotation & (1 << transport_mode)) != 0;
 }
 
-// function LuDiAIAfterFix::SetNextTransportMode(transport_mode)
-// {
-// 	switch (transport_mode) {
-// 		case AITile.TRANSPORT_RAIL:
-// 			this.transport_mode_rotation = AITile.TRANSPORT_ROAD;
-// 			return;
-// 		case AITile.TRANSPORT_ROAD:
-// 			this.transport_mode_rotation = AITile.TRANSPORT_WATER;
-// 			return;
-// 		case AITile.TRANSPORT_WATER:
-// 			this.transport_mode_rotation = AITile.TRANSPORT_AIR;
-// 			return;
-// 		case AITile.TRANSPORT_AIR:
-// 			this.transport_mode_rotation = AITile.TRANSPORT_RAIL;
-// 			return;
-// 	}
-// }
-
 function LuDiAIAfterFix::Save()
 {
 	local ops = AIController.GetOpsTillSuspend();
@@ -655,9 +637,9 @@ function LuDiAIAfterFix::Save()
 	table.rawset("rail_route_manager", this.rail_route_manager.SaveRouteManager());
 	table.rawset("rail_build_manager", this.rail_build_manager.SaveBuildManager());
 
-	table.rawset("scheduled_removals_table", ::scheduled_removals_table);
+	table.rawset("scheduled_removals", ::scheduled_removals);
 
-	table.rawset("best_routes_built", best_routes_built);
+	table.rawset("best_routes_built", this.best_routes_built);
 	table.rawset("all_routes_built", all_routes_built);
 
 	table.rawset("cargo_class_rotation", this.cargo_class_rotation);
@@ -730,12 +712,12 @@ function LuDiAIAfterFix::Start()
 				this.rail_build_manager.LoadBuildManager(this.load_data[1].rawget("rail_build_manager"));
 			}
 
-			if (this.load_data[1].rawin("scheduled_removals_table")) {
-				::scheduled_removals_table = this.load_data[1].rawget("scheduled_removals_table");
+			if (this.load_data[1].rawin("scheduled_removals")) {
+				::scheduled_removals = this.load_data[1].rawget("scheduled_removals");
 			}
 
 			if (this.load_data[1].rawin("best_routes_built")) {
-				best_routes_built = this.load_data[1].rawget("best_routes_built");
+				this.best_routes_built = this.load_data[1].rawget("best_routes_built");
 			}
 
 			if (this.load_data[1].rawin("all_routes_built")) {

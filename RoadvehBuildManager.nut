@@ -86,7 +86,7 @@ class RoadBuildManager
 		} while (counter < 500);
 
 		if (counter == 500) {
-			::scheduled_removals_table.Road.rawset(this.m_station_from, 0);
+			::scheduled_removals.Road.rawset(this.m_station_from, 0);
 //			AILog.Error("Failed to remove" + station_text + "road station tile at " + station_tile + " - " + AIError.GetLastErrorString());
 		}
 	}
@@ -477,7 +477,7 @@ class RoadBuildManager
 								} while (counter < max_num_tries);
 
 								if (counter == max_num_tries) {
-									::scheduled_removals_table.Road.rawset(tile, 0);
+									::scheduled_removals.Road.rawset(tile, 0);
 //									AILog.Error("Failed to remove road station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -537,7 +537,7 @@ class RoadBuildManager
 								} while (counter < max_num_tries);
 
 								if (counter == max_num_tries) {
-									::scheduled_removals_table.Road.rawset(tile, 0);
+									::scheduled_removals.Road.rawset(tile, 0);
 //									AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -641,7 +641,7 @@ class RoadBuildManager
 								} while (counter < max_num_tries);
 
 								if (counter == max_num_tries) {
-									::scheduled_removals_table.Road.rawset(tile, tile_has_road ? 0 : 1);
+									::scheduled_removals.Road.rawset(tile, tile_has_road ? 0 : 1);
 //									AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -707,7 +707,7 @@ class RoadBuildManager
 								} while (counter < max_num_tries);
 
 								if (counter == max_num_tries) {
-									::scheduled_removals_table.Road.rawset(tile, 0);
+									::scheduled_removals.Road.rawset(tile, 0);
 //									AILog.Error("Failed to remove road station tile at " + tile + " - " + AIError.GetLastErrorString());
 									continue;
 								} else {
@@ -791,7 +791,7 @@ class RoadBuildManager
 							} while (counter < max_num_tries);
 
 							if (counter == max_num_tries) {
-								::scheduled_removals_table.Road.rawset(tile, 1);
+								::scheduled_removals.Road.rawset(tile, 1);
 //								AILog.Error("Failed to remove drive through station tile at " + tile + " - " + AIError.GetLastErrorString());
 								continue;
 							} else {
@@ -1205,7 +1205,7 @@ class RoadBuildManager
 					} while (counter < 500);
 
 					if (counter == 500) {
-						::scheduled_removals_table.Road.rawset(depot_tile, 0);
+						::scheduled_removals.Road.rawset(depot_tile, 0);
 						return null;
 					} else {
 						return null;

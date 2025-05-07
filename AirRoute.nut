@@ -646,8 +646,8 @@ class AirRoute
 				(AIDate.GetCurrentDate() - this.m_last_vehicle_added >= 90) && this.m_last_vehicle_added > 0)) {
 			this.m_active_route = false;
 
-			::scheduled_removals_table.Aircraft.rawset(this.m_airport_from, 0);
-			::scheduled_removals_table.Aircraft.rawset(this.m_airport_to, 0);
+			::scheduled_removals.Aircraft.rawset(this.m_airport_from, 0);
+			::scheduled_removals.Aircraft.rawset(this.m_airport_to, 0);
 
 			if (AIGroup.IsValidGroup(this.m_group)) {
 				AIGroup.DeleteGroup(this.m_group);
