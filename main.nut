@@ -83,7 +83,7 @@ class LuDiAIAfterFix extends AIController
 		 * bit 4 - Air/Passengers, bit 5 - Air/Mail
 		 * bit 6 - Rail/Passengers, bit 7 - Rail/Mail
 		 */
-		all_routes_built = 0;
+		this.all_routes_built = 0;
 		this.best_routes_built = 0;
 
 		this.road_route_manager = RoadRouteManager(this.road_town_manager);
@@ -543,11 +543,11 @@ function LuDiAIAfterFix::FoundTown()
 	}
 	AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 
-	if (all_routes_built == 0) {
+	if (this.all_routes_built == 0) {
 		return;
 	}
 
-	all_routes_built = 0;
+	this.all_routes_built = 0;
 //	this.road_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
 //	this.road_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
 	this.road_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
@@ -640,7 +640,7 @@ function LuDiAIAfterFix::Save()
 	table.rawset("scheduled_removals", ::scheduled_removals);
 
 	table.rawset("best_routes_built", this.best_routes_built);
-	table.rawset("all_routes_built", all_routes_built);
+	table.rawset("all_routes_built", this.all_routes_built);
 
 	table.rawset("cargo_class_rotation", this.cargo_class_rotation);
 	table.rawset("transport_mode_rotation", this.transport_mode_rotation);
@@ -721,7 +721,7 @@ function LuDiAIAfterFix::Start()
 			}
 
 			if (this.load_data[1].rawin("all_routes_built")) {
-				all_routes_built = this.load_data[1].rawget("all_routes_built");
+				this.all_routes_built = this.load_data[1].rawget("all_routes_built");
 			}
 
 			if (this.load_data[1].rawin("cargo_class_rotation")) {
