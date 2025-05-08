@@ -10,6 +10,7 @@ class AirRouteManager
 	m_last_management_managed = -1;
 	m_reserved_money = 0;
 	m_start_date = -1;
+	m_routes_built = null;
 
 	constructor(town_manager)
 	{
@@ -17,6 +18,14 @@ class AirRouteManager
 		this.m_town_manager = town_manager;
 		this.m_cargo_class = this.SwapCargoClass();
 		this.m_start_date = AIDate.DATE_INVALID;
+		this.m_routes_built = {};
+		this.m_routes_built.rawset("best", {});
+		this.m_routes_built.rawset("all", {});
+		foreach (route_built in this.m_routes_built) {
+			foreach (cargo_class in ::caches.m_cargo_classes) {
+				route_built.rawset(cargo_class, false);
+			}
+		}
 	}
 
 	function IsDateTimerRunning()
@@ -102,7 +111,7 @@ class AirRouteManager
 		this.m_reserved_money = 0;
 	}
 
-	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
+	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class)
 	{
 		if (this.m_sent_to_depot_group == null) {
 			this.m_sent_to_depot_group = [];
@@ -114,7 +123,7 @@ class AirRouteManager
 			assert(AIGroup.SetName(this.m_sent_to_depot_group[1], "1: Aircraft to renew"));
 		}
 
-		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_group, best_routes_built, all_routes_built);
+		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_group, this.m_routes_built.best[cargo_class], this.m_routes_built.all[cargo_class]);
 		local elapsed = this.DaysElapsed();
 		if (route != null) {
 			if (typeof(route) == "instance") {
@@ -392,7 +401,7 @@ class AirRouteManager
 			town_route_array.append(route.SaveRoute());
 		}
 
-		return [town_route_array, this.m_sent_to_depot_group, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed, this.m_reserved_money, this.m_start_date];
+		return [town_route_array, this.m_sent_to_depot_group, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed, this.m_reserved_money, this.m_start_date, this.m_routes_built];
 	}
 
 	function LoadRouteManager(data)
@@ -411,5 +420,6 @@ class AirRouteManager
 		this.m_last_management_managed = data[4];
 		this.m_reserved_money = data[5];
 		this.m_start_date = data[6];
+		this.m_routes_built = data[7];
 	}
 };
