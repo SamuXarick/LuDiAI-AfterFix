@@ -758,13 +758,13 @@ class RoadRoute
 				(AIDate.GetCurrentDate() - this.m_last_vehicle_added >= 90) && this.m_last_vehicle_added > 0)) {
 			this.m_active_route = false;
 
-			local from_tiles = AITileList_StationType(AIStation.GetStationID(this.m_station_from), this.m_cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
+			local from_tiles = AITileList_StationType(this.m_station_id_from, this.m_station_type);
 			foreach (tile, _ in from_tiles) {
 				::scheduled_removals[AITile.TRANSPORT_ROAD].rawset(tile, 0);
 			}
 
-			local to_tiles = AITileList_StationType(AIStation.GetStationID(this.m_station_to), this.m_cargo_class == AICargo.CC_PASSENGERS ? AIStation.STATION_BUS_STOP : AIStation.STATION_TRUCK_STOP);
-			foreach (tile, _ in  to_tiles) {
+			local to_tiles = AITileList_StationType(this.m_station_id_to, this.m_station_type);
+			foreach (tile, _ in to_tiles) {
 				::scheduled_removals[AITile.TRANSPORT_ROAD].rawset(tile, 0);
 			}
 
