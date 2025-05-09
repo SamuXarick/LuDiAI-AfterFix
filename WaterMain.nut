@@ -2,15 +2,15 @@ function LuDiAIAfterFix::BuildWaterRoute()
 {
 	if (!AIController.GetSetting("water_support")) return true; // assume true to keep rotating this.transport_mode_rotation
 
-	local unfinished = this.ship_build_manager.HasUnfinishedRoute();
-	if (unfinished || (this.ship_route_manager.GetShipCount() < max(AIGameSettings.GetValue("max_ships") - 10, 10)) && Utils.ListHasValue(this.ship_route_manager.m_routes_built.all, false)) {
+	local unfinished = this.water_build_manager.HasUnfinishedRoute();
+	if (unfinished || (this.water_route_manager.GetShipCount() < max(AIGameSettings.GetValue("max_ships") - 10, 10)) && Utils.ListHasValue(this.water_route_manager.m_routes_built.all, false)) {
 		local city_from = null;
 		local city_to = null;
 		local cheaper_route = false;
-		local cargo_class = this.ship_route_manager.m_cargo_class;
+		local cargo_class = this.water_route_manager.m_cargo_class;
 		if (!unfinished) {
-			if (!this.ship_route_manager.IsDateTimerRunning()) this.ship_route_manager.StartDateTimer();
-//			if (this.ship_route_manager.m_reserved_money == 0) this.ship_route_manager.SwapCargoClass();
+			if (!this.water_route_manager.IsDateTimerRunning()) this.water_route_manager.StartDateTimer();
+//			if (this.water_route_manager.m_reserved_money == 0) this.water_route_manager.SwapCargoClass();
 			local cargo_type = Utils.GetCargoType(cargo_class);
 
 			local engine_list = AIEngineList(AIVehicle.VT_WATER);
@@ -31,14 +31,14 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 
 			if (engine_list.IsEmpty()) {
-				if (this.ship_route_manager.m_reserved_money != 0) {
-					this.ship_route_manager.ResetMoneyReservation();
+				if (this.water_route_manager.m_reserved_money != 0) {
+					this.water_route_manager.ResetMoneyReservation();
 				}
-				this.ship_route_manager.SwapCargoClass();
+				this.water_route_manager.SwapCargoClass();
 				return true;
 			}
 
-			local best_engine_info = Utils.GetBestEngineIncome(engine_list, cargo_type, ShipRoute.COUNT_INTERVAL, false);
+			local best_engine_info = Utils.GetBestEngineIncome(engine_list, cargo_type, WaterRoute.COUNT_INTERVAL, false);
 			local max_distance = (WATER_DAYS_IN_TRANSIT * 2 * 74 * AIEngine.GetMaxSpeed(best_engine_info[0])) / (256 * 16);
 			local min_distance = max(20, max_distance * 2 / 3);
 //			AILog.Info("best_engine_info: best_engine = " + AIEngine.GetName(best_engine_info[0]) + "; best_distance = " + best_engine_info[1] + "; max_distance = " + max_distance + "; min_distance = " + min_distance);
@@ -57,31 +57,31 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			estimated_costs += engine_costs + canal_costs + clear_costs + dock_costs + depot_cost;
 //			AILog.Info("estimated_costs = " + estimated_costs + "; engine_costs = " + engine_costs + ", canal_costs = " + canal_costs + ", clear_costs = " + clear_costs + ", dock_costs = " + dock_costs + ", depot_cost = " + depot_cost);
 
-			if (this.ship_route_manager.m_reserved_money != 0) {
-				this.ship_route_manager.UpdateMoneyReservation(estimated_costs);
+			if (this.water_route_manager.m_reserved_money != 0) {
+				this.water_route_manager.UpdateMoneyReservation(estimated_costs);
 			} else {
-				this.ship_route_manager.SetMoneyReservation(estimated_costs);
+				this.water_route_manager.SetMoneyReservation(estimated_costs);
 			}
-			if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.ship_route_manager.GetNonPausedReservedMoney())) {
+			if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.water_route_manager.GetNonPausedReservedMoney())) {
 				/* Try a cheaper route */
-				if (this.ship_route_manager.m_routes_built.best[cargo_class]) {
-					if (this.ship_route_manager.DaysElapsed() <= 60) {
+				if (this.water_route_manager.m_routes_built.best[cargo_class]) {
+					if (this.water_route_manager.DaysElapsed() <= 60) {
 						return 0;
 					}
-					if (!this.ship_route_manager.IsMoneyReservationPaused()) {
-						this.ship_route_manager.PauseMoneyReservation();
+					if (!this.water_route_manager.IsMoneyReservationPaused()) {
+						this.water_route_manager.PauseMoneyReservation();
 					}
 					return 2; // allow skipping to next transport mode
 				} else {
 					estimated_costs -= canal_costs + clear_costs;
-					this.ship_route_manager.UpdateMoneyReservation(estimated_costs);
+					this.water_route_manager.UpdateMoneyReservation(estimated_costs);
 					cheaper_route = true;
-					if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.ship_route_manager.GetNonPausedReservedMoney())) {
-						if (this.ship_route_manager.DaysElapsed() <= 60) {
+					if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.water_route_manager.GetNonPausedReservedMoney())) {
+						if (this.water_route_manager.DaysElapsed() <= 60) {
 							return 0;
 						}
-						if (!this.ship_route_manager.IsMoneyReservationPaused()) {
-							this.ship_route_manager.PauseMoneyReservation();
+						if (!this.water_route_manager.IsMoneyReservationPaused()) {
+							this.water_route_manager.PauseMoneyReservation();
 						}
 						return 2; // allow skipping to next transport mode
 					}
@@ -89,21 +89,21 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 
 			if (city_from == null) {
-				city_from = this.ship_town_manager.GetUnusedCity(this.ship_route_manager.m_routes_built.best[cargo_class], cargo_class);
+				city_from = this.water_town_manager.GetUnusedCity(this.water_route_manager.m_routes_built.best[cargo_class], cargo_class);
 				if (city_from == null) {
 					if (AIController.GetSetting("pick_mode") == 1) {
-						this.ship_town_manager.m_used_cities_list[cargo_class].Clear();
-					} else if (!this.ship_route_manager.m_routes_built.best[cargo_class]) {
-						this.ship_route_manager.m_routes_built.best[cargo_class] = true;
-						this.ship_town_manager.m_used_cities_list[cargo_class].Clear();
-//						this.ship_town_manager.m_near_city_pair_array[cargo_class].clear();
+						this.water_town_manager.m_used_cities_list[cargo_class].Clear();
+					} else if (!this.water_route_manager.m_routes_built.best[cargo_class]) {
+						this.water_route_manager.m_routes_built.best[cargo_class] = true;
+						this.water_town_manager.m_used_cities_list[cargo_class].Clear();
+//						this.water_town_manager.m_near_city_pair_array[cargo_class].clear();
 						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " water routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
 					} else {
-//						this.ship_town_manager.m_near_city_pair_array[cargo_class].clear();
-						if (!this.ship_route_manager.m_routes_built.all[cargo_class]) {
+//						this.water_town_manager.m_near_city_pair_array[cargo_class].clear();
+						if (!this.water_route_manager.m_routes_built.all[cargo_class]) {
 							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " water routes have been used!");
 						}
-						this.ship_route_manager.m_routes_built.all[cargo_class] = true;
+						this.water_route_manager.m_routes_built.all[cargo_class] = true;
 					}
 				}
 			}
@@ -111,26 +111,26 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			if (city_from != null) {
 //				AILog.Info("s:New city found: " + AITown.GetName(city_from));
 
-				this.ship_town_manager.FindNearCities(city_from, min_dist, max_dist, this.ship_route_manager.m_routes_built.best[cargo_class], cargo_class);
+				this.water_town_manager.FindNearCities(city_from, min_dist, max_dist, this.water_route_manager.m_routes_built.best[cargo_class], cargo_class);
 
-				if (!this.ship_town_manager.m_near_city_pair_array[cargo_class].len()) {
+				if (!this.water_town_manager.m_near_city_pair_array[cargo_class].len()) {
 					AILog.Info("No near city available");
 					city_from = null;
 				}
 			}
 
 			if (city_from != null) {
-				foreach (near_city_pair in this.ship_town_manager.m_near_city_pair_array[cargo_class]) {
+				foreach (near_city_pair in this.water_town_manager.m_near_city_pair_array[cargo_class]) {
 					if (city_from == near_city_pair[0]) {
-						if (!this.ship_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
+						if (!this.water_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
 							city_to = near_city_pair[1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && !this.ship_route_manager.m_routes_built.all[cargo_class] && this.ship_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
-//								AILog.Info("this.ship_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.ship_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
+							if (AIController.GetSetting("pick_mode") != 1 && !this.water_route_manager.m_routes_built.all[cargo_class] && this.water_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+//								AILog.Info("this.water_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.water_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								city_to = null;
 								continue;
 							} else {
-//								AILog.Info("this.ship_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.ship_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
+//								AILog.Info("this.water_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.water_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								break;
 							}
 						}
@@ -143,16 +143,16 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 
 			if (city_from == null && city_to == null) {
-				this.ship_route_manager.ResetMoneyReservation();
-				this.ship_route_manager.SwapCargoClass();
+				this.water_route_manager.ResetMoneyReservation();
+				this.water_route_manager.SwapCargoClass();
 			}
 		} else {
-			if (!Utils.HasMoney(this.ship_route_manager.GetReservedMoney())) {
-				if (this.ship_route_manager.DaysElapsed() <= 60) {
+			if (!Utils.HasMoney(this.water_route_manager.GetReservedMoney())) {
+				if (this.water_route_manager.DaysElapsed() <= 60) {
 					return 0;
 				}
-				if (!this.ship_route_manager.IsMoneyReservationPaused()) {
-					this.ship_route_manager.PauseMoneyReservation();
+				if (!this.water_route_manager.IsMoneyReservationPaused()) {
+					this.water_route_manager.PauseMoneyReservation();
 				}
 				return 2; // allow skipping to next transport mode
 			}
@@ -164,12 +164,12 @@ function LuDiAIAfterFix::BuildWaterRoute()
 				AILog.Info("s:New near city found: " + AITown.GetName(city_to));
 			}
 
-			city_from = unfinished ? this.ship_build_manager.m_city_from : city_from;
-			city_to = unfinished ? this.ship_build_manager.m_city_to : city_to;
-			cargo_class = unfinished ? this.ship_build_manager.m_cargo_class : cargo_class;
-			cheaper_route = unfinished ? this.ship_build_manager.m_cheaper_route : cheaper_route;
+			city_from = unfinished ? this.water_build_manager.m_city_from : city_from;
+			city_to = unfinished ? this.water_build_manager.m_city_to : city_to;
+			cargo_class = unfinished ? this.water_build_manager.m_cargo_class : cargo_class;
+			cheaper_route = unfinished ? this.water_build_manager.m_cheaper_route : cheaper_route;
 
-			return this.ship_route_manager.BuildRoute(this.ship_build_manager, city_from, city_to, cargo_class, cheaper_route);
+			return this.water_route_manager.BuildRoute(this.water_build_manager, city_from, city_to, cargo_class, cheaper_route);
 		}
 	}
 	return true;
@@ -177,11 +177,11 @@ function LuDiAIAfterFix::BuildWaterRoute()
 
 function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 {
-	if (this.ship_build_manager.HasUnfinishedRoute()) {
+	if (this.water_build_manager.HasUnfinishedRoute()) {
 		/* Look for potentially unregistered dock or ship depot tiles during save */
-		local dock_from = this.ship_build_manager.m_dock_from;
-		local dock_to = this.ship_build_manager.m_dock_to;
-		local depot_tile = this.ship_build_manager.m_depot_tile;
+		local dock_from = this.water_build_manager.m_dock_from;
+		local dock_to = this.water_build_manager.m_dock_to;
+		local depot_tile = this.water_build_manager.m_depot_tile;
 		local station_type = AIStation.STATION_DOCK;
 
 		if (dock_from == -1 || dock_to == -1) {
@@ -200,7 +200,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 					all_tiles_found[tile] = 0;
 					break;
 				}
-				foreach (route in this.ship_route_manager.m_town_route_array) {
+				foreach (route in this.water_route_manager.m_town_route_array) {
 					if (route.m_dock_from == tile || route.m_dock_to == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						local station_tiles = AITileList_StationType(AIStation.GetStationID(tile), station_type);
@@ -234,7 +234,7 @@ function LuDiAIAfterFix::CheckForUnfinishedWaterRoute()
 					all_tiles_found[tile] = 0;
 					break;
 				}
-				foreach (route in this.ship_route_manager.m_town_route_array) {
+				foreach (route in this.water_route_manager.m_town_route_array) {
 					if (route.m_depot_tile == tile) {
 //						AILog.Info("Route " + i + " has tile " + tile);
 						all_tiles_found[tile] = 0;

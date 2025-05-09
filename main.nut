@@ -1,17 +1,17 @@
-require("RoadvehRouteManager.nut");
-require("ShipRouteManager.nut");
+require("RoadRouteManager.nut");
+require("WaterRouteManager.nut");
 require("AirRouteManager.nut");
-require("TrainRouteManager.nut");
+require("RailRouteManager.nut");
 
-require("RoadvehRoute.nut");
-require("ShipRoute.nut");
+require("RoadRoute.nut");
+require("WaterRoute.nut");
 require("AirRoute.nut");
-require("TrainRoute.nut");
+require("RailRoute.nut");
 
-require("RoadvehBuildManager.nut");
-require("ShipBuildManager.nut");
+require("RoadBuildManager.nut");
+require("WaterBuildManager.nut");
 require("AirBuildManager.nut");
-require("TrainBuildManager.nut");
+require("RailBuildManager.nut");
 
 require("TownManager.nut");
 require("Utils.nut");
@@ -32,9 +32,9 @@ class LuDiAIAfterFix extends AIController
 	road_route_manager = null;
 	road_build_manager = null;
 
-	ship_town_manager = null;
-	ship_route_manager = null;
-	ship_build_manager = null;
+	water_town_manager = null;
+	water_route_manager = null;
+	water_build_manager = null;
 
 	air_town_manager = null;
 	air_route_manager = null;
@@ -55,7 +55,7 @@ class LuDiAIAfterFix extends AIController
 		::caches <- Caches();
 
 		this.road_town_manager = TownManager();
-		this.ship_town_manager = TownManager();
+		this.water_town_manager = TownManager();
 		this.air_town_manager = TownManager();
 		this.rail_town_manager = TownManager();
 
@@ -64,8 +64,8 @@ class LuDiAIAfterFix extends AIController
 		this.road_route_manager = RoadRouteManager(this.road_town_manager);
 		this.road_build_manager = RoadBuildManager();
 
-		this.ship_route_manager = ShipRouteManager(this.ship_town_manager);
-		this.ship_build_manager = ShipBuildManager();
+		this.water_route_manager = WaterRouteManager(this.water_town_manager);
+		this.water_build_manager = WaterBuildManager();
 
 		this.air_route_manager = AirRouteManager(this.air_town_manager);
 		this.air_build_manager = AirBuildManager();
@@ -169,7 +169,7 @@ function LuDiAIAfterFix::RemoveLeftovers()
 							}
 						}
 						local tile3 = tile2 + offset;
-						if (AIMarine.IsCanalTile(tile3) && !ShipBuildManager().RemovingCanalBlocksConnection(tile3)) {
+						if (AIMarine.IsCanalTile(tile3) && !WaterBuildManager().RemovingCanalBlocksConnection(tile3)) {
 							if (!TestRemoveCanal().TryRemove(tile3)) {
 								to_clear_list[tile3] = 0;
 							}
@@ -180,7 +180,7 @@ function LuDiAIAfterFix::RemoveLeftovers()
 					/* Not our dock, someone overbuilt it on top of a canal tile */
 					cleared_list[tile] = 0;
 				}
-			} else if (AIMarine.IsCanalTile(tile) && !ShipBuildManager().RemovingCanalBlocksConnection(tile)) {
+			} else if (AIMarine.IsCanalTile(tile) && !WaterBuildManager().RemovingCanalBlocksConnection(tile)) {
 				if (TestRemoveCanal().TryRemove(tile)) {
 					cleared_list[tile] = 0;
 				}
@@ -519,7 +519,7 @@ function LuDiAIAfterFix::FoundTown()
 	AILog.Warning("Founded town " + AITown.GetName(AITile.GetTownAuthority(town_tile)) + ".");
 
 	local any_all_built = false;
-	foreach (cargo_class in [this.rail_route_manager.m_routes_built.all, this.road_route_manager.m_routes_built.all, this.ship_route_manager.m_routes_built.all, this.air_route_manager.m_routes_built.all]) {
+	foreach (cargo_class in [this.rail_route_manager.m_routes_built.all, this.road_route_manager.m_routes_built.all, this.water_route_manager.m_routes_built.all, this.air_route_manager.m_routes_built.all]) {
 		if (Utils.ListHasValue(cargo_class, true)) {
 			any_all_built = true;
 			break;
@@ -529,7 +529,7 @@ function LuDiAIAfterFix::FoundTown()
 		return;
 	}
 
-	foreach (cargo_class in [this.rail_route_manager.m_routes_built.all, this.road_route_manager.m_routes_built.all, this.ship_route_manager.m_routes_built.all, this.air_route_manager.m_routes_built.all]) {
+	foreach (cargo_class in [this.rail_route_manager.m_routes_built.all, this.road_route_manager.m_routes_built.all, this.water_route_manager.m_routes_built.all, this.air_route_manager.m_routes_built.all]) {
 		foreach (cargo_class in ::caches.m_cargo_classes) {
 			cargo_class = false;
 		}
@@ -538,10 +538,10 @@ function LuDiAIAfterFix::FoundTown()
 //	this.road_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
 	this.road_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
 	this.road_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
-//	this.ship_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
-//	this.ship_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
-	this.ship_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
-	this.ship_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
+//	this.water_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
+//	this.water_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
+	this.water_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
+	this.water_town_manager.m_used_cities_list[AICargo.CC_MAIL].Clear();
 //	this.air_town_manager.m_near_city_pair_array[AICargo.CC_PASSENGERS].clear();
 //	this.air_town_manager.m_near_city_pair_array[AICargo.CC_MAIL].clear();
 	this.air_town_manager.m_used_cities_list[AICargo.CC_PASSENGERS].Clear();
@@ -611,9 +611,9 @@ function LuDiAIAfterFix::Save()
 	table.rawset("road_route_manager", this.road_route_manager.SaveRouteManager());
 	table.rawset("road_build_manager", this.road_build_manager.SaveBuildManager());
 
-	table.rawset("this.ship_town_manager", this.ship_town_manager.SaveTownManager());
-	table.rawset("ship_route_manager", this.ship_route_manager.SaveRouteManager());
-	table.rawset("ship_build_manager", this.ship_build_manager.SaveBuildManager());
+	table.rawset("this.water_town_manager", this.water_town_manager.SaveTownManager());
+	table.rawset("water_route_manager", this.water_route_manager.SaveRouteManager());
+	table.rawset("water_build_manager", this.water_build_manager.SaveBuildManager());
 
 	table.rawset("air_town_manager", this.air_town_manager.SaveTownManager());
 	table.rawset("air_route_manager", this.air_route_manager.SaveRouteManager());
@@ -659,16 +659,16 @@ function LuDiAIAfterFix::Start()
 				this.road_build_manager.LoadBuildManager(this.load_data[1].rawget("road_build_manager"));
 			}
 
-			if (this.load_data[1].rawin("ship_town_manager")) {
-				this.ship_town_manager.LoadTownManager(this.load_data[1].rawget("ship_town_manager"));
+			if (this.load_data[1].rawin("water_town_manager")) {
+				this.water_town_manager.LoadTownManager(this.load_data[1].rawget("water_town_manager"));
 			}
 
-			if (this.load_data[1].rawin("ship_route_manager")) {
-				this.ship_route_manager.LoadRouteManager(this.load_data[1].rawget("ship_route_manager"));
+			if (this.load_data[1].rawin("water_route_manager")) {
+				this.water_route_manager.LoadRouteManager(this.load_data[1].rawget("water_route_manager"));
 			}
 
-			if (this.load_data[1].rawin("ship_build_manager")) {
-				this.ship_build_manager.LoadBuildManager(this.load_data[1].rawget("ship_build_manager"));
+			if (this.load_data[1].rawin("water_build_manager")) {
+				this.water_build_manager.LoadBuildManager(this.load_data[1].rawget("water_build_manager"));
 			}
 
 			if (this.load_data[1].rawin("air_town_manager")) {
@@ -805,7 +805,7 @@ function LuDiAIAfterFix::Start()
 
 //		local start_tick = AIController.GetTick();
 //		AILog.Info("main loop . ManageShipRoutes");
-		this.ship_route_manager.ManageShipRoutes(this.ship_town_manager);
+		this.water_route_manager.ManageShipRoutes(this.water_town_manager);
 //		local management_ticks = AIController.GetTick() - start_tick;
 //		AILog.Info("ManageShipRoutes " + management_ticks + " tick" + (management_ticks != 1 ? "s" : "") + ".");
 
@@ -889,14 +889,14 @@ function LuDiAIAfterFix::Start()
 
 //		AILog.Info("::caches.m_reserved_money: " + ::caches.m_reserved_money);
 //		AILog.Info("this.road_route_manager.m_reserved_money: " + this.road_route_manager.m_reserved_money);
-//		AILog.Info("this.ship_route_manager.m_reserved_money: " + this.ship_route_manager.m_reserved_money);
+//		AILog.Info("this.water_route_manager.m_reserved_money: " + this.water_route_manager.m_reserved_money);
 //		AILog.Info("this.air_route_manager.m_reserved_money: " + this.air_route_manager.m_reserved_money);
 //		AILog.Info("this.rail_route_manager.m_reserved_money: " + this.rail_route_manager.m_reserved_money);
 //		AILog.Info("this.transport_mode_rotation: " + this.transport_mode_rotation);
 	} while (AIController.Sleep(Utils.ListHasValue(this.sleep_longer, false) ? 1 : 74));
 }
 
-require("RoadvehMain.nut");
-require("ShipMain.nut");
+require("RoadMain.nut");
+require("WaterMain.nut");
 require("AirMain.nut");
-require("TrainMain.nut");
+require("RailMain.nut");

@@ -1,6 +1,6 @@
-require("ShipRouteManager.nut");
+require("WaterRouteManager.nut");
 
-class ShipRoute
+class WaterRoute
 {
 	static COUNT_INTERVAL = 20;
 	static STATION_RATING_INTERVAL = 40;
@@ -52,7 +52,7 @@ class ShipRoute
 		this.m_station_name_from = AIBaseStation.GetName(this.m_station_id_from);
 		this.m_station_name_to = AIBaseStation.GetName(this.m_station_id_to);
 		this.m_cargo_type = Utils.GetCargoType(cargo_class);
-		this.m_route_dist = AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(dock_from), ShipBuildManager.GetDockDockingTile(dock_to));
+		this.m_route_dist = AIMap.DistanceManhattan(WaterBuildManager.GetDockDockingTile(dock_from), WaterBuildManager.GetDockDockingTile(dock_to));
 
 		/* This requires the values above to be initialized */
 		this.m_engine = this.GetShipEngine();
@@ -745,7 +745,7 @@ class ShipRoute
 		if (!AIGroup.IsValidGroup(this.m_group)) {
 			this.m_group = AIGroup.CreateGroup(AIVehicle.VT_WATER, AIGroup.GROUP_INVALID);
 			if (AIGroup.IsValidGroup(this.m_group)) {
-				AIGroup.SetName(this.m_group, (this.m_cargo_class == AICargo.CC_PASSENGERS ? "P" : "M") + AIMap.DistanceManhattan(ShipBuildManager.GetDockDockingTile(this.m_dock_from), ShipBuildManager.GetDockDockingTile(this.m_dock_to)) + ": " + this.m_dock_from + " - " + this.m_dock_to);
+				AIGroup.SetName(this.m_group, (this.m_cargo_class == AICargo.CC_PASSENGERS ? "P" : "M") + AIMap.DistanceManhattan(WaterBuildManager.GetDockDockingTile(this.m_dock_from), WaterBuildManager.GetDockDockingTile(this.m_dock_to)) + ": " + this.m_dock_from + " - " + this.m_dock_to);
 				AILog.Info("Created " + AIGroup.GetName(this.m_group) + " for water route from " + this.m_station_name_from + " to " + this.m_station_name_to);
 			}
 		}
@@ -767,7 +767,7 @@ class ShipRoute
 
 		local sent_to_depot_water_group = data[9];
 
-		local route = ShipRoute(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, sent_to_depot_water_group, true);
+		local route = WaterRoute(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, sent_to_depot_water_group, true);
 
 		route.m_last_vehicle_added = data[6];
 		route.m_last_vehicle_removed = data[7];

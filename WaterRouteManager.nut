@@ -1,6 +1,6 @@
-require("ShipBuildManager.nut");
+require("WaterBuildManager.nut");
 
-class ShipRouteManager
+class WaterRouteManager
 {
 	m_town_route_array = null;
 	m_town_manager = null;
@@ -111,7 +111,7 @@ class ShipRouteManager
 		this.m_reserved_money = 0;
 	}
 
-	function BuildRoute(ship_build_manager, city_from, city_to, cargo_class, cheaper_route)
+	function BuildRoute(water_build_manager, city_from, city_to, cargo_class, cheaper_route)
 	{
 		if (this.m_sent_to_depot_group == null) {
 			this.m_sent_to_depot_group = [];
@@ -123,12 +123,12 @@ class ShipRouteManager
 			assert(AIGroup.SetName(this.m_sent_to_depot_group[1], "1: Ships to renew"));
 		}
 
-		local route = ship_build_manager.BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, this.m_sent_to_depot_group, this.m_routes_built.best[cargo_class]);
+		local route = water_build_manager.BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, this.m_sent_to_depot_group, this.m_routes_built.best[cargo_class]);
 		local elapsed = this.DaysElapsed();
 		if (route != null) {
 			if (typeof(route) == "instance") {
 				this.m_town_route_array.append(route);
-				ship_build_manager.SetRouteFinished();
+				water_build_manager.SetRouteFinished();
 				this.ResetMoneyReservation();
 				this.SwapCargoClass();
 				AILog.Warning("Built " + AICargo.GetCargoLabel(Utils.GetCargoType(cargo_class)) + " water route between " + route.m_station_name_from + " and " + route.m_station_name_to + " in " + elapsed + " day" + (elapsed != 1 ? "s" : "") + ".");
@@ -272,7 +272,7 @@ class ShipRouteManager
 		return false;
 	}
 
-	function ManageShipRoutes(ship_town_manager)
+	function ManageShipRoutes(water_town_manager)
 	{
 		local max_ships = AIGameSettings.GetValue("max_ships");
 
@@ -383,7 +383,7 @@ class ShipRouteManager
 			local cargo_class = this.m_town_route_array[i].m_cargo_class;
 			if (this.m_town_route_array[i].RemoveIfUnserviced()) {
 				this.m_town_route_array.remove(i);
-				ship_town_manager.ResetCityPair(city_from, city_to, cargo_class, true);
+				water_town_manager.ResetCityPair(city_from, city_to, cargo_class, true);
 			}
 			if (this.InterruptWaterManagement(cur_date)) return;
 		}
@@ -408,7 +408,7 @@ class ShipRouteManager
 		local town_route_array = data[0];
 
 		foreach (loaded_route in town_route_array) {
-			local route = ShipRoute.LoadRoute(loaded_route);
+			local route = WaterRoute.LoadRoute(loaded_route);
 			this.m_town_route_array.append(route);
 		}
 		AILog.Info("Loaded " + this.m_town_route_array.len() + " water routes.");

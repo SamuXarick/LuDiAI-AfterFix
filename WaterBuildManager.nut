@@ -121,7 +121,7 @@ class DockStation
 	}
 };
 
-class ShipBuildManager
+class WaterBuildManager
 {
 	/* These are saved */
 	m_city_from = -1;
@@ -498,7 +498,7 @@ class ShipBuildManager
 			return null;
 		}
 
-		return ShipRoute(this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class, this.m_sent_to_depot_water_group);
+		return WaterRoute(this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class, this.m_sent_to_depot_water_group);
 	}
 
 	function AreOtherDocksNearby(dock_rectangle)
