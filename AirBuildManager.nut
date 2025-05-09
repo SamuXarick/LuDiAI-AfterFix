@@ -60,17 +60,12 @@ class AirBuildManager
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
-		this.m_cargo_class = cargo_class;
 		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
 		this.m_best_routes_built = best_routes_built;
 		this.m_all_routes_built = all_routes_built;
 
 		if (this.m_sent_to_depot_air_group == null) {
 			this.m_sent_to_depot_air_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-		}
-
-		if (this.m_cargo_type == -1) {
-			this.m_cargo_type = Utils.GetCargoType(this.m_cargo_class);
 		}
 
 		if (this.m_small_aircraft_route == null) {
@@ -217,6 +212,11 @@ class AirBuildManager
 			return null;
 		}
 
+
+		if (this.m_cargo_type == -1) {
+			this.m_cargo_type = Utils.GetCargoType(cargo_class);
+		}
+
 		local available_engines = false;
 		local engine_costs = 0;
 
@@ -290,6 +290,8 @@ class AirBuildManager
 		if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - air_route_manager.GetNonPausedReservedMoney())) {
 			return 0;
 		}
+
+		this.m_cargo_class = cargo_class;
 
 		if (this.m_airport_from == -1) {
 			this.m_airport_from = this.BuildTownAirport(air_route_manager, air_town_manager, this.m_city_from);
