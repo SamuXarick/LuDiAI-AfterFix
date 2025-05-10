@@ -852,7 +852,7 @@ class RailRoute
 	function RemoveIfUnserviced()
 	{
 		this.ValidateVehicleList();
-		if (this.m_vehicle_list.Count() == 0 && (((!AIEngine.IsValidEngine(this.m_engine_wagon_pair[0]) || !AIEngine.IsBuildable(this.m_engine_wagon_pair[0]) || !AIEngine.IsValidEngine(this.m_engine_wagon_pair[1]) || !AIEngine.IsBuildable(this.m_engine_wagon_pair[1])) && this.m_last_vehicle_added == 0) ||
+		if (this.m_vehicle_list.IsEmpty() && (((!AIEngine.IsValidEngine(this.m_engine_wagon_pair[0]) || !AIEngine.IsBuildable(this.m_engine_wagon_pair[0]) || !AIEngine.IsValidEngine(this.m_engine_wagon_pair[1]) || !AIEngine.IsBuildable(this.m_engine_wagon_pair[1])) && this.m_last_vehicle_added == 0) ||
 				(AIDate.GetCurrentDate() - this.m_last_vehicle_added >= 90) && this.m_last_vehicle_added > 0)) {
 			this.m_active_route = false;
 
