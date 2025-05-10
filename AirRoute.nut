@@ -65,42 +65,48 @@ class AirRoute
 
 	function ValidateVehicleList()
 	{
+		this.m_vehicle_list = AIVehicleList_Station(this.m_station_id_from);
 		foreach (v, _ in this.m_vehicle_list) {
-			if (!AIVehicle.IsValidVehicle(v)) {
-				this.m_vehicle_list[v] = null;
-				continue;
-			}
 			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_AIR) {
-				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 				this.m_vehicle_list[v] = null;
-				continue;
-			}
-			local num_orders = AIOrder.GetOrderCount(v);
-			if (num_orders != 2) {
-				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-				this.m_vehicle_list[v] = null;
-				continue;
-			}
-			local order_from = false;
-			local order_to = false;
-			for (local o = 0; o < num_orders; o++) {
-				if (!AIOrder.IsValidVehicleOrder(v, o)) {
-					continue;
-				}
-				local station_id = AIStation.GetStationID(AIOrder.GetOrderDestination(v, o));
-				if (station_id == this.m_station_id_from) {
-					order_from = true;
-				}
-				if (station_id == this.m_station_id_to) {
-					order_to = true;
-				}
-			}
-			if (!order_from || !order_to) {
-				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-				this.m_vehicle_list[v] = null;
-				continue;
 			}
 		}
+//		foreach (v, _ in this.m_vehicle_list) {
+//			if (!AIVehicle.IsValidVehicle(v)) {
+//				this.m_vehicle_list[v] = null;
+//				continue;
+//			}
+//			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_AIR) {
+//				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+//				this.m_vehicle_list[v] = null;
+//				continue;
+//			}
+//			local num_orders = AIOrder.GetOrderCount(v);
+//			if (num_orders != 2) {
+//				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+//				this.m_vehicle_list[v] = null;
+//				continue;
+//			}
+//			local order_from = false;
+//			local order_to = false;
+//			for (local o = 0; o < num_orders; o++) {
+//				if (!AIOrder.IsValidVehicleOrder(v, o)) {
+//					continue;
+//				}
+//				local station_id = AIStation.GetStationID(AIOrder.GetOrderDestination(v, o));
+//				if (station_id == this.m_station_id_from) {
+//					order_from = true;
+//				}
+//				if (station_id == this.m_station_id_to) {
+//					order_to = true;
+//				}
+//			}
+//			if (!order_from || !order_to) {
+//				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+//				this.m_vehicle_list[v] = null;
+//				continue;
+//			}
+//		}
 	}
 
 	function SentToDepotList(i)
