@@ -23,7 +23,6 @@ class AirBuildManager
 	m_big_engine_list = null;
 	m_small_engine_list = null;
 	m_helicopter_list = null;
-	m_sent_to_depot_air_group = null;
 	m_cargo_type = -1;
 
 	function HasUnfinishedRoute()
@@ -52,21 +51,15 @@ class AirBuildManager
 		this.m_big_engine_list = null;
 		this.m_small_engine_list = null;
 		this.m_helicopter_list = null;
-		this.m_sent_to_depot_air_group = null;
 		this.m_cargo_type = -1;
 	}
 
-	function BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, sent_to_depot_air_group, best_routes_built, all_routes_built)
+	function BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
-		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
 		this.m_best_routes_built = best_routes_built;
 		this.m_all_routes_built = all_routes_built;
-
-		if (this.m_sent_to_depot_air_group == null) {
-			this.m_sent_to_depot_air_group = [AIGroup.GROUP_INVALID, AIGroup.GROUP_INVALID];
-		}
 
 		if (this.m_small_aircraft_route == null) {
 			this.m_small_aircraft_route = false;
@@ -352,7 +345,7 @@ class AirBuildManager
 			}
 		}
 
-		return AirRoute(this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_sent_to_depot_air_group);
+		return AirRoute(this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class);
 	}
 
 	function GetAdjacentNonAirportStationID(airport_rectangle, spread_rectangle)

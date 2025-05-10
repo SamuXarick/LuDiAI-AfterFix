@@ -12,7 +12,6 @@ class AirRoute
 	m_last_vehicle_added = null;
 	m_last_vehicle_removed = null;
 	m_renew_vehicles = null;
-	m_sent_to_depot_air_group = null;
 	m_active_route = null;
 
 	/* These are unsaved */
@@ -28,14 +27,13 @@ class AirRoute
 	m_airport_type_from = null;
 	m_airport_type_to = null;
 
-	constructor(city_from, city_to, airport_from, airport_to, cargo_class, sent_to_depot_air_group, is_loaded = false)
+	constructor(city_from, city_to, airport_from, airport_to, cargo_class, is_loaded = false)
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
 		this.m_airport_from = airport_from;
 		this.m_airport_to = airport_to;
 		this.m_cargo_class = cargo_class;
-		this.m_sent_to_depot_air_group = sent_to_depot_air_group;
 
 		this.m_group = AIGroup.GROUP_INVALID;
 		this.m_last_vehicle_added = 0;
@@ -71,54 +69,6 @@ class AirRoute
 				this.m_vehicle_list[v] = null;
 			}
 		}
-//		foreach (v, _ in this.m_vehicle_list) {
-//			if (!AIVehicle.IsValidVehicle(v)) {
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_AIR) {
-//				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//			local num_orders = AIOrder.GetOrderCount(v);
-//			if (num_orders != 2) {
-//				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//			local order_from = false;
-//			local order_to = false;
-//			for (local o = 0; o < num_orders; o++) {
-//				if (!AIOrder.IsValidVehicleOrder(v, o)) {
-//					continue;
-//				}
-//				local station_id = AIStation.GetStationID(AIOrder.GetOrderDestination(v, o));
-//				if (station_id == this.m_station_id_from) {
-//					order_from = true;
-//				}
-//				if (station_id == this.m_station_id_to) {
-//					order_to = true;
-//				}
-//			}
-//			if (!order_from || !order_to) {
-//				AILog.Error("a:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//		}
-	}
-
-	function SentToDepotList(i)
-	{
-		local sent_to_depot_list = AIList();
-		this.ValidateVehicleList();
-		foreach (vehicle, status in this.m_vehicle_list) {
-			if (status == i) {
-				sent_to_depot_list[vehicle] = i;
-			}
-		}
-		return sent_to_depot_list;
 	}
 
 	function GetAircraftEngine()
@@ -382,7 +332,7 @@ class AirRoute
 
 	function SendMoveVehicleToDepot(vehicle_id)
 	{
-		if (AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_air_group[0] && AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_air_group[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
+		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id)) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
 			local airport1_hangars = AIAirport.GetNumHangars(this.m_airport_from) != 0;
 			local airport2_hangars = AIAirport.GetNumHangars(this.m_airport_to) != 0;
@@ -393,7 +343,7 @@ class AirRoute
 					AIOrder.SkipToOrder(vehicle_id, 1);
 				}
 			}
-			if (!AIVehicle.IsStoppedInDepot(vehicle_id) && !AIVehicle.SendVehicleToDepot(vehicle_id)) {
+			if (!AIVehicle.SendVehicleToDepot(vehicle_id)) {
 				AILog.Info("Failed to send " + vehicle_name + " to depot. Will try again later.");
 				return false;
 			}
@@ -419,11 +369,6 @@ class AirRoute
 		foreach (vehicle, _ in this.m_vehicle_list) {
 			if (AIVehicle.GetAge(vehicle) > 730 && AIVehicle.GetProfitLastYear(vehicle) < 0) {
 				if (this.SendMoveVehicleToDepot(vehicle)) {
-					if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
-						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[0]);
-					} else {
-						this.m_vehicle_list[vehicle] = 0;
-					}
 					return;
 				}
 			}
@@ -452,13 +397,7 @@ class AirRoute
 		if (cargo_waiting_from + cargo_waiting_to < 150) {
 			foreach (vehicle, _ in vehicle_list) {
 				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {
-					if (this.SendMoveVehicleToDepot(vehicle)) {
-						if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
-							AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[0]);
-						} else {
-							this.m_vehicle_list[vehicle] = 0;
-						}
-					}
+					this.SendMoveVehicleToDepot(vehicle);
 				}
 			}
 		}
@@ -471,47 +410,19 @@ class AirRoute
 		this.ValidateVehicleList();
 
 		foreach (vehicle, _ in this.m_vehicle_list) {
-			if (this.SendMoveVehicleToDepot(vehicle)) {
-				if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[0], vehicle)) {
-					AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[0]);
-				} else {
-					this.m_vehicle_list[vehicle] = 0;
-				}
-			}
+			this.SendMoveVehicleToDepot(vehicle);
 		}
 	}
 
 	function SellVehiclesInDepot()
 	{
-		local sent_to_depot_list = this.SentToDepotList(0);
-
-		foreach (vehicle, _ in sent_to_depot_list) {
-			if (this.m_vehicle_list.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
+		this.ValidateVehicleList();
+		foreach (vehicle, _ in this.m_vehicle_list) {
+			if (AIVehicle.IsStoppedInDepot(vehicle)) {
 				local vehicle_name = AIVehicle.GetName(vehicle);
 				this.DeleteSellVehicle(vehicle);
 
 				AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sold!");
-			}
-		}
-
-		sent_to_depot_list = this.SentToDepotList(1);
-
-		foreach (vehicle, _ in sent_to_depot_list) {
-			if (this.m_vehicle_list.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
-				if (this.m_renew_vehicles) {
-					local skip_to_order = AIOrder.ResolveOrderPosition(vehicle, AIOrder.ORDER_CURRENT);
-					this.DeleteSellVehicle(vehicle);
-
-					local renewed_vehicle = this.AddVehicle(true, skip_to_order);
-					if (renewed_vehicle != null) {
-						AILog.Info(AIVehicle.GetName(renewed_vehicle) + " on route from " + (skip_to_order < 1 ? this.m_station_name_from : this.m_station_name_to) + " to " + (skip_to_order < 1 ? this.m_station_name_to : this.m_station_name_from) + " has been renewed!");
-					}
-				} else {
-					local vehicle_name = AIVehicle.GetName(vehicle);
-					this.DeleteSellVehicle(vehicle);
-
-					AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sold!");
-				}
 			}
 		}
 	}
@@ -624,23 +535,10 @@ class AirRoute
 	function RenewVehicles()
 	{
 		this.ValidateVehicleList();
-		local engine_price = AIEngine.GetPrice(this.m_engine);
-		local count = 1 + AIGroup.GetNumVehicles(this.m_sent_to_depot_air_group[1], AIVehicle.VT_AIR);
-
 		foreach (vehicle, _ in this.m_vehicle_list) {
-//			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
-//			if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
-//				AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
-//			}
-			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
-				if (this.SendMoveVehicleToDepot(vehicle)) {
-					count++;
-					if (!AIGroup.MoveVehicle(this.m_sent_to_depot_air_group[1], vehicle)) {
-						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_air_group[1]);
-					} else {
-						this.m_vehicle_list[vehicle] = 1;
-					}
-				}
+			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
+			if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
+				AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
 			}
 		}
 	}
@@ -667,7 +565,7 @@ class AirRoute
 	function GroupVehicles()
 	{
 		foreach (vehicle, _ in this.m_vehicle_list) {
-			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_air_group[0] && AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_air_group[1]) {
+			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT) {
 				if (!AIGroup.IsValidGroup(this.m_group)) {
 					this.m_group = AIVehicle.GetGroupID(vehicle);
 					break;
@@ -693,7 +591,7 @@ class AirRoute
 
 	function SaveRoute()
 	{
-		return [this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_sent_to_depot_air_group, this.m_group, this.m_renew_vehicles];
+		return [this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_group, this.m_renew_vehicles];
 	}
 
 	function LoadRoute(data)
@@ -705,40 +603,13 @@ class AirRoute
 
 		local cargo_class = data[4];
 
-		local sent_to_depot_air_group = data[8];
-
-		local route = AirRoute(city_from, city_to, airport_from, airport_to, cargo_class, sent_to_depot_air_group, true);
+		local route = AirRoute(city_from, city_to, airport_from, airport_to, cargo_class, true);
 
 		route.m_last_vehicle_added = data[5];
 		route.m_last_vehicle_removed = data[6];
 		route.m_active_route = data[7];
-		route.m_group = data[9];
-		route.m_renew_vehicles = data[10];
-
-		local vehicle_list = AIVehicleList_Station(route.m_station_id_from);
-		foreach (v, _ in vehicle_list) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
-				route.m_vehicle_list[v] = 2;
-			}
-		}
-
-		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_air_group[0]);
-		foreach (v, _ in vehicle_list) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
-				if (route.m_vehicle_list.HasItem(v)) {
-					route.m_vehicle_list[v] = 0;
-				}
-			}
-		}
-
-		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_air_group[1]);
-		foreach (v, _ in vehicle_list) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_AIR) {
-				if (route.m_vehicle_list.HasItem(v)) {
-					route.m_vehicle_list[v] = 1;
-				}
-			}
-		}
+		route.m_group = data[8];
+		route.m_renew_vehicles = data[9];
 
 		return route;
 	}

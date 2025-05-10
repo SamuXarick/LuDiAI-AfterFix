@@ -4,7 +4,6 @@ class AirRouteManager
 {
 	m_town_route_array = null;
 	m_town_manager = null;
-	m_sent_to_depot_group = null;
 	m_cargo_class = null;
 	m_last_route_index_managed = -1;
 	m_last_management_managed = -1;
@@ -113,17 +112,7 @@ class AirRouteManager
 
 	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class)
 	{
-		if (this.m_sent_to_depot_group == null) {
-			this.m_sent_to_depot_group = [];
-			for (local i = 0; i <= 1; i++) {
-				this.m_sent_to_depot_group.append(AIGroup.CreateGroup(AIVehicle.VT_AIR, AIGroup.GROUP_INVALID));
-				assert(AIGroup.IsValidGroup(this.m_sent_to_depot_group[i]));
-			}
-			assert(AIGroup.SetName(this.m_sent_to_depot_group[0], "0: Aircraft to sell"));
-			assert(AIGroup.SetName(this.m_sent_to_depot_group[1], "1: Aircraft to renew"));
-		}
-
-		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_sent_to_depot_group, this.m_routes_built.best[cargo_class], this.m_routes_built.all[cargo_class]);
+		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_routes_built.best[cargo_class], this.m_routes_built.all[cargo_class]);
 		local elapsed = this.DaysElapsed();
 		if (route != null) {
 			if (typeof(route) == "instance") {
@@ -401,7 +390,7 @@ class AirRouteManager
 			town_route_array.append(route.SaveRoute());
 		}
 
-		return [town_route_array, this.m_sent_to_depot_group, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed, this.m_reserved_money, this.m_start_date, this.m_routes_built];
+		return [town_route_array, this.m_cargo_class, this.m_last_route_index_managed, this.m_last_management_managed, this.m_reserved_money, this.m_start_date, this.m_routes_built];
 	}
 
 	function LoadRouteManager(data)
@@ -414,12 +403,11 @@ class AirRouteManager
 		}
 		AILog.Info("Loaded " + this.m_town_route_array.len() + " air routes.");
 
-		this.m_sent_to_depot_group = data[1];
-		this.m_cargo_class = data[2];
-		this.m_last_route_index_managed = data[3];
-		this.m_last_management_managed = data[4];
-		this.m_reserved_money = data[5];
-		this.m_start_date = data[6];
-		this.m_routes_built = data[7];
+		this.m_cargo_class = data[1];
+		this.m_last_route_index_managed = data[2];
+		this.m_last_management_managed = data[3];
+		this.m_reserved_money = data[4];
+		this.m_start_date = data[5];
+		this.m_routes_built = data[6];
 	}
 };
