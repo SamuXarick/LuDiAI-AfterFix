@@ -9,20 +9,20 @@ class RoadRoute
 	static MIN_VEHICLE_START_COUNT = 5;
 
 	/* These are saved */
-	m_city_from = null; // saved
-	m_city_to = null; // saved
-	m_station_from = null; // saved
-	m_station_to = null; // saved
-	m_depot_tile = null; // saved
-	m_bridge_tiles = null; // saved
-	m_cargo_class = null; // saved
-	m_last_vehicle_added = null; // saved
-	m_last_vehicle_removed = null; // saved
-	m_active_route = null; // saved
-	m_expanded_from_count = null; // saved
-	m_expanded_to_count = null; // saved
-	m_sent_to_depot_road_group = null; // saved
-	m_group = null; // saved
+	m_city_from = null;
+	m_city_to = null;
+	m_station_from = null;
+	m_station_to = null;
+	m_depot_tile = null;
+	m_bridge_tiles = null;
+	m_cargo_class = null;
+	m_last_vehicle_added = null;
+	m_last_vehicle_removed = null;
+	m_active_route = null;
+	m_expanded_from_count = null;
+	m_expanded_to_count = null;
+	m_sent_to_depot_road_group = null;
+	m_group = null;
 
 	/* These are not saved */
 	m_engine = null;

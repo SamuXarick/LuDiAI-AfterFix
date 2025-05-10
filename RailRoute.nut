@@ -83,13 +83,13 @@ class RailRoute
 				continue;
 			}
 			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_RAIL) {
-				AILog.Error("1t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 				this.m_vehicle_list[v] = null;
 				continue;
 			}
 			local num_orders = AIOrder.GetOrderCount(v);
 			if (num_orders != 2) {
-				AILog.Error("2t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 				this.m_vehicle_list[v] = null;
 				continue;
 			}
@@ -111,7 +111,7 @@ class RailRoute
 				}
 			}
 			if (!order_from || !order_to) {
-				AILog.Error("3t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
+				AILog.Error("t:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
 				this.m_vehicle_list[v] = null;
 				continue;
 			}
