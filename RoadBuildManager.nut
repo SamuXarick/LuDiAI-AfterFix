@@ -37,7 +37,6 @@ class RoadBuildManager
 	m_pathfinder_instance = null;
 	m_pathfinder_tries = -1;
 	m_built_tiles = null;
-	m_sent_to_depot_road_group = null;
 	m_route_dist = -1;
 	m_max_pathfinder_tries = -1;
 	m_city_from_name = null;
@@ -64,7 +63,6 @@ class RoadBuildManager
 		this.m_pathfinder_instance = null;
 		this.m_pathfinder_tries = -1;
 		this.m_built_tiles = null;
-		this.m_sent_to_depot_road_group = null;
 		this.m_route_dist = -1;
 		this.m_max_pathfinder_tries = -1;
 		this.m_city_from_name = null;
@@ -91,13 +89,12 @@ class RoadBuildManager
 		}
 	}
 
-	function BuildRoadRoute(city_from, city_to, cargo_class, articulated, sent_to_depot_road_group, best_routes_built)
+	function BuildRoadRoute(city_from, city_to, cargo_class, articulated, best_routes_built)
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
 		this.m_cargo_class = cargo_class;
 		this.m_articulated = articulated;
-		this.m_sent_to_depot_road_group = sent_to_depot_road_group;
 		this.m_best_routes_built = best_routes_built;
 
 		if (this.m_bridge_tiles == null) {
@@ -167,7 +164,7 @@ class RoadBuildManager
 			return null;
 		}
 
-		return RoadRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile, this.m_bridge_tiles, this.m_cargo_class, this.m_sent_to_depot_road_group);
+		return RoadRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile, this.m_bridge_tiles, this.m_cargo_class);
 	}
 
 	function IsStationBuildableTile(tile)
