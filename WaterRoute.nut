@@ -15,7 +15,6 @@ class WaterRoute
 	m_last_vehicle_added = null;
 	m_last_vehicle_removed = null;
 	m_active_route = null;
-	m_sent_to_depot_water_group = null;
 	m_group = null;
 
 	/* These are not saved */
@@ -29,7 +28,7 @@ class WaterRoute
 	m_cargo_type = null;
 	m_route_dist = null;
 
-	constructor(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, sent_to_depot_water_group, is_loaded = false)
+	constructor(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, is_loaded = false)
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
@@ -37,7 +36,6 @@ class WaterRoute
 		this.m_dock_to = dock_to;
 		this.m_depot_tile = depot_tile;
 		this.m_cargo_class = cargo_class;
-		this.m_sent_to_depot_water_group = sent_to_depot_water_group;
 
 		this.m_max_vehicle_count_mode = AIController.GetSetting("water_cap_mode");
 		this.m_group = AIGroup.GROUP_INVALID;
@@ -70,57 +68,6 @@ class WaterRoute
 				this.m_vehicle_list[v] = null;
 			}
 		}
-//		foreach (v, _ in this.m_vehicle_list) {
-//			if (!AIVehicle.IsValidVehicle(v)) {
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_WATER) {
-//				AILog.Error("s:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//			local num_orders = AIOrder.GetOrderCount(v);
-//			if (num_orders < 2) {
-//				AILog.Error("s:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//			local order_from = false;
-//			local order_to = false;
-//			for (local o = 0; o < num_orders; o++) {
-//				if (!AIOrder.IsValidVehicleOrder(v, o)) {
-//					continue;
-//				}
-//				if (AIOrder.IsConditionalOrder(v, o)) {
-//					continue;
-//				}
-//				local station_id = AIStation.GetStationID(AIOrder.GetOrderDestination(v, o));
-//				if (station_id == this.m_station_id_from) {
-//					order_from = true;
-//				}
-//				if (station_id == this.m_station_id_to) {
-//					order_to = true;
-//				}
-//			}
-//			if (!order_from || !order_to) {
-//				AILog.Error("s:Vehicle ID " + v + " no longer belongs to this route, but it exists! " + AIVehicle.GetName(v));
-//				this.m_vehicle_list[v] = null;
-//				continue;
-//			}
-//		}
-	}
-
-	function SentToDepotList(i)
-	{
-		local sent_to_depot_list = AIList();
-		this.ValidateVehicleList();
-		foreach (vehicle, status in this.m_vehicle_list) {
-			if (status == i) {
-				sent_to_depot_list[vehicle] = i;
-			}
-		}
-		return sent_to_depot_list;
 	}
 
 	function GetEngineList()
@@ -459,64 +406,12 @@ class WaterRoute
 
 	function SendMoveVehicleToDepot(vehicle_id)
 	{
-		if (AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_water_group[0] && AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_water_group[1]) {
+		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id)) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
-			if (!AIVehicle.IsStoppedInDepot(vehicle_id)) {
-				local depot_order_flags = AIOrder.OF_STOP_IN_DEPOT;
-				if (!AIVehicle.HasSharedOrders(vehicle_id)) {
-					/* Remove conditional orders */
-					if (!this.RemoveConditionalOrders(vehicle_id)) {
-						AILog.Info("Failed to remove conditional orders from " + vehicle_name + " when preparing to send it to depot.");
-//						AIController.Break(" ");
-						return false;
-					} else {
-						/* Make the ship stop at depot when executing depot orders. */
-						local depot_stop1 = AIOrder.SetOrderFlags(vehicle_id, 0, depot_order_flags);
-						local depot_stop2 = AIOrder.SetOrderFlags(vehicle_id, this.GetSecondDepotOrderIndex(vehicle_id), depot_order_flags);
-						if (!depot_stop1 && !depot_stop2) {
-							AILog.Error("Failed to send " + vehicle_name + " to depot.");
-//							AIController.Break(" ");
-							return false;
-						}
-					}
-				} else {
-					local shared_list = AIVehicleList_SharedOrders(vehicle_id);
-					local copy_orders_vid = AIVehicle.VEHICLE_INVALID;
-					foreach (v, _ in shared_list) {
-						if (v != vehicle_id) {
-							copy_orders_vid = v;
-							break;
-						}
-					}
-					if (AIVehicle.IsValidVehicle(copy_orders_vid)) {
-						if (AIOrder.CopyOrders(vehicle_id, copy_orders_vid)) {
-							/* Remove conditional orders */
-							if (!this.RemoveConditionalOrders(vehicle_id)) {
-								AILog.Info("Failed to remove conditional orders from " + vehicle_name + " when preparing to send it to depot.");
-//								AIController.Break(" ");
-								return false;
-							} else {
-								/* Make the ship stop at depot when executing depot orders. */
-								local depot_stop1 = AIOrder.SetOrderFlags(vehicle_id, 0, depot_order_flags);
-								local depot_stop2 = AIOrder.SetOrderFlags(vehicle_id, this.GetSecondDepotOrderIndex(vehicle_id), depot_order_flags);
-								if (!depot_stop1 && !depot_stop2) {
-									AILog.Error("Failed to send " + vehicle_name + " to depot.");
-//									AIController.Break(" ");
-									return false;
-								}
-							}
-						} else {
-							AILog.Error("Failed to copy orders from " + AIVehicle.GetName(copy_orders_vid) + " to " + vehicle_name + " when unsharing orders");
-//							AIController.Break(" ");
-							return false;
-						}
-					} else {
-						AILog.Error("Failed to copy orders from " + AIVehicle.GetName(copy_orders_vid) + " to " + vehicle_name + " when unsharing orders");
-//						AIController.Break(" ");
-						return false;
-					}
+			if (!AIVehicle.SendVehicleToDepot(vehicle_id)) {
+				AILog.Info("Failed to send " + vehicle_name + " to depot. Will try again later.");
+				return false;
 				}
-			}
 			this.m_last_vehicle_removed = AIDate.GetCurrentDate();
 
 			AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sent to its depot!");
@@ -525,6 +420,66 @@ class WaterRoute
 		}
 
 		return false;
+//		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
+//			local vehicle_name = AIVehicle.GetName(vehicle_id);
+//			if (!AIVehicle.IsStoppedInDepot(vehicle_id)) {
+//				local depot_order_flags = AIOrder.OF_STOP_IN_DEPOT;
+//				if (!AIVehicle.HasSharedOrders(vehicle_id)) {
+//					/* Remove conditional orders */
+//					if (!this.RemoveConditionalOrders(vehicle_id)) {
+//						AILog.Info("Failed to remove conditional orders from " + vehicle_name + " when preparing to send it to depot.");
+//						return false;
+//					} else {
+//						/* Make the ship stop at depot when executing depot orders. */
+//						local depot_stop1 = AIOrder.SetOrderFlags(vehicle_id, 0, depot_order_flags);
+//						local depot_stop2 = AIOrder.SetOrderFlags(vehicle_id, this.GetSecondDepotOrderIndex(vehicle_id), depot_order_flags);
+//						if (!depot_stop1 && !depot_stop2) {
+//							AILog.Error("Failed to send " + vehicle_name + " to depot.");
+//							return false;
+//						}
+//					}
+//				} else {
+//					local shared_list = AIVehicleList_SharedOrders(vehicle_id);
+//					local copy_orders_vid = AIVehicle.VEHICLE_INVALID;
+//					foreach (v, _ in shared_list) {
+//						if (v != vehicle_id) {
+//							copy_orders_vid = v;
+//							break;
+//						}
+//					}
+//					if (AIVehicle.IsValidVehicle(copy_orders_vid)) {
+//						if (AIOrder.CopyOrders(vehicle_id, copy_orders_vid)) {
+//							/* Remove conditional orders */
+//							if (!this.RemoveConditionalOrders(vehicle_id)) {
+//								AILog.Info("Failed to remove conditional orders from " + vehicle_name + " when preparing to send it to depot.");
+//								return false;
+//							} else {
+//								/* Make the ship stop at depot when executing depot orders. */
+//								local depot_stop1 = AIOrder.SetOrderFlags(vehicle_id, 0, depot_order_flags);
+//								local depot_stop2 = AIOrder.SetOrderFlags(vehicle_id, this.GetSecondDepotOrderIndex(vehicle_id), depot_order_flags);
+//								if (!depot_stop1 && !depot_stop2) {
+//									AILog.Error("Failed to send " + vehicle_name + " to depot.");
+//									return false;
+//								}
+//							}
+//						} else {
+//							AILog.Error("Failed to copy orders from " + AIVehicle.GetName(copy_orders_vid) + " to " + vehicle_name + " when unsharing orders");
+//							return false;
+//						}
+//					} else {
+//						AILog.Error("Failed to copy orders from " + AIVehicle.GetName(copy_orders_vid) + " to " + vehicle_name + " when unsharing orders");
+//						return false;
+//					}
+//				}
+//			}
+//			this.m_last_vehicle_removed = AIDate.GetCurrentDate();
+//
+//			AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sent to its depot!");
+//
+//			return true;
+//		}
+//
+//		return false;
 	}
 
 	function SendNegativeProfitVehiclesToDepot()
@@ -539,11 +494,6 @@ class WaterRoute
 		foreach (vehicle, _ in this.m_vehicle_list) {
 			if (AIVehicle.GetAge(vehicle) > 730 && AIVehicle.GetProfitLastYear(vehicle) < 0) {
 				if (this.SendMoveVehicleToDepot(vehicle)) {
-					if (!AIGroup.MoveVehicle(this.m_sent_to_depot_water_group[0], vehicle)) {
-						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_water_group[0]);
-					} else {
-						this.m_vehicle_list[vehicle] = 0;
-					}
 					return;
 				}
 			}
@@ -572,13 +522,7 @@ class WaterRoute
 		if (cargo_waiting_from + cargo_waiting_to < 150) {
 			foreach (vehicle, _ in vehicle_list) {
 				if (AIVehicle.GetProfitLastYear(vehicle) < (max_all_routes_profit / 6)) {
-					if (this.SendMoveVehicleToDepot(vehicle)) {
-						if (!AIGroup.MoveVehicle(this.m_sent_to_depot_water_group[0], vehicle)) {
-							AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_water_group[0]);
-						} else {
-							this.m_vehicle_list[vehicle] = 0;
-						}
-					}
+					this.SendMoveVehicleToDepot(vehicle);
 				}
 			}
 		}
@@ -586,30 +530,13 @@ class WaterRoute
 
 	function SellVehiclesInDepot()
 	{
-		local sent_to_depot_list = this.SentToDepotList(0);
-
-		foreach (vehicle, _ in sent_to_depot_list) {
-			if (this.m_vehicle_list.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
+		this.ValidateVehicleList();
+		foreach (vehicle, _ in this.m_vehicle_list) {
+			if (AIVehicle.IsStoppedInDepot(vehicle)) {
 				local vehicle_name = AIVehicle.GetName(vehicle);
 				this.DeleteSellVehicle(vehicle);
 
 				AILog.Info(vehicle_name + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been sold!");
-			}
-		}
-
-		sent_to_depot_list = this.SentToDepotList(1);
-
-		foreach (vehicle, _ in sent_to_depot_list) {
-			if (this.m_vehicle_list.HasItem(vehicle) && AIVehicle.IsStoppedInDepot(vehicle)) {
-				local skip_to_order = AIOrder.ResolveOrderPosition(vehicle, AIOrder.ORDER_CURRENT);
-				this.DeleteSellVehicle(vehicle);
-
-				local renewed_vehicle = this.AddVehicle(true);
-				if (renewed_vehicle != null) {
-					AIOrder.SkipToOrder(renewed_vehicle, skip_to_order);
-					AIVehicle.StartStopVehicle(renewed_vehicle);
-					AILog.Info(AIVehicle.GetName(renewed_vehicle) + " on route from " + this.m_station_name_from + " to " + this.m_station_name_to + " has been renewed!");
-				}
 			}
 		}
 	}
@@ -696,23 +623,10 @@ class WaterRoute
 	function RenewVehicles()
 	{
 		this.ValidateVehicleList();
-		local engine_price = AIEngine.GetPrice(this.m_engine);
-		local count = 1 + AIGroup.GetNumVehicles(this.m_sent_to_depot_water_group[1], AIVehicle.VT_WATER);
-
 		foreach (vehicle, _ in this.m_vehicle_list) {
-//			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
-//			if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
-//				AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
-//			}
-			if (AIVehicle.GetAgeLeft(vehicle) <= 365 || AIVehicle.GetEngineType(vehicle) != this.m_engine && Utils.HasMoney(2 * engine_price * count)) {
-				if (this.SendMoveVehicleToDepot(vehicle)) {
-					count++;
-					if (!AIGroup.MoveVehicle(this.m_sent_to_depot_water_group[1], vehicle)) {
-						AILog.Error("Failed to move " + AIVehicle.GetName(vehicle) + " to " + this.m_sent_to_depot_water_group[1]);
-					} else {
-						this.m_vehicle_list[vehicle] = 1;
-					}
-				}
+			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
+			if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
+				AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
 			}
 		}
 	}
@@ -740,7 +654,7 @@ class WaterRoute
 	function GroupVehicles()
 	{
 		foreach (vehicle, _ in this.m_vehicle_list) {
-			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT && AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_water_group[0] && AIVehicle.GetGroupID(vehicle) != this.m_sent_to_depot_water_group[1]) {
+			if (AIVehicle.GetGroupID(vehicle) != AIGroup.GROUP_DEFAULT) {
 				if (!AIGroup.IsValidGroup(this.m_group)) {
 					this.m_group = AIVehicle.GetGroupID(vehicle);
 					break;
@@ -759,7 +673,7 @@ class WaterRoute
 
 	function SaveRoute()
 	{
-		return [this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_sent_to_depot_water_group, this.m_group];
+		return [this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_group];
 	}
 
 	function LoadRoute(data)
@@ -771,39 +685,12 @@ class WaterRoute
 		local depot_tile = data[4];
 		local cargo_class = data[5];
 
-		local sent_to_depot_water_group = data[9];
-
-		local route = WaterRoute(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, sent_to_depot_water_group, true);
+		local route = WaterRoute(city_from, city_to, dock_from, dock_to, depot_tile, cargo_class, true);
 
 		route.m_last_vehicle_added = data[6];
 		route.m_last_vehicle_removed = data[7];
 		route.m_active_route = data[8];
-		route.m_group = data[10];
-
-		local vehicle_list = AIVehicleList_Station(route.m_station_id_from);
-		foreach (v, _ in vehicle_list) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_WATER) {
-				route.m_vehicle_list[v] = 2;
-			}
-		}
-
-		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_water_group[0]);
-		foreach (v, _ in vehicle_list) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_WATER) {
-				if (route.m_vehicle_list.HasItem(v)) {
-					route.m_vehicle_list[v] = 0;
-				}
-			}
-		}
-
-		vehicle_list = AIVehicleList_Group(route.m_sent_to_depot_water_group[1]);
-		foreach (v, _ in vehicle_list) {
-			if (AIVehicle.GetVehicleType(v) == AIVehicle.VT_WATER) {
-				if (route.m_vehicle_list.HasItem(v)) {
-					route.m_vehicle_list[v] = 1;
-				}
-			}
-		}
+		route.m_group = data[9];
 
 		return route;
 	}

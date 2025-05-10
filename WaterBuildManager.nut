@@ -137,7 +137,6 @@ class WaterBuildManager
 	/* These are not saved */
 	m_pathfinder_instance = null;
 	m_pathfinder_tries = -1;
-	m_sent_to_depot_water_group = null;
 	m_cargo_type = -1;
 	m_coverage_radius = -1;
 	m_route_dist = -1;
@@ -164,7 +163,6 @@ class WaterBuildManager
 
 		this.m_pathfinder_instance = null;
 		this.m_pathfinder_tries = -1;
-		this.m_sent_to_depot_water_group = null;
 		this.m_cargo_type = -1;
 		this.m_coverage_radius = -1;
 		this.m_route_dist = -1;
@@ -414,13 +412,12 @@ class WaterBuildManager
 		}
 	}
 
-	function BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, sent_to_depot_water_group, best_routes_built)
+	function BuildWaterRoute(city_from, city_to, cargo_class, cheaper_route, best_routes_built)
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
 		this.m_cargo_class = cargo_class;
 		this.m_cheaper_route = cheaper_route;
-		this.m_sent_to_depot_water_group = sent_to_depot_water_group;
 		this.m_best_routes_built = best_routes_built;
 
 		if (this.m_built_tiles == null) {
@@ -498,7 +495,7 @@ class WaterBuildManager
 			return null;
 		}
 
-		return WaterRoute(this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class, this.m_sent_to_depot_water_group);
+		return WaterRoute(this.m_city_from, this.m_city_to, this.m_dock_from, this.m_dock_to, this.m_depot_tile, this.m_cargo_class);
 	}
 
 	function AreOtherDocksNearby(dock_rectangle)
