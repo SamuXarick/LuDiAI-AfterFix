@@ -711,9 +711,9 @@ function LuDiAIAfterFix::Start()
 				::caches.LoadCaches(this.load_data[1].rawget("caches"));
 			}
 
-			CheckForUnfinishedRoadRoute();
-			CheckForUnfinishedWaterRoute();
-			CheckForUnfinishedRailRoute();
+			this.CheckForUnfinishedRoadRoute();
+			this.CheckForUnfinishedWaterRoute();
+			this.CheckForUnfinishedRailRoute();
 
 			AILog.Warning("Game loaded.");
 			this.load_data = null;
