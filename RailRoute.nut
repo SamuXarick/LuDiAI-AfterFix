@@ -484,9 +484,9 @@ class RailRoute
 
 	function SendMoveVehicleToDepot(vehicle_id)
 	{
-		if (AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_rail_group[0] && AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_rail_group[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED) {
+		if (AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_rail_group[0] && AIVehicle.GetGroupID(vehicle_id) != this.m_sent_to_depot_rail_group[1] && AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && (AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id) || !AIOrder.IsGotoDepotOrder(vehicle_id, AIOrder.ORDER_CURRENT) || (AIOrder.GetOrderFlags(vehicle_id, AIOrder.ORDER_CURRENT) & AIOrder.OF_STOP_IN_DEPOT) == 0)) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
-			if (!AIVehicle.IsStoppedInDepot(vehicle_id) && !AIVehicle.SendVehicleToDepot(vehicle_id)) {
+			if (!AIVehicle.SendVehicleToDepot(vehicle_id)) {
 				AILog.Info("Failed to send " + vehicle_name + " to depot. Will try again later.");
 				return false;
 			}

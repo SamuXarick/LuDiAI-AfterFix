@@ -403,7 +403,7 @@ class RoadRoute
 
 	function SendMoveVehicleToDepot(vehicle_id)
 	{
-		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id)) {
+		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && (AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id) || !AIOrder.IsGotoDepotOrder(vehicle_id, AIOrder.ORDER_CURRENT) || (AIOrder.GetOrderFlags(vehicle_id, AIOrder.ORDER_CURRENT) & AIOrder.OF_STOP_IN_DEPOT) == 0)) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
 			if (!AIVehicle.SendVehicleToDepot(vehicle_id)) {
 				AILog.Info("Failed to send " + vehicle_name + " to depot. Will try again later.");

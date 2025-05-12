@@ -332,7 +332,7 @@ class AirRoute
 
 	function SendMoveVehicleToDepot(vehicle_id)
 	{
-		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id)) {
+		if (AIVehicle.GetState(vehicle_id) != AIVehicle.VS_CRASHED && !AIVehicle.IsStoppedInDepot(vehicle_id) && (AIOrder.IsCurrentOrderPartOfOrderList(vehicle_id) || !AIOrder.IsGotoDepotOrder(vehicle_id, AIOrder.ORDER_CURRENT) || (AIOrder.GetOrderFlags(vehicle_id, AIOrder.ORDER_CURRENT) & AIOrder.OF_STOP_IN_DEPOT) == 0)) {
 			local vehicle_name = AIVehicle.GetName(vehicle_id);
 			local airport1_hangars = AIAirport.GetNumHangars(this.m_airport_from) != 0;
 			local airport2_hangars = AIAirport.GetNumHangars(this.m_airport_to) != 0;
