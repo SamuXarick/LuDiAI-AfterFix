@@ -644,6 +644,8 @@ function LuDiAIAfterFix::Load(version, data)
 function LuDiAIAfterFix::Start()
 {
 	if (AICompany.GetAutoRenewStatus(::caches.m_my_company_id)) AICompany.SetAutoRenewStatus(false);
+	if (AICompany.GetAutoRenewMonths(::caches.m_my_company_id) != -12) AICompany.SetAutoRenewMonths(-12);
+	if (AICompany.GetAutoRenewMoney(::caches.m_my_company_id) != 0) AICompany.SetAutoRenewMoney(0);
 
 	if (this.is_loading) {
 		if (this.load_data != null) {
