@@ -296,6 +296,7 @@ class RailBuildManager
 	/* These are not saved */
 	m_pathfinder_instance = null;
 	m_pathfinder_tries = -1;
+	m_sent_to_depot_rail_group = null;
 	m_coverage_radius = -1;
 	m_cargo_type = -1;
 	m_route_dist = -1;
@@ -328,6 +329,7 @@ class RailBuildManager
 
 		this.m_pathfinder_instance = null;
 		this.m_pathfinder_tries = -1;
+		this.m_sent_to_depot_rail_group = null;
 		this.m_coverage_radius = -1;
 		this.m_cargo_type = -1;
 		this.m_route_dist = -1;
@@ -550,11 +552,12 @@ class RailBuildManager
 		}
 	}
 
-	function BuildRailRoute(city_from, city_to, cargo_class, best_routes_built, rail_type)
+	function BuildRailRoute(city_from, city_to, cargo_class, sent_to_depot_rail_group, best_routes_built, rail_type)
 	{
 		this.m_city_from = city_from;
 		this.m_city_to = city_to;
 		this.m_cargo_class = cargo_class;
+		this.m_sent_to_depot_rail_group = sent_to_depot_rail_group;
 		this.m_best_routes_built = best_routes_built;
 		this.m_rail_type = rail_type;
 
@@ -682,7 +685,7 @@ class RailBuildManager
 			}
 		}
 
-		return RailRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile_from, this.m_depot_tile_to, this.m_bridge_tiles, this.m_cargo_class, this.m_rail_type, this.m_station_from_dir, this.m_station_to_dir);
+		return RailRoute(this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile_from, this.m_depot_tile_to, this.m_bridge_tiles, this.m_cargo_class, this.m_sent_to_depot_rail_group, this.m_rail_type, this.m_station_from_dir, this.m_station_to_dir);
 	}
 
 	function AreOtherRailwayStationsNearby(rail_station)
