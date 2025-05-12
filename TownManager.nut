@@ -150,7 +150,7 @@ class TownManager
 
 			if (!unused_cities_list.IsEmpty()) {
 				unused_town = unused_cities_list.Begin();
-				this.m_used_cities_list[cargo_class].AddItem(unused_town, 0);
+				this.m_used_cities_list[cargo_class][unused_town] = 0;
 			}
 		}
 
