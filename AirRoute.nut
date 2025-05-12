@@ -534,11 +534,24 @@ class AirRoute
 
 	function RenewVehicles()
 	{
+		if (!this.m_renew_vehicles && !AIGroup.GetAutoReplaceProtection(this.m_group)) {
+			AIGroup.EnableAutoReplaceProtection(this.m_group, true);
+		}
+
 		this.ValidateVehicleList();
 		foreach (vehicle, _ in this.m_vehicle_list) {
 			local vehicle_engine = AIVehicle.GetEngineType(vehicle);
-			if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
-				AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
+			if (this.m_renew_vehicles) {
+				if (AIGroup.GetEngineReplacement(this.m_group, vehicle_engine) != this.m_engine) {
+					AIGroup.SetAutoReplace(this.m_group, vehicle_engine, this.m_engine);
+				}
+			} else {
+				if (AIEngine.IsValidEngine(AIGroup.GetEngineReplacement(this.m_group, vehicle_engine))) {
+					AIGroup.StopAutoReplace(this.m_group, vehicle_engine);
+				}
+				if (AIVehicle.GetAgeLeft(vehicle) <= 365) {
+					this.SendMoveVehicleToDepot(vehicle);
+				}
 			}
 		}
 	}
