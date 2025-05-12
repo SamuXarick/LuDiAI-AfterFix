@@ -287,7 +287,7 @@ function LuDiAIAfterFix::GetTrainOptimalDaysInTransit(engine_id, wagon_id, rail_
 	for (local rail_type = 0; rail_type < 64; rail_type++) {
 		if (!(rail_types_mask & (1 << rail_type))) continue;
 		local rail_type_max_speed = AIRail.GetMaxSpeed(rail_type) == 0 ? 65535 : AIRail.GetMaxSpeed(rail_type);
-		rail_types_above_train_speed.AddItem(rail_type, rail_type_max_speed);
+		rail_types_above_train_speed[rail_type] = rail_type_max_speed;
 	}
 
 	local rail_types_below_train_speed = AIList();
