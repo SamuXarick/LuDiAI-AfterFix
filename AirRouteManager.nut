@@ -110,9 +110,9 @@ class AirRouteManager
 		this.m_reserved_money = 0;
 	}
 
-	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, city_from, city_to, cargo_class)
+	function BuildRoute(air_route_manager, air_build_manager, air_town_manager, /*city_from, city_to, */cargo_class)
 	{
-		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, this.m_routes_built.best[cargo_class], this.m_routes_built.all[cargo_class]);
+		local route = air_build_manager.BuildAirRoute(air_route_manager, air_town_manager, /*city_from, city_to, */cargo_class, this.m_routes_built.best[cargo_class], this.m_routes_built.all[cargo_class]);
 		local elapsed = this.DaysElapsed();
 		if (route != null) {
 			if (typeof(route) == "instance") {
@@ -136,7 +136,10 @@ class AirRouteManager
 			this.ResetMoneyReservation();
 			this.SwapCargoClass();
 			this.StopDateTimer();
-			if (city_to != null) this.m_town_manager.ResetCityPair(city_from, city_to, cargo_class, false);
+			if (air_build_manager.m_city_from != -1 && air_build_manager.m_city_to != -1) {
+				this.m_town_manager.ResetCityPair(air_build_manager.m_city_from, air_build_manager.m_city_to, cargo_class, false);
+			}
+			air_build_manager.SetRouteFinished();
 			AILog.Error("a:" + elapsed + " day" + (elapsed != 1 ? "s" : "") + " wasted!");
 			return false;
 		}

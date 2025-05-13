@@ -54,10 +54,10 @@ class AirBuildManager
 		this.m_cargo_type = -1;
 	}
 
-	function BuildAirRoute(air_route_manager, air_town_manager, city_from, city_to, cargo_class, best_routes_built, all_routes_built)
+	function BuildAirRoute(air_route_manager, air_town_manager, /*city_from, city_to, */cargo_class, best_routes_built, all_routes_built)
 	{
-		this.m_city_from = city_from;
-		this.m_city_to = city_to;
+//		this.m_city_from = city_from;
+//		this.m_city_to = city_to;
 		this.m_best_routes_built = best_routes_built;
 		this.m_all_routes_built = all_routes_built;
 
@@ -201,7 +201,7 @@ class AirBuildManager
 
 		/* No airports available. Abort */
 		if (this.m_airport_types.IsEmpty()) {
-			this.SetRouteFinished();
+//			this.SetRouteFinished();
 			return null;
 		}
 
@@ -268,7 +268,7 @@ class AirBuildManager
 
 		/* There are no engines available */
 		if (!available_engines) {
-			this.SetRouteFinished();
+//			this.SetRouteFinished();
 			return null;
 		}
 
@@ -286,10 +286,33 @@ class AirBuildManager
 
 		this.m_cargo_class = cargo_class;
 
+		if (this.m_city_from == -1 || this.m_city_from == null) {
+			this.m_city_from = air_town_manager.GetUnusedCity(air_route_manager.m_routes_built.best[this.m_cargo_class], this.m_cargo_class);
+			if (this.m_city_from == null) {
+				if (AIController.GetSetting("pick_mode") == 1) {
+					air_town_manager.m_used_cities_list[this.m_cargo_class].Clear();
+				} else if (!air_route_manager.m_routes_built.best[this.m_cargo_class]) {
+					air_route_manager.m_routes_built.best[this.m_cargo_class] = true;
+					air_town_manager.m_used_cities_list[this.m_cargo_class].Clear();
+//					air_town_manager.m_near_city_pair_array[this.m_cargo_class].clear();
+					AILog.Warning("Best " + AICargo.GetCargoLabel(this.m_cargo_type) + " air routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
+				} else {
+//					air_town_manager.m_near_city_pair_array[this.m_cargo_class].clear();
+					if (!air_route_manager.m_routes_built.all[this.m_cargo_class]) {
+						AILog.Warning("All " + AICargo.GetCargoLabel(this.m_cargo_type) + " air routes have been used!");
+					}
+					air_route_manager.m_routes_built.all[this.m_cargo_class] = true;
+				}
+//				this.SetRouteFinished();
+				this.m_city_from = -1;
+				return null;
+			}
+		}
+
 		if (this.m_airport_from == -1) {
 			this.m_airport_from = this.BuildTownAirport(air_route_manager, air_town_manager, this.m_city_from);
 			if (this.m_airport_from == null) {
-				this.SetRouteFinished();
+//				this.SetRouteFinished();
 				return null;
 			}
 
@@ -309,7 +332,7 @@ class AirBuildManager
 		if (this.m_airport_to == -1) {
 			this.m_airport_to = this.BuildTownAirport(air_route_manager, air_town_manager, this.m_city_to);
 			if (this.m_airport_to == null) {
-				this.SetRouteFinished();
+//				this.SetRouteFinished();
 				return null;
 			}
 		}
@@ -318,7 +341,7 @@ class AirBuildManager
 			/* Build the airports for real */
 			if (!TestBuildAirport().TryBuild(this.m_airport_from, this.m_airport_type_from, this.m_station_id_from)) {
 				AILog.Error("a:Although the testing told us we could build 2 airports, it still failed on the first airport at tile " + this.m_airport_from + ".");
-				this.SetRouteFinished();
+//				this.SetRouteFinished();
 				return null;
 			}
 
@@ -340,7 +363,7 @@ class AirBuildManager
 					::scheduled_removals[AITile.TRANSPORT_AIR].rawset(this.m_airport_from, 0);
 //					AILog.Error("Failed to remove airport at tile " + this.m_airport_from + " - " + AIError.GetLastErrorString());
 				}
-				this.SetRouteFinished();
+//				this.SetRouteFinished();
 				return null;
 			}
 		}

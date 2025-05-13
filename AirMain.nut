@@ -4,8 +4,8 @@ function LuDiAIAfterFix::BuildAirRoute()
 
 	local unfinished = this.air_build_manager.HasUnfinishedRoute();
 	if (unfinished || (this.air_route_manager.GetAircraftCount() < max(AIGameSettings.GetValue("max_aircraft") - 10, 10)) && Utils.ListHasValue(this.air_route_manager.m_routes_built.all, false)) {
-		local city_from = null;
-		local city_to = null;
+//		local city_from = null;
+//		local city_to = null;
 		local cargo_class = this.air_route_manager.m_cargo_class;
 		if (!unfinished) {
 			if (!this.air_route_manager.IsDateTimerRunning()) this.air_route_manager.StartDateTimer();
@@ -56,25 +56,25 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			local min_order_dist = (fake_dist / 2) * (fake_dist / 2);
 //			local min_dist = min_order_dist > max_dist * 3 / 4 ? !infrastructure && max_dist * 3 / 4 > AIMap.GetMapSize() / 8 ? AIMap.GetMapSize() / 8 : max_dist * 3 / 4 : min_order_dist;
 
-			if (city_from == null) {
-				city_from = this.air_town_manager.GetUnusedCity(this.air_route_manager.m_routes_built.best[cargo_class], cargo_class);
-				if (city_from == null) {
-					if (AIController.GetSetting("pick_mode") == 1) {
-						this.air_town_manager.m_used_cities_list[cargo_class].Clear();
-					} else if (!this.air_route_manager.m_routes_built.best[cargo_class]) {
-						this.air_route_manager.m_routes_built.best[cargo_class] = true;
-						this.air_town_manager.m_used_cities_list[cargo_class].Clear();
-//						this.air_town_manager.m_near_city_pair_array[cargo_class].clear();
-						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " air routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
-					} else {
-//						this.air_town_manager.m_near_city_pair_array[cargo_class].clear();
-						if (!this.air_route_manager.m_routes_built.all[cargo_class]) {
-							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " air routes have been used!");
-						}
-						this.air_route_manager.m_routes_built.all[cargo_class] = true;
-					}
-				}
-			}
+//			if (city_from == null) {
+//				city_from = this.air_town_manager.GetUnusedCity(this.air_route_manager.m_routes_built.best[cargo_class], cargo_class);
+//				if (city_from == null) {
+//					if (AIController.GetSetting("pick_mode") == 1) {
+//						this.air_town_manager.m_used_cities_list[cargo_class].Clear();
+//					} else if (!this.air_route_manager.m_routes_built.best[cargo_class]) {
+//						this.air_route_manager.m_routes_built.best[cargo_class] = true;
+//						this.air_town_manager.m_used_cities_list[cargo_class].Clear();
+///						this.air_town_manager.m_near_city_pair_array[cargo_class].clear();
+//						AILog.Warning("Best " + AICargo.GetCargoLabel(cargo_type) + " air routes have been used! Year: " + AIDate.GetYear(AIDate.GetCurrentDate()));
+//					} else {
+///						this.air_town_manager.m_near_city_pair_array[cargo_class].clear();
+//						if (!this.air_route_manager.m_routes_built.all[cargo_class]) {
+//							AILog.Warning("All " + AICargo.GetCargoLabel(cargo_type) + " air routes have been used!");
+//						}
+//						this.air_route_manager.m_routes_built.all[cargo_class] = true;
+//					}
+//				}
+//			}
 
 //			if (city_from != null) {
 //				AILog.Info("New city found: " + AITown.GetName(city_from));
@@ -110,10 +110,10 @@ function LuDiAIAfterFix::BuildAirRoute()
 //				}
 //			}
 
-			if (city_from == null && city_to == null) {
-				if (this.air_route_manager.m_reserved_money != 0) this.air_route_manager.ResetMoneyReservation();
-				this.air_route_manager.SwapCargoClass();
-			}
+//			if (city_from == null && city_to == null) {
+//				if (this.air_route_manager.m_reserved_money != 0) this.air_route_manager.ResetMoneyReservation();
+//				this.air_route_manager.SwapCargoClass();
+//			}
 		} else {
 			if (!Utils.HasMoney(this.air_route_manager.GetReservedMoney())) {
 				if (this.air_route_manager.DaysElapsed() <= 60) {
@@ -126,18 +126,18 @@ function LuDiAIAfterFix::BuildAirRoute()
 			}
 		}
 
-		if (unfinished || city_from != null/* && city_to != null*/) {
+//		if (unfinished || city_from != null/* && city_to != null*/) {
 //			if (!unfinished) {
 //				AILog.Info("New city found: " + AITown.GetName(city_from));
 //				AILog.Info("New near city found: " + AITown.GetName(city_to));
 //			}
 
-			city_from = unfinished ? this.air_build_manager.m_city_from : city_from;
-			city_to = unfinished ? this.air_build_manager.m_city_to : city_to;
+//			city_from = unfinished ? this.air_build_manager.m_city_from : city_from;
+//			city_to = unfinished ? this.air_build_manager.m_city_to : city_to;
 			cargo_class = unfinished ? this.air_build_manager.m_cargo_class : cargo_class;
 
-			return this.air_route_manager.BuildRoute(this.air_route_manager, this.air_build_manager, this.air_town_manager, city_from, city_to, cargo_class);
-		}
+			return this.air_route_manager.BuildRoute(this.air_route_manager, this.air_build_manager, this.air_town_manager, /*city_from, city_to, */cargo_class);
+//		}
 	}
 	return true;
 }
