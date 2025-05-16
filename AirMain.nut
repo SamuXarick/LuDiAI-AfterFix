@@ -116,7 +116,7 @@ function LuDiAIAfterFix::BuildAirRoute()
 //			}
 		} else {
 			if (!Utils.HasMoney(this.air_route_manager.GetReservedMoney())) {
-				if (this.air_route_manager.DaysElapsed() <= 60) {
+				if (this.air_route_manager.DaysElapsed() < AIController.GetSetting("exclusive_attempt_days")) {
 					return 0;
 				}
 				if (!this.air_route_manager.IsMoneyReservationPaused()) {

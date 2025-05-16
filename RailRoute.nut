@@ -77,12 +77,7 @@ class RailRoute
 
 	function ValidateVehicleList()
 	{
-//		this.m_vehicle_list = AIVehicleList_Station(this.m_station_id_from);
-//		foreach (v, _ in this.m_vehicle_list) {
-//			if (AIVehicle.GetVehicleType(v) != AIVehicle.VT_RAIL) {
-//				this.m_vehicle_list[v] = null;
-//			}
-//		}
+//		this.m_vehicle_list = AIVehicleList_Station(this.m_station_id_from, AIVehicle.VT_RAIL);
 		foreach (v, _ in this.m_vehicle_list) {
 			if (!AIVehicle.IsValidVehicle(v)) {
 				this.m_vehicle_list[v] = null;

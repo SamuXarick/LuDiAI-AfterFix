@@ -607,6 +607,8 @@ function LuDiAIAfterFix::Save()
 	}
 
 	local table = {};
+	table.rawset("caches", ::caches.SaveCaches());
+
 	table.rawset("road_town_manager", this.road_town_manager.SaveTownManager());
 	table.rawset("road_route_manager", this.road_route_manager.SaveRouteManager());
 	table.rawset("road_build_manager", this.road_build_manager.SaveBuildManager());
@@ -628,8 +630,6 @@ function LuDiAIAfterFix::Save()
 	table.rawset("cargo_class_rotation", this.cargo_class_rotation);
 	table.rawset("transport_mode_rotation", this.transport_mode_rotation);
 
-	table.rawset("caches", ::caches.SaveCaches());
-
 	AILog.Info("Saved! Used ops: " + (ops - AIController.GetOpsTillSuspend()));
 	return table;
 }
@@ -649,6 +649,10 @@ function LuDiAIAfterFix::Start()
 
 	if (this.is_loading) {
 		if (this.load_data != null) {
+			if (this.load_data[1].rawin("caches")) {
+				::caches.LoadCaches(this.load_data[1].rawget("caches"));
+			}
+
 			if (this.load_data[1].rawin("road_town_manager")) {
 				this.road_town_manager.LoadTownManager(this.load_data[1].rawget("road_town_manager"));
 			}
@@ -707,10 +711,6 @@ function LuDiAIAfterFix::Start()
 
 			if (this.load_data[1].rawin("transport_mode_rotation")) {
 				this.transport_mode_rotation = this.load_data[1].rawget("transport_mode_rotation");
-			}
-
-			if (this.load_data[1].rawin("caches")) {
-				::caches.LoadCaches(this.load_data[1].rawget("caches"));
 			}
 
 			this.CheckForUnfinishedRoadRoute();

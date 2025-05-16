@@ -139,7 +139,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 				this.rail_route_manager.SetMoneyReservation(estimated_costs);
 			}
 			if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.rail_route_manager.GetNonPausedReservedMoney())) {
-				if (this.rail_route_manager.DaysElapsed() <= 60) {
+				if (this.rail_route_manager.DaysElapsed() < AIController.GetSetting("exclusive_attempt_days")) {
 					return 0;
 				}
 				if (!this.rail_route_manager.IsMoneyReservationPaused()) {
@@ -208,7 +208,7 @@ function LuDiAIAfterFix::BuildRailRoute()
 			}
 		} else {
 			if (!Utils.HasMoney(this.rail_route_manager.GetReservedMoney() / (this.rail_build_manager.m_built_ways + 1))) {
-				if (this.rail_route_manager.DaysElapsed() <= 60) {
+				if (this.rail_route_manager.DaysElapsed() < AIController.GetSetting("exclusive_attempt_days")) {
 					return 0;
 				}
 				if (!this.rail_route_manager.IsMoneyReservationPaused()) {

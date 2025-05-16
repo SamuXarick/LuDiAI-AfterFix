@@ -94,6 +94,11 @@ Can station spread:
     whenever possible.
 
 
+Days dedicated to exclusively attempting a transport mode:
+    Time limit for exclusive focus on getting a route of a transport
+    type built before allowing the next transport type.
+
+
 Rail support:
     Enables or disables the usage of rail routes.
 

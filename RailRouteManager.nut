@@ -136,7 +136,7 @@ class RailRouteManager
 				return true;
 			}
 			assert(typeof(route) == "integer");
-			if (elapsed <= 60) {
+			if (elapsed < AIController.GetSetting("exclusive_attempt_days")) {
 				return route;
 			}
 			if (!this.IsMoneyReservationPaused()) {

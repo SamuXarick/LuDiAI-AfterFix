@@ -65,7 +65,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.water_route_manager.GetNonPausedReservedMoney())) {
 				/* Try a cheaper route */
 				if (this.water_route_manager.m_routes_built.best[cargo_class]) {
-					if (this.water_route_manager.DaysElapsed() <= 60) {
+					if (this.water_route_manager.DaysElapsed() < AIController.GetSetting("exclusive_attempt_days")) {
 						return 0;
 					}
 					if (!this.water_route_manager.IsMoneyReservationPaused()) {
@@ -77,7 +77,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 					this.water_route_manager.UpdateMoneyReservation(estimated_costs);
 					cheaper_route = true;
 					if (!Utils.HasMoney(estimated_costs + ::caches.m_reserved_money - this.water_route_manager.GetNonPausedReservedMoney())) {
-						if (this.water_route_manager.DaysElapsed() <= 60) {
+						if (this.water_route_manager.DaysElapsed() < AIController.GetSetting("exclusive_attempt_days")) {
 							return 0;
 						}
 						if (!this.water_route_manager.IsMoneyReservationPaused()) {
@@ -148,7 +148,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			}
 		} else {
 			if (!Utils.HasMoney(this.water_route_manager.GetReservedMoney())) {
-				if (this.water_route_manager.DaysElapsed() <= 60) {
+				if (this.water_route_manager.DaysElapsed() < AIController.GetSetting("exclusive_attempt_days")) {
 					return 0;
 				}
 				if (!this.water_route_manager.IsMoneyReservationPaused()) {

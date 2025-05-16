@@ -60,6 +60,16 @@ class LuDiAIAfterFix extends AIInfo
 		});
 
 		AddSetting({
+			name = "exclusive_attempt_days",
+			description = "Days dedicated to exclusively attempting a transport mode",
+			min_value = 0,
+			max_value = 1000,
+			default_value = 60,
+			step_size = 5,
+			flags = AIInfo.CONFIG_INGAME,
+		});
+
+		AddSetting({
 			name = "rail_support",
 			description = "Rail support",
 			default_value = 1,
