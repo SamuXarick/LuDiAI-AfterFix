@@ -352,11 +352,7 @@ function LuDiAIAfterFix::PerformSingleTownAction(town_id, town_action)
 		return false;
 	}
 
-	if (!TestPerformTownAction().TryPerform(town_id, town_action)) {
-		return false;
-	}
-
-	return true;
+	return TestPerformTownAction().TryPerform(town_id, town_action);
 }
 
 function LuDiAIAfterFix::PerformTownActions()
@@ -443,10 +439,9 @@ function LuDiAIAfterFix::PerformTownActions()
 			}
 
 			if (AIController.GetSetting("exclusive_rights")) {
-				if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BUY_RIGHTS)) {
-					continue;
+				if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BUY_RIGHTS)) {
+					AILog.Warning("Bought exclusive transport rights in " + AITown.GetName(town_id) + ".");
 				}
-				AILog.Warning("Bought exclusive transport rights in " + AITown.GetName(town_id) + ".");
 			}
 
 			if (AIController.GetSetting("fund_buildings")) {
@@ -454,10 +449,9 @@ function LuDiAIAfterFix::PerformTownActions()
 					continue;
 				}
 
-				if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_FUND_BUILDINGS)) {
-					continue;
+				if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_FUND_BUILDINGS)) {
+					AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town_id) + ".");
 				}
-				AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town_id) + ".");
 			}
 		}
 	}
