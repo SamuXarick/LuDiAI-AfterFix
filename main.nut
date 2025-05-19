@@ -274,38 +274,6 @@ function LuDiAIAfterFix::RemoveLeftovers()
 	}
 }
 
-function LuDiAIAfterFix::PerformSingleTownAction(town_id, town_action)
-{
-	if (!AITown.IsActionAvailable(town_id, town_action)) {
-		return false;
-	}
-
-	if (AICompany.GetLoanAmount() != 0) {
-		return false;
-	}
-
-	if (town_action == AITown.TOWN_ACTION_FUND_BUILDINGS) {
-		if (AITown.GetFundBuildingsDuration(town_id) != 0) {
-			return false;
-		}
-	}
-
-	local cost = TestPerformTownAction().TestCost(town_id, town_action);
-	if (cost == 0) {
-		return false;
-	}
-
-	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (cost + ::caches.m_reserved_money)) {
-		return false;
-	}
-
-	if (!TestPerformTownAction().TryPerform(town_id, town_action)) {
-		return false;
-	}
-
-	return true;
-}
-
 function LuDiAIAfterFix::SwapCargoClass()
 {
 	switch (AIController.GetSetting("select_town_cargo")) {
@@ -346,9 +314,54 @@ function LuDiAIAfterFix::SwapCargoClass()
 	}
 }
 
+function LuDiAIAfterFix::PerformSingleTownAction(town_id, town_action)
+{
+	if (!AITown.IsActionAvailable(town_id, town_action)) {
+		if (town_action == AITown.TOWN_ACTION_BUY_RIGHTS) {
+			local bribe_company = AITown.GetExclusiveRightsCompany(town_id);
+			if (bribe_company != AICompany.COMPANY_INVALID && bribe_company != ::caches.m_my_company_id) {
+				if (AIController.GetSetting("bribe_authority")) {
+					if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BRIBE)) {
+						AILog.Warning("Bribed the local authority of " + AITown.GetName(town_id) + ".");
+					} else {
+						return false;
+					}
+				}
+			}
+		} else {
+			return false;
+		}
+	}
+
+	if (AICompany.GetLoanAmount() != 0) {
+		return false;
+	}
+
+	if (town_action == AITown.TOWN_ACTION_FUND_BUILDINGS) {
+		if (AITown.GetFundBuildingsDuration(town_id) != 0) {
+			return false;
+		}
+	}
+
+	local cost = TestPerformTownAction().TestCost(town_id, town_action);
+	if (cost == 0) {
+		return false;
+	}
+
+	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (cost + ::caches.m_reserved_money)) {
+		return false;
+	}
+
+	if (!TestPerformTownAction().TryPerform(town_id, town_action)) {
+		return false;
+	}
+
+	return true;
+}
+
 function LuDiAIAfterFix::PerformTownActions()
 {
-	if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise")) {
+	if (!AIController.GetSetting("fund_buildings") && !AIController.GetSetting("build_statues") && !AIController.GetSetting("advertise") && !AIController.GetSetting("exclusive_rights") && !AIController.GetSetting("bribe_authority")) {
 		return;
 	}
 
@@ -429,19 +442,23 @@ function LuDiAIAfterFix::PerformTownActions()
 				}
 			}
 
-			if (!AIController.GetSetting("fund_buildings")) {
-				continue;
+			if (AIController.GetSetting("exclusive_rights")) {
+				if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BUY_RIGHTS)) {
+					continue;
+				}
+				AILog.Warning("Bought exclusive transport rights in " + AITown.GetName(town_id) + ".");
 			}
 
-			if (TownManager.GetLastMonthProductionDiffRate(town_id, cargo_type) > TownManager.CARGO_TYPE_LIMIT[cargo_class]) {
-				continue;
-			}
+			if (AIController.GetSetting("fund_buildings")) {
+				if (TownManager.GetLastMonthProductionDiffRate(town_id, cargo_type) > TownManager.CARGO_TYPE_LIMIT[cargo_class]) {
+					continue;
+				}
 
-			if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_FUND_BUILDINGS)) {
-				continue;
+				if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_FUND_BUILDINGS)) {
+					continue;
+				}
+				AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town_id) + ".");
 			}
-
-			AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town_id) + ".");
 		}
 	}
 }

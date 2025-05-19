@@ -709,6 +709,7 @@ class RailRoute
 		return AIMap.DistanceManhattan(station_from_tile, station_to_tile);
 	}
 
+	/* Warning: this function is also called from RailMain.nut. Don't use 'this' */
 	function ScheduleRemoveStation(rail_station)
 	{
 		local top_tile = rail_station.GetTopTile();
@@ -717,23 +718,26 @@ class RailRoute
 		local exit_tile_2 = rail_station.GetExitTile(2);
 		local exit_tile_1 = rail_station.GetExitTile(1);
 		local entry_tile_1 = rail_station.GetEntryTile(1);
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(top_tile, RailStructType.STATION, this.m_rail_type, bot_tile));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_2, this.m_rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_1, this.m_rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_2, this.m_rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_1, this.m_rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
+		local rail_type = AIRail.GetRailType(top_tile);
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(top_tile, RailStructType.STATION, rail_type, bot_tile));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_1 - entry_tile_1));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_2 - entry_tile_2));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_2, rail_type, entry_tile_2, 2 * exit_tile_2 - entry_tile_2));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(exit_tile_1, rail_type, entry_tile_1, 2 * exit_tile_1 - entry_tile_1));
 	}
 
+	/* Warning: this function is also called from RailMain.nut. Don't use 'this' */
 	function ScheduleRemoveDepot(depot_tile)
 	{
 		local depot_front_tile = AIRail.GetRailDepotFrontTile(depot_tile);
 		local depot_rail_a = abs(depot_tile - depot_front_tile) == 1 ? depot_front_tile - AIMap.GetMapSizeX() : depot_front_tile - 1;
 		local depot_rail_b = 2 * depot_front_tile - depot_rail_a;
 		local depot_rail_c = 2 * depot_front_tile - depot_tile;
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depot_front_tile, this.m_rail_type, depot_tile, depot_rail_a));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depot_front_tile, this.m_rail_type, depot_tile, depot_rail_b));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depot_front_tile, this.m_rail_type, depot_tile, depot_rail_c));
-		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, this.m_rail_type));
+		local rail_type = AIRail.GetRailType(depot_tile);
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depot_front_tile, rail_type, depot_tile, depot_rail_a));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depot_front_tile, rail_type, depot_tile, depot_rail_b));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetRail(depot_front_tile, rail_type, depot_tile, depot_rail_c));
+		::scheduled_removals[AITile.TRANSPORT_RAIL].append(RailStruct.SetStruct(depot_tile, RailStructType.DEPOT, rail_type));
 	}
 
 	function ScheduleRemoveTracks(front_tile, prev_tile)

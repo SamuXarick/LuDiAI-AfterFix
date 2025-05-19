@@ -94,11 +94,6 @@ Can station spread:
     whenever possible.
 
 
-Days dedicated to exclusively attempting a transport mode:
-    Time limit for exclusive focus on getting a route of a transport
-    type built before allowing the next transport type.
-
-
 Rail support:
     Enables or disables the usage of rail routes.
 
@@ -113,6 +108,11 @@ Water support:
 
 Air support:
     Enables or disables the usage of air routes.
+
+
+Days dedicated to exclusively attempting a transport mode:
+    Time limit for exclusive focus on getting a route of a transport
+    type built before allowing the next transport type.
 
 
 Approximate number of days in transit for rail routes:
@@ -276,6 +276,19 @@ Fund construction of new buildings in towns:
     the smaller towns it services, providing a temporary boost to town
     growth. When used with "Build company statues in towns", it will
     prioritize the building of statues over funding construction.
+
+
+Buy exclusive transport rights in towns:
+    When enabled, the AI will buy exclusive transport rights in towns it
+    services. For 12 months, their local authorities will not allow cargo
+    to be used by competitors' stations.
+
+
+
+Bribe towns to abort competitors' exclusive transport rights:
+    When enabled, the AI will bribe local authorities to abort exclusive
+    exclusive transport rights of competitors, at the risk of beight
+    caught.
 
 
 Found towns:

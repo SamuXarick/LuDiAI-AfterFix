@@ -696,8 +696,8 @@ function LuDiAIAfterFix::CheckForUnfinishedRailRoute()
 				all_tiles_missing.RemoveList(all_tiles_found);
 				foreach (tile, _ in all_tiles_missing) {
 //					AILog.Info("Tile " + tile + " is missing");
-					local station = RailStation.CreateFromTile(tile);
-					RailRoute.ScheduleRemoveStation(station.m_tile, station.m_dir);
+					local rail_station = RailStation.CreateFromTile(tile);
+					RailRoute.ScheduleRemoveStation(rail_station);
 				}
 			}
 		}

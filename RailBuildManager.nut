@@ -180,6 +180,8 @@ class RailStation
 							break;
 						}
 					}
+					/* Could not guess station direction, just use any instead of crashing the script */
+					dir = RailStationDir.NE;
 					break;
 				}
 
@@ -199,11 +201,13 @@ class RailStation
 							break;
 						}
 					}
+					/* Could not guess station direction, just use any instead of crashing the script */
+					dir = RailStationDir.NW;
 					break;
 				}
 			}
 		}
-		assert(dir != null); // Could not guess station direction
+		assert(dir != null);
 		return RailStation(top_tile, dir, num_platforms, length);
 	}
 
@@ -1459,8 +1463,6 @@ class RailBuildManager
 	/* find rail way between this.m_station_from and this.m_station_to */
 	function PathfindBuildDoubleRail(pathfinder_instance, cost_so_far = 0)
 	{
-		/* can store rail tiles into array */
-
 		if (this.m_station_from != this.m_station_to) {
 			if (this.m_max_pathfinder_tries == -1) {
 				this.m_max_pathfinder_tries = 100 * this.m_route_dist;

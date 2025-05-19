@@ -1,10 +1,13 @@
 LuDiAI AfterFix
 ===============
-v22 (11-05-2025)
+v22 (19-05-2025)
 - OpenTTD and API requirements set to 15.0
 - Added "Days dedicated to exclusively attempting a transport mode"
   setting. Controls how long the AI focus its efforts on getting a route
   of a certain transportation mode built before moving on to the next
+- Added "Buy exclusive transport rights in towns" setting.
+- Added "Bribe towns to abort competitors' exclusive transport rights"
+  setting.
 - Fixed a bug that allowed road depots to be part of multiple routes
 - Silence cache related errors about train engines and wagons
 - Allow ship pathfinder to build longer aqueducts when with infinite money
