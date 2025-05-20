@@ -648,7 +648,7 @@ class RailRoute
 
 		local train_capacity = this.m_engine_wagon_pair[4];
 
-		if (cargo_waiting_from > train_capacity || cargo_waiting_to > train_capacity) {
+		if ((cargo_waiting_from > train_capacity && cargo_waiting_to != 0) || (cargo_waiting_to > train_capacity && cargo_waiting_from != 0)) {
 			local number_to_add = max(1, (cargo_waiting_from > cargo_waiting_to ? cargo_waiting_from : cargo_waiting_to) / train_capacity);
 
 			while (number_to_add) {

@@ -458,7 +458,7 @@ class WaterBuildManager
 			return 0;
 		}
 
-		if (this.m_dock_from == -1) {
+		if (this.m_dock_from == -1 || !AIMarine.IsDockTile(this.m_dock_from) || AITile.GetOwner(this.m_dock_from) != ::caches.m_my_company_id) {
 			this.m_dock_from = this.BuildTownDock(this.m_city_from);
 			if (this.m_dock_from == null) {
 				this.SetRouteFinished();
@@ -466,7 +466,7 @@ class WaterBuildManager
 			}
 		}
 
-		if (this.m_dock_to == -1) {
+		if (this.m_dock_to == -1 || !AIMarine.IsDockTile(this.m_dock_to) || AITile.GetOwner(this.m_dock_to) != ::caches.m_my_company_id) {
 			this.m_dock_to = this.BuildTownDock(this.m_city_to);
 			if (this.m_dock_to == null) {
 				this.RemoveFailedRouteStation(this.m_dock_from);
@@ -475,7 +475,7 @@ class WaterBuildManager
 			}
 		}
 
-		if (this.m_depot_tile == -1) {
+		if (this.m_depot_tile == -1 || !AIMarine.IsWaterDepotTile(this.m_depot_tile) || AITile.GetOwner(this.m_depot_tile) != ::caches.m_my_company_id) {
 			/* Provide the docking tiles to the pathfinder */
 			local ship_docking_tile_from = this.GetDockDockingTile(this.m_dock_from);
 			local ship_docking_tile_to = this.GetDockDockingTile(this.m_dock_to);

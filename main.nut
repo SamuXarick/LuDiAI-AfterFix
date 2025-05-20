@@ -317,30 +317,11 @@ function LuDiAIAfterFix::SwapCargoClass()
 function LuDiAIAfterFix::PerformSingleTownAction(town_id, town_action)
 {
 	if (!AITown.IsActionAvailable(town_id, town_action)) {
-		if (town_action == AITown.TOWN_ACTION_BUY_RIGHTS) {
-			local bribe_company = AITown.GetExclusiveRightsCompany(town_id);
-			if (bribe_company != AICompany.COMPANY_INVALID && bribe_company != ::caches.m_my_company_id) {
-				if (AIController.GetSetting("bribe_authority")) {
-					if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BRIBE)) {
-						AILog.Warning("Bribed the local authority of " + AITown.GetName(town_id) + ".");
-					} else {
-						return false;
-					}
-				}
-			}
-		} else {
-			return false;
-		}
+		return false;
 	}
 
 	if (AICompany.GetLoanAmount() != 0) {
 		return false;
-	}
-
-	if (town_action == AITown.TOWN_ACTION_FUND_BUILDINGS) {
-		if (AITown.GetFundBuildingsDuration(town_id) != 0) {
-			return false;
-		}
 	}
 
 	local cost = TestPerformTownAction().TestCost(town_id, town_action);
@@ -361,6 +342,14 @@ function LuDiAIAfterFix::PerformTownActions()
 		return;
 	}
 
+	if (AICompany.GetLoanAmount() != 0) {
+		return;
+	}
+
+	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (::caches.m_reserved_money)) {
+		return;
+	}
+
 	local cargo_class = this.SwapCargoClass();
 	local cargo_type = Utils.GetCargoType(cargo_class);
 
@@ -375,7 +364,7 @@ function LuDiAIAfterFix::PerformTownActions()
 
 		local nearest_town = AIStation.GetNearestTown(station_id);
 		if (!town_list.HasItem(nearest_town)) {
-			town_list[nearest_town] = 0;
+			town_list[nearest_town] = AITown.GetExclusiveRightsCompany(nearest_town);
 			if (AITown.HasStatue(nearest_town)) {
 				statue_count++;
 			}
@@ -409,19 +398,34 @@ function LuDiAIAfterFix::PerformTownActions()
 	}
 
 	local town_count = town_list.Count();
-	if (AIController.GetSetting("build_statues") && statue_count < town_count) {
-		foreach (town_id, _ in town_list) {
-			if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BUILD_STATUE)) {
-				continue;
+	if (AIController.GetSetting("bribe_authority") || (AIController.GetSetting("build_statues") && statue_count < town_count)) {
+		foreach (town_id, exclusive_company in town_list) {
+			if (AIController.GetSetting("bribe_authority")) {
+				if (exclusive_company != AICompany.COMPANY_INVALID && exclusive_company != ::caches.m_my_company_id && AITown.GetExclusiveRightsDuration(town_id) != 0) {
+					if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BRIBE)) {
+						/* Don't bother building statue if a competitor has exclusive transport rights in this town */
+						continue;
+					}
+					if (AITown.GetExclusiveRightsDuration(town_id) == 0 && AITown.GetExclusiveRightsCompany(town_id) == AICompany.COMPANY_INVALID) {
+						AILog.Warning("Successfully bribed the local authority in " + AITown.GetName(town_id) + " to revoke exclusive transport rights of " + AICompany.GetName(exclusive_company) + ".");
+					} else {
+						AILog.Error("Unsuccessfully bribed the local authority in " + AITown.GetName(town_id) + " to revoke exclusive transport rights of " + AICompany.GetName(exclusive_company) + ".");
+					}
+				}
 			}
 
-			statue_count++;
-			AILog.Warning("Built a statue in " + AITown.GetName(town_id) + " (" + statue_count + "/" + town_count + " " + AICargo.GetCargoLabel(cargo_type) + ")");
+			if (AIController.GetSetting("build_statues") && statue_count < town_count) {
+				if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BUILD_STATUE)) {
+					statue_count++;
+					AILog.Warning("Built a statue in " + AITown.GetName(town_id) + " (" + statue_count + "/" + town_count + " " + AICargo.GetCargoLabel(cargo_type) + ")");
+				}
+			}
 		}
-	} else {
-		foreach (town_id, _ in station_towns) {
-			if (AIController.GetSetting("advertise")) {
-				local station_location = AIBaseStation.GetLocation(station_towns.GetValue(town_id));
+	}
+
+	if ((AIController.GetSetting("advertise") && statue_count == town_count) || AIController.GetSetting("exclusive_rights") || AIController.GetSetting("fund_buildings")) {
+		foreach (town_id, station_location in station_towns) {
+			if (AIController.GetSetting("advertise") && statue_count == town_count) {
 				local distance = AITown.GetDistanceManhattanToTile(town_id, station_location);
 				if (distance <= 10) {
 					if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_ADVERTISE_SMALL)) {
@@ -445,10 +449,16 @@ function LuDiAIAfterFix::PerformTownActions()
 			}
 
 			if (AIController.GetSetting("fund_buildings")) {
+				if (AITown.GetFundBuildingsDuration(town_id) != 0) {
+					continue;
+				}
 				if (TownManager.GetLastMonthProductionDiffRate(town_id, cargo_type) > TownManager.CARGO_TYPE_LIMIT[cargo_class]) {
 					continue;
 				}
 
+				if (AITown.GetFundBuildingsDuration(town_id) != 0) {
+					continue;
+				}
 				if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_FUND_BUILDINGS)) {
 					AILog.Warning("Funded the construction of new buildings in " + AITown.GetName(town_id) + ".");
 				}

@@ -611,7 +611,7 @@ class RailBuildManager
 			return 0;
 		}
 
-		if (this.m_station_from == -1) {
+		if (this.m_station_from == -1 || !AIRail.IsRailStationTile(this.m_station_from) || AITile.GetOwner(this.m_station_from) != ::caches.m_my_company_id) {
 			local station_from = this.BuildTownRailStation(this.m_city_from, this.m_city_to, this.m_best_routes_built, this.m_rail_type);
 			if (station_from == null) {
 				this.SetRouteFinished();
@@ -621,7 +621,7 @@ class RailBuildManager
 			this.m_station_from_dir = station_from[1];
 		}
 
-		if (this.m_depot_tile_from == -1) {
+		if (this.m_depot_tile_from == -1 || !AIRail.IsRailDepotTile(this.m_depot_tile_from) || AITile.GetOwner(this.m_depot_tile_from) != ::caches.m_my_company_id) {
 			local depot_tile_from = this.BuildRouteRailDepot(this.m_station_from, this.m_station_from_dir);
 			if (depot_tile_from == null) {
 				this.RemoveFailedRouteStation(this.m_station_from, this.m_station_from_dir);
@@ -631,7 +631,7 @@ class RailBuildManager
 			this.m_depot_tile_from = depot_tile_from;
 		}
 
-		if (this.m_station_to == -1) {
+		if (this.m_station_to == -1 || !AIRail.IsRailStationTile(this.m_station_to) || AITile.GetOwner(this.m_station_to) != ::caches.m_my_company_id) {
 			local station_to = this.BuildTownRailStation(this.m_city_to, this.m_city_from, this.m_best_routes_built, this.m_rail_type);
 			if (station_to == null) {
 				this.RemoveFailedRouteStation(this.m_station_from, this.m_station_from_dir, this.m_depot_tile_from);
@@ -642,11 +642,11 @@ class RailBuildManager
 			this.m_station_to_dir = station_to[1];
 		}
 
-		if (this.m_depot_tile_to == -1) {
+		if (this.m_depot_tile_to == -1 || !AIRail.IsRailDepotTile(this.m_depot_tile_to) || AITile.GetOwner(this.m_depot_tile_to) != ::caches.m_my_company_id) {
 			local depot_tile_to = this.BuildRouteRailDepot(this.m_station_to, this.m_station_to_dir);
 			if (depot_tile_to == null) {
-				this.RemoveFailedRouteStation(this.m_station_from, this.m_station_from_dir, this.m_depot_tile_from);
 				this.RemoveFailedRouteStation(this.m_station_to, this.m_station_to_dir);
+				this.RemoveFailedRouteStation(this.m_station_from, this.m_station_from_dir, this.m_depot_tile_from);
 				this.SetRouteFinished();
 				return null;
 			}

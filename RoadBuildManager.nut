@@ -131,7 +131,7 @@ class RoadBuildManager
 			return 0;
 		}
 
-		if (this.m_station_from == -1) {
+		if (this.m_station_from == -1/* || !AIRoad.IsRoadStationTile(this.m_station_from) || AITile.GetOwner(this.m_station_from) != ::caches.m_my_company_id*/) {
 			this.m_station_from = this.BuildTownRoadStation(this.m_city_from, this.m_city_to, this.m_cargo_class, this.m_articulated, this.m_best_routes_built);
 			if (this.m_station_from == null) {
 				this.SetRouteFinished();
@@ -139,7 +139,7 @@ class RoadBuildManager
 			}
 		}
 
-		if (this.m_station_to == -1) {
+		if (this.m_station_to == -1/* || !AIRoad.IsRoadStationTile(this.m_station_to) || AITile.GetOwner(this.m_station_to) != ::caches.m_my_company_id*/) {
 			this.m_station_to = this.BuildTownRoadStation(this.m_city_to, this.m_city_from, this.m_cargo_class, this.m_articulated, this.m_best_routes_built);
 			if (this.m_station_to == null) {
 				this.RemoveFailedRouteStation(this.m_station_from);
@@ -148,7 +148,7 @@ class RoadBuildManager
 			}
 		}
 
-		if (this.m_depot_tile == -1) {
+		if (this.m_depot_tile == -1/* || !AIRoad.IsRoadDepotTile(this.m_depot_tile) || AITile.GetOwner(this.m_depot_tile) != ::caches.m_my_company_id*/) {
 			local road_array = this.PathfindBuildRoad(this.m_station_from, this.m_station_to, this.m_pathfinder_instance);
 			this.m_pathfinder_instance = road_array[1];
 			if (road_array[0] == null && this.m_pathfinder_instance != null) {
