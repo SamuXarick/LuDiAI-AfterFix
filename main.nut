@@ -329,7 +329,7 @@ function LuDiAIAfterFix::PerformSingleTownAction(town_id, town_action)
 		return false;
 	}
 
-	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (cost + ::caches.m_reserved_money)) {
+	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (cost + abs(this.rail_route_manager.m_reserved_money) + abs(this.road_route_manager.m_reserved_money) + abs(this.water_route_manager.m_reserved_money) + abs(this.air_route_manager.m_reserved_money) + ::caches.m_reserved_money)) {
 		return false;
 	}
 
@@ -346,7 +346,7 @@ function LuDiAIAfterFix::PerformTownActions()
 		return;
 	}
 
-	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (::caches.m_reserved_money)) {
+	if (AICompany.GetBankBalance(::caches.m_my_company_id) <= (abs(this.rail_route_manager.m_reserved_money) + abs(this.road_route_manager.m_reserved_money) + abs(this.water_route_manager.m_reserved_money) + abs(this.air_route_manager.m_reserved_money) + ::caches.m_reserved_money)) {
 		return;
 	}
 
@@ -406,10 +406,11 @@ function LuDiAIAfterFix::PerformTownActions()
 						/* Don't bother building statue if a competitor has exclusive transport rights in this town */
 						continue;
 					}
-					if (AITown.GetExclusiveRightsDuration(town_id) == 0 && AITown.GetExclusiveRightsCompany(town_id) == AICompany.COMPANY_INVALID) {
-						AILog.Warning("Successfully bribed the local authority in " + AITown.GetName(town_id) + " to revoke exclusive transport rights of " + AICompany.GetName(exclusive_company) + ".");
+					local exclusivity_duration = AITown.GetExclusiveRightsDuration(town_id);
+					if (exclusivity_duration == 0 && AITown.GetExclusiveRightsCompany(town_id) == AICompany.COMPANY_INVALID) {
+						AILog.Warning("Bribed " + AITown.GetName(town_id) + ". " + AICompany.GetName(exclusive_company) + "'s " + exclusivity_duration + " month" + (exclusivity_duration == 1 ? "" : "s") + " of exclusivity revoked.");
 					} else {
-						AILog.Error("Unsuccessfully bribed the local authority in " + AITown.GetName(town_id) + " to revoke exclusive transport rights of " + AICompany.GetName(exclusive_company) + ".");
+						AILog.Error("Caught bribing " + AITown.GetName(town_id) + ". " + AICompany.GetName(exclusive_company) + "'s " + exclusivity_duration + " month" + (exclusivity_duration == 1 ? "" : "s") + " of exclusivity remain.");
 					}
 				}
 			}
