@@ -269,7 +269,8 @@ class AirRoute
 				return aircraft_type != AIAirport.PT_HELICOPTER ? 0 : 1;
 
 			default:
-				throw "Invalid airport_type in GetNumTerminals";
+				AILog.Error("Invalid airport_type in GetNumTerminals");
+				return 0;
 		}
 	}
 

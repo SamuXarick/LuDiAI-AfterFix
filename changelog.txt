@@ -1,6 +1,6 @@
 LuDiAI AfterFix
 ===============
-v22 (19-05-2025)
+v22 (11-10-2025)
 - OpenTTD and API requirements set to 15.0
 - Added "Days dedicated to exclusively attempting a transport mode"
   setting. Controls how long the AI focus its efforts on getting a route
@@ -34,6 +34,8 @@ v22 (19-05-2025)
   individually
 - Fixed a crash when loading a savegame with an incomplete rail route
 - Use Company AutoRenew and Group AutoReplace
+- Continue running upon encountering an invalid airport type instead of
+  crashing
 
 v21 (27-03-2025)
 - OpenTTD and API requirements set to 14.0
