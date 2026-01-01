@@ -1,6 +1,6 @@
 LuDiAI AfterFix
 ===============
-v22 (11-10-2025)
+v22 (01-01-2026)
 - OpenTTD and API requirements set to 15.0
 - Added "Days dedicated to exclusively attempting a transport mode"
   setting. Controls how long the AI focus its efforts on getting a route
