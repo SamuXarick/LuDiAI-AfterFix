@@ -1,5 +1,8 @@
 LuDiAI AfterFix
 ===============
+v23 (10-02-2026)
+- Fixed a bug in the range check for advertisement campaigns
+
 v22 (01-01-2026)
 - OpenTTD and API requirements set to 15.0
 - Added "Days dedicated to exclusively attempting a transport mode"

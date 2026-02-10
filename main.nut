@@ -425,9 +425,9 @@ function LuDiAIAfterFix::PerformTownActions()
 	}
 
 	if ((AIController.GetSetting("advertise") && statue_count == town_count) || AIController.GetSetting("exclusive_rights") || AIController.GetSetting("fund_buildings")) {
-		foreach (town_id, station_location in station_towns) {
+		foreach (town_id, station_id in station_towns) {
 			if (AIController.GetSetting("advertise") && statue_count == town_count) {
-				local distance = AITown.GetDistanceManhattanToTile(town_id, station_location);
+				local distance = AITown.GetDistanceManhattanToTile(town_id, AIBaseStation.GetLocation(station_id));
 				if (distance <= 10) {
 					if (this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_ADVERTISE_SMALL)) {
 						AILog.Warning("Initiated a small advertising campaign in " + AITown.GetName(town_id) + ".");

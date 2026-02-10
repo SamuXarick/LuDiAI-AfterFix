@@ -3,9 +3,9 @@ class LuDiAIAfterFix extends AIInfo
 	function GetAuthor()        { return "lukin_, Samu"; }
 	function GetName()          { return "LuDiAI AfterFix"; }
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
-	function GetVersion()       { return 22; }
+	function GetVersion()       { return 23; }
 	function MinVersionToLoad() { return 22; }
-	function GetDate()          { return "01-01-2026"; }
+	function GetDate()          { return "10-02-2026"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "15"; }
