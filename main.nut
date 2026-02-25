@@ -401,16 +401,18 @@ function LuDiAIAfterFix::PerformTownActions()
 	if (AIController.GetSetting("bribe_authority") || (AIController.GetSetting("build_statues") && statue_count < town_count)) {
 		foreach (town_id, exclusive_company in town_list) {
 			if (AIController.GetSetting("bribe_authority")) {
-				if (exclusive_company != AICompany.COMPANY_INVALID && exclusive_company != ::caches.m_my_company_id && AITown.GetExclusiveRightsDuration(town_id) != 0) {
-					if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BRIBE)) {
-						/* Don't bother building statue if a competitor has exclusive transport rights in this town */
-						continue;
-					}
+				if (exclusive_company != AICompany.COMPANY_INVALID && exclusive_company != ::caches.m_my_company_id) {
 					local exclusivity_duration = AITown.GetExclusiveRightsDuration(town_id);
-					if (exclusivity_duration == 0 && AITown.GetExclusiveRightsCompany(town_id) == AICompany.COMPANY_INVALID) {
-						AILog.Warning("Bribed " + AITown.GetName(town_id) + ". " + AICompany.GetName(exclusive_company) + "'s " + exclusivity_duration + " month" + (exclusivity_duration == 1 ? "" : "s") + " of exclusivity revoked.");
-					} else {
-						AILog.Error("Caught bribing " + AITown.GetName(town_id) + ". " + AICompany.GetName(exclusive_company) + "'s " + exclusivity_duration + " month" + (exclusivity_duration == 1 ? "" : "s") + " of exclusivity remain.");
+					if (exclusivity_duration != 0) {
+						if (!this.PerformSingleTownAction(town_id, AITown.TOWN_ACTION_BRIBE)) {
+							/* Don't bother building statue if a competitor has exclusive transport rights in this town */
+							continue;
+						}
+						if (AITown.GetExclusiveRightsDuration(town_id) == 0 && AITown.GetExclusiveRightsCompany(town_id) == AICompany.COMPANY_INVALID) {
+							AILog.Warning("Bribed " + AITown.GetName(town_id) + ". " + AICompany.GetName(exclusive_company) + "'s " + exclusivity_duration + " month" + (exclusivity_duration == 1 ? "" : "s") + " of exclusivity revoked.");
+						} else {
+							AILog.Error("Caught bribing " + AITown.GetName(town_id) + ". " + AICompany.GetName(exclusive_company) + "'s " + exclusivity_duration + " month" + (exclusivity_duration == 1 ? "" : "s") + " of exclusivity remain.");
+						}
 					}
 				}
 			}

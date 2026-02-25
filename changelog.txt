@@ -1,5 +1,8 @@
 LuDiAI AfterFix
 ===============
+v24 (25-02-2026)
+- Fixed incorrect logging of exclusive transport rights duration
+
 v23 (10-02-2026)
 - Fixed a bug in the range check for advertisement campaigns
 
