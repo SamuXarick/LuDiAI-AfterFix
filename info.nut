@@ -3,9 +3,9 @@ class LuDiAIAfterFix extends AIInfo
 	function GetAuthor()        { return "lukin_, Samu"; }
 	function GetName()          { return "LuDiAI AfterFix"; }
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
-	function GetVersion()       { return 24; }
+	function GetVersion()       { return 25; }
 	function MinVersionToLoad() { return 22; }
-	function GetDate()          { return "25-02-2026"; }
+	function GetDate()          { return "06-04-2026"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "15"; }
@@ -111,14 +111,15 @@ class LuDiAIAfterFix extends AIInfo
 			name = "rail_pf_profile",
 			description = "Rail pathfinder profile",
 			min_value = 0,
-			max_value = 1,
-			default_value = 0,
+			max_value = 2,
+			default_value = 2,
 			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AIInfo.AddLabels("rail_pf_profile", {
 			_0 = "SingleRail",
 			_1 = "DoubleRail",
+			_2 = "RailRedux"
 		});
 
 		AIInfo.AddSetting({

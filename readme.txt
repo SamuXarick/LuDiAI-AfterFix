@@ -128,11 +128,14 @@ Rail pathfinder profile:
 
     - SingleRail:
     Tweaked for constrained terrain. Connects each of the two lanes
-    separately. Tends to succeed more often than the other method, but
+    separately. Tends to succeed more often than the other methods, but
     requires pathfinding twice, one per lane.
 
     - DoubleRail:
     Tweaked for looks. Connects both lanes in a single instance.
+
+    - RailRedux:
+    Tweaked for performance. Connects each of the two lanes separately.
 
 
 Approximate number of days in transit for road routes:

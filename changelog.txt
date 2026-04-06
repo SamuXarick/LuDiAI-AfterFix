@@ -1,5 +1,8 @@
 LuDiAI AfterFix
 ===============
+v25 (02-04-2026)
+- Added "RailRedux" pathfinder profile setting, tweaked for performance
+
 v24 (25-02-2026)
 - Fixed incorrect logging of exclusive transport rights duration
 
