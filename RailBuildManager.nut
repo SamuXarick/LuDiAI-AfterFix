@@ -1474,7 +1474,7 @@ class RailBuildManager
 	{
 		if (this.m_station_from != this.m_station_to) {
 			if (this.m_max_pathfinder_tries == -1) {
-				this.m_max_pathfinder_tries = 300 * this.m_route_dist;
+				this.m_max_pathfinder_tries = 135 * this.m_route_dist;
 			}
 
 			/* Print the names of the towns we'll try to connect. */
@@ -1606,12 +1606,12 @@ class RailBuildManager
 
 //			if (this.m_pathfinder_tries != count) AILog.Info("rail pathfinder: FindPath iterated: " + count);
 			AILog.Info("Rail path found! FindPath iterated: " + this.m_pathfinder_tries + ". Building track... ");
-			AILog.Info("rail pathfinder: FindPath cost: " + path.GetCost());
+			AILog.Info("rail pathfinder: FindPath cost: " + path._cost);
 
 			local segments = [];
 			while (path != null) {
-				segments.append(path.GetTile());
-				path = path.GetParent();
+				segments.append(path._tile);
+				path = path._prev;
 			}
 			segments.reverse();
 

@@ -1,12 +1,116 @@
-require("SingleRailAyStar.nut");
+/**
+ * A class to precalculate some values for the SingleRail Pathfinder, so they don't
+ * have to be calculated every time a path is searched. This is used to speed
+ * up the pathfinding, as some of these values are used a lot during the search.
+ */
+class PreSingleRail
+{
+	/**
+	 * A table of array offset values for different directions.
+	 *  The keys of the first dimension are the direction from the previous
+	 *  tile to the current tile, and the values are arrays of offsets to
+	 *  calculate the next tile in a given direction, excluding the direction
+	 *  we came from.
+	 */
+	_offsets_array = {
+		[1] = [-1, AIMap.GetMapSizeX(), -AIMap.GetMapSizeX()],
+		[-1] = [1, AIMap.GetMapSizeX(), -AIMap.GetMapSizeX()],
+		[AIMap.GetMapSizeX()] = [1, -1, -AIMap.GetMapSizeX()],
+		[-AIMap.GetMapSizeX()] = [1, -1, AIMap.GetMapSizeX()]
+	};
+
+	/**
+	 * A table mapping directions to bitfields for tunnels and bridges.
+	 *  The index is the direction from the previous tile to the current tile.
+	 *  The value is the mapped bitfield for the direction difference.
+	 */
+	_dir_to_dirbit_tunnelbridge = {
+		[1] = 1,
+		[-1] = 2,
+		[AIMap.GetMapSizeX()] = 4,
+		[-AIMap.GetMapSizeX()] = 8
+	};
+
+	/**
+	 * A table mapping directions to bitfields for rails.
+	 *  The keys of the first dimension are the direction from the previous tile to the current tile.
+	 *  The keys of the second dimension are the direction from the current tile to the next tile.
+	 *  The value is the mapped bitfield for the direction difference.
+	 */
+	_dir_to_dirbit_rail_2d = {
+		[1] = { [1] = 32, [-1] = 16, [AIMap.GetMapSizeX()] = 128, [-AIMap.GetMapSizeX()] = 64 },
+		[-1] = { [1] = 512, [-1] = 256, [AIMap.GetMapSizeX()] = 2048, [-AIMap.GetMapSizeX()] = 1024 },
+		[AIMap.GetMapSizeX()] = { [1] = 8192, [-1] = 4096, [AIMap.GetMapSizeX()] = 32768, [-AIMap.GetMapSizeX()] = 16384 },
+		[-AIMap.GetMapSizeX()] = { [1] = 131072, [-1] = 65536, [AIMap.GetMapSizeX()] = 524288, [-AIMap.GetMapSizeX()] = 262144 }
+	};
+
+	/**
+	 * A table mapping slopes/directions combinations for determining a sloped bridge.
+	 *  The keys of the first dimension are the result of AITile.GetSlope on a bridge ramp tile.
+	 *  The keys of the second dimension are the direction from the bridge ramp tile towards the exit.
+	 *  The value is the number of slopes for the slope-direction combination.
+	 */
+	_is_slope_dir_bridge = {
+		[AITile.SLOPE_FLAT] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_W] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_S] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_E] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_N] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_NW] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_SW] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_SE] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_NE] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_EW] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_NS] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_NWS] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_WSE] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_SEN] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_ENW] = { [1] = 1, [-1] = 1, [AIMap.GetMapSizeX()] = 1, [-AIMap.GetMapSizeX()] = 1 },
+		[AITile.SLOPE_STEEP_W] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_STEEP_S] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_STEEP_E] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 },
+		[AITile.SLOPE_STEEP_N] = { [1] = 0, [-1] = 0, [AIMap.GetMapSizeX()] = 0, [-AIMap.GetMapSizeX()] = 0 }
+	};
+
+	/**
+	 * A table mapping slopes/directionbits combinations for determining a sloped rail.
+	 *  The keys of the first dimension are the result of AITile.GetSlope on a rail tile.
+	 *  The keys of the second dimension are the result of _dir_to_dirbit_rail_2d applied offsets to the rail.
+	 *  The value is the number of slopes for the slope-directionbit combination.
+	 */
+	_is_slope_dirbit_rail = {
+		[AITile.SLOPE_FLAT] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_W] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_S] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_E] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_N] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_NW] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_SW] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_SE] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_NE] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_EW] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_NS] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_NWS] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_WSE] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_SEN] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_ENW] = { [32] = 0, [128] = 0, [64] = 0, [256] = 0, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 0, [131072] = 0, [65536] = 0, [262144] = 0},
+		[AITile.SLOPE_STEEP_W] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_STEEP_S] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_STEEP_E] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1},
+		[AITile.SLOPE_STEEP_N] = { [32] = 1, [128] = 0, [64] = 0, [256] = 1, [2048] = 0, [1024] = 0, [8192] = 0, [4096] = 0, [32768] = 1, [131072] = 0, [65536] = 0, [262144] = 1}
+	};
+};
 
 /**
  * A SingleRail Pathfinder.
  */
 class SingleRail
 {
-	_aystar_class = AyStar;
+	/** AyStar Graph */
+	_open = null;                       ///< The open list, this is a priority queue of paths that are not yet scanned.
+	_closed = null;                     ///< The closed list, this is a list of tiles that are already scanned, with the directions we came from as bitfields.
 
+	/** Costs */
 	_max_cost = null;               ///< The maximum cost for a route.
 	_cost_tile = null;              ///< The cost for a single tile.
 	_cost_diagonal_tile = null;     ///< The cost for a diagonal tile.
@@ -24,11 +128,14 @@ class SingleRail
 	_estimate_multiplier = null;    ///< Every estimate is multiplied by this value. Use 1 for a 'perfect' route, higher values for faster pathfinding.
 	_search_range = null;           ///< Range to search around source and destination, in either coordinate. 0 indicates unlimited.
 
-	cost = null;                    ///< Used to change the costs.
-	_pathfinder = null;             ///< A reference to the used AyStar object.
-	_running = null;
-	_goals = null;
+	cost = null;                        ///< Used to change the costs.
+	_running = null;                    ///< Indicates if the pathfinder is currently running, that is, if FindPath returned false and it is not yet finished looking for a path.
+	_goals = null;                      ///< The goal tiles, this is an array of [tile, next_tile]-pairs.
 
+	/** Precalculated values to speed up the estimation costs. */
+	_goals_x = null;                    ///< The x-coordinates of the goal tiles, this is used to speed up the estimation.
+	_goals_y = null;                    ///< The y-coordinates of the goal tiles, this is used to speed up the estimation.
+	_cost_diagonal_tile_times_2 = null; ///< The cost for a diagonal tile, multiplied by 2, this is used to speed up the estimation. Not a real cost parameter!
 	_a = null;
 	_b = null;
 	_c = null;
@@ -40,6 +147,7 @@ class SingleRail
 
 	constructor()
 	{
+		/** Default values for the costs, these can be changed by setting the cost property. */
 		this._max_cost = 10000000;
 		this._cost_tile = 100;
 		this._cost_diagonal_tile = 70;
@@ -57,69 +165,21 @@ class SingleRail
 		this._estimate_multiplier = 1;
 		this._search_range = 0;
 
+		/** The cost property is used to change the costs, it will throw an error if you try to change the costs while the pathfinder is running. */
 		this.cost = this.Cost(this);
-		this._pathfinder = this._aystar_class(this, this._Cost, this._Estimate, this._Neighbours, this._CheckDirection);
 		this._running = false;
+
+		/** Precalculate some values to speed up the estimation. */
+		this._cost_diagonal_tile_times_2 = this._cost_diagonal_tile * 2;
 	}
 
 	/**
 	 * Initialize a path search between sources and goals.
-	 * @param sources The source tiles.
-	 * @param goals The target tiles.
+	 * @param sources The source nodes. This must be an array of [tile, direction]-pairs.
+	 * @param goals The target tiles. This must be an array of [tile, next_tile]-pairs.
 	 * @param ignored_tiles An array of tiles that cannot occur in the final path.
-	 * @see AyStar::InitializePath()
 	 */
-	function InitializePath(sources, goals, ignored_tiles = [])
-	{
-		if (this._search_range) {
-			local pair = [];
-			local min_freeform = AIMap.IsValidTile(0) ? 0 : 1;
-
-			foreach (source in sources) {
-				foreach (goal in goals) {
-					local distance = AIMap.DistanceManhattan(source[1], goal[1]);
-					pair.append([source[1], goal[1], distance]);
-
-					local source_x = AIMap.GetTileX(source[1]);
-					local source_y = AIMap.GetTileY(source[1]);
-					local goal_x = AIMap.GetTileX(goal[1]);
-					local goal_y = AIMap.GetTileY(goal[1]);
-
-					this._min_x = max(min_freeform, min(source_x, goal_x) - this._search_range);
-					this._min_y = max(min_freeform, min(source_y, goal_y) - this._search_range);
-					this._max_x = min(AIMap.GetMapSizeX() - 2, max(source_x, goal_x) + this._search_range);
-					this._max_y = min(AIMap.GetMapSizeY() - 2, max(source_y, goal_y) + this._search_range);
-				}
-			}
-
-			local best_distance = 0;
-			local best_source = AIMap.TILE_INVALID;
-			local best_goal = AIMap.TILE_INVALID;
-			for (local i = 0; i < pair.len(); i++) {
-				if (pair[i][2] > best_distance) {
-					best_distance = pair[i][2];
-					best_source = pair[i][0];
-					best_goal = pair[i][1];
-				}
-			}
-			this._a = AIMap.GetTileY(best_source) - AIMap.GetTileY(best_goal);
-			this._b = AIMap.GetTileX(best_goal) - AIMap.GetTileX(best_source);
-			this._c = AIMap.GetTileX(best_source) * AIMap.GetTileY(best_goal) - AIMap.GetTileX(best_goal) * AIMap.GetTileY(best_source);
-			this._sqrt = sqrt(this._a * this._a + this._b * this._b);
-		}
-
-		local nsources = [];
-		foreach (node in sources) {
-			local path = null;
-			local n = node.len();
-			foreach (i, tile in node) {
-				path = this._pathfinder.Path(path, node[n - 1 - i], n - i > 2 ? 0 : 0xFFFFF, [], this._Cost, this);
-			}
-			nsources.push(path);
-		}
-		this._goals = goals;
-		this._pathfinder.InitializePath(nsources, goals, ignored_tiles);
-	}
+	function InitializePath(sources, goals, ignored_tiles = []);
 
 	/**
 	 * Try to find the path as indicated with InitializePath with the lowest cost.
@@ -130,7 +190,6 @@ class SingleRail
 	 *  reached, or null if no path was found.
 	 *  You can call this function over and over as long as it returns false,
 	 *  which is an indication it is not yet done looking for a route.
-	 * @see AyStar::FindPath()
 	 */
 	function FindPath(iterations);
 };
@@ -139,14 +198,19 @@ class SingleRail.Cost
 {
 	_main = null;
 
+	constructor(main)
+	{
+		this._main = main;
+	}
+
 	function _set(idx, val)
 	{
-		if (this._main._running) throw("You are not allowed to change parameters of a running pathfinder.");
+		if (this._main._running) throw "You are not allowed to change parameters of a running pathfinder.";
 
 		switch (idx) {
 			case "max_cost":            this._main._max_cost = val; break;
 			case "tile":                this._main._cost_tile = val; break;
-			case "diagonal_tile":       this._main._cost_diagonal_tile = val; break;
+			case "diagonal_tile":       this._main._cost_diagonal_tile = val; this._main._cost_diagonal_tile_times_2 = val * 2; break;
 			case "turn45":              this._main._cost_turn45 = val; break;
 			case "turn90":              this._main._cost_turn90 = val; break;
 			case "consecutive_turn":    this._main._cost_consecutive_turn = val; break;
@@ -160,7 +224,7 @@ class SingleRail.Cost
 			case "max_tunnel_length":   this._main._max_tunnel_length = val; break;
 			case "estimate_multiplier": this._main._estimate_multiplier = val; break;
 			case "search_range":        this._main._search_range = val; break;
-			default: throw("the index '" + idx + "' does not exist");
+			default: throw "the index '" + idx + "' does not exist";
 		}
 
 		return val;
@@ -185,148 +249,262 @@ class SingleRail.Cost
 			case "max_tunnel_length":   return this._main._max_tunnel_length;
 			case "estimate_multiplier": return this._main._estimate_multiplier;
 			case "search_range":        return this._main._search_range;
-			default: throw("the index '" + idx + "' does not exist");
+			default: throw "the index '" + idx + "' does not exist";
+		}
+	}
+};
+
+function SingleRail::InitializePath(sources, goals, ignored_tiles = [],
+	get_tile_x = AIMap.GetTileX,
+	get_tile_y = AIMap.GetTileY,
+	is_valid_tile = AIMap.IsValidTile,
+	distance_manhattan = AIMap.DistanceManhattan,
+	get_map_size_x = AIMap.GetMapSizeX(),
+	get_map_size_y = AIMap.GetMapSizeY(),
+	dir_to_dirbit_rail_2d = PreSingleRail()._dir_to_dirbit_rail_2d)
+{
+	this._goals = goals;
+	this._goals_x = [];
+	this._goals_y = [];
+
+	foreach (goal in this._goals) {
+		this._goals_x.append(get_tile_x(goal[0]));
+		this._goals_y.append(get_tile_y(goal[0]));
+	}
+
+	this._open = AIPriorityQueue();
+
+	if (this._search_range) {
+		local pair = [];
+		local min_freeform = is_valid_tile(0) ? 0 : 1;
+
+		foreach (source in sources) {
+			foreach (goal in this._goals) {
+				local distance = distance_manhattan(source[1], goal[1]);
+				pair.append([source[1], goal[1], distance]);
+
+				local source_x = get_tile_x(source[1]);
+				local source_y = get_tile_y(source[1]);
+				local goal_x = get_tile_x(goal[1]);
+				local goal_y = get_tile_y(goal[1]);
+
+				this._min_x = max(min_freeform, min(source_x, goal_x) - this._search_range);
+				this._min_y = max(min_freeform, min(source_y, goal_y) - this._search_range);
+				this._max_x = min(get_map_size_x - 2, max(source_x, goal_x) + this._search_range);
+				this._max_y = min(get_map_size_y - 2, max(source_y, goal_y) + this._search_range);
+			}
+		}
+
+		local best_distance = 0;
+		local best_source = AIMap.TILE_INVALID;
+		local best_goal = AIMap.TILE_INVALID;
+		for (local i = 0; i < pair.len(); i++) {
+			if (pair[i][2] > best_distance) {
+				best_distance = pair[i][2];
+				best_source = pair[i][0];
+				best_goal = pair[i][1];
+			}
+		}
+		this._a = get_tile_y(best_source) - get_tile_y(best_goal);
+		this._b = get_tile_x(best_goal) - get_tile_x(best_source);
+		this._c = get_tile_x(best_source) * get_tile_y(best_goal) - get_tile_x(best_goal) * get_tile_y(best_source);
+		this._sqrt = sqrt(this._a * this._a + this._b * this._b);
+	}
+
+	foreach (node in sources) {
+		if (typeof(node) == "array") {
+			local path = null;
+			local n = node.len();
+			if (n < 2) throw "Each source node must be an array containing at least 2 tiles.";
+			foreach (i, tile in node) {
+				local next_tile = node[n - 1 - i];
+				if (path && distance_manhattan(path._tile, next_tile) != 1) throw "Source node tiles must be adjacent to each other."
+//				path = this._Path(path, next_tile, path ? dir_to_dirbit_rail_2d[path._prev ? path._prev._tile - path._tile : path._tile - next_tile][next_tile - path._tile] : ~0);
+				path = this._Path(path, next_tile, n - i > 1 ? 0 : 0xFFFFF);
+			}
+			this._open.Insert(path, path._cost + this._Estimate(path._tile));
+		} else if (typeof(node) == "table") {
+			this._open.Insert(node, node._cost);
+		} else {
+			throw "Sources must be an array or SingleRail._Path tables"
 		}
 	}
 
-	constructor(main)
-	{
-		this._main = main;
-	}
-};
+	this._closed = AIList();
+
+	foreach (tile in ignored_tiles)
+		this._closed[tile] = ~0;
+}
 
 function SingleRail::FindPath(iterations)
 {
 	local test_mode = AITestMode();
-	local ret = this._pathfinder.FindPath(iterations);
-	this._running = (ret == false) ? true : false;
+	local ret = this._FindPath(iterations);
+	this._running = ret == false;
+
 	return ret;
 }
 
-function SingleRail::_IsSlopedBridge(end_a, end_b, end)
+function SingleRail::_FindPath(iterations)
 {
-	local direction;
-	local slope;
-	if (end == end_a) {
-		direction = (end_b - end_a) / AIMap.DistanceManhattan(end_a, end_b);
-		slope = AITile.GetSlope(end_a);
-	} else if (end == end_b) {
-		direction = (end_a - end_b) / AIMap.DistanceManhattan(end_b, end_a);
-		slope = AITile.GetSlope(end_b);
-	} else {
-		throw "end " + end + "must match either end_a or end_b in _IsSlopedBridge";
+	while (this._open.Count() && iterations--) {
+		/* Get the path with the best score so far */
+		local path = this._open.Pop();
+		local cur_tile = path._tile;
+		local prev_cur_dirbit = path._direction;
+
+		/* Make sure we didn't already passed it */
+		if (this._closed.HasItem(cur_tile)) {
+			/* If the direction is already on the list, skip this entry */
+			if (this._closed[cur_tile] & prev_cur_dirbit) continue;
+
+			/* Scan the path for a possible collision */
+			if (this._PathCollides(path, cur_tile)) continue;
+
+			/* Add the new direction */
+			this._closed[cur_tile] += prev_cur_dirbit;
+		} else
+			/* New entry, make sure we don't check it again */
+			this._closed[cur_tile] = prev_cur_dirbit;
+
+		/* Check if we found the end */
+		foreach (goal in this._goals) {
+			if (cur_tile == goal[2] && path._prev._tile == goal[1] && path._prev._prev._tile == goal[0]) {
+				this._CleanPath();
+				return path;
+			}
+		}
+
+		/* Scan all neighbours */
+		foreach (node in this._Neighbours(path, cur_tile)) {
+			/* Calculate the new paths and add them to the open list */
+			local new_path = this._Path(path, node[0], node[1]);
+
+			/* Check if we're near the end */
+			foreach (goal in this._goals) {
+				if (node[0] == goal[1] && cur_tile == goal[0]) {
+					new_path = this._Path(new_path, goal[2], 0);
+					break;
+				}
+			}
+
+			/* this._max_cost is the maximum path cost, if we go over it, the path isn't valid. */
+			if (new_path._cost >= this._max_cost) continue;
+
+			this._open.Insert(new_path, new_path._cost + this._Estimate(node[0]));
+		}
 	}
 
-	return !(((slope == AITile.SLOPE_NE || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_E) && direction == 1) ||
-			((slope == AITile.SLOPE_SE || slope == AITile.SLOPE_STEEP_S || slope == AITile.SLOPE_STEEP_E) && direction == -AIMap.GetMapSizeX()) ||
-			((slope == AITile.SLOPE_SW || slope == AITile.SLOPE_STEEP_S || slope == AITile.SLOPE_STEEP_W) && direction == -1) ||
-			((slope == AITile.SLOPE_NW || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_W) && direction == AIMap.GetMapSizeX()) ||
-			slope == AITile.SLOPE_N || slope == AITile.SLOPE_E || slope == AITile.SLOPE_S || slope == AITile.SLOPE_W);
+	if (this._open.Count()) return false;
+	this._CleanPath();
+
+	return;
 }
 
-function SingleRail::_GetBridgeNumSlopes(end_a, end_b, res = false)
+function SingleRail::_PathCollides(path, cur_tile)
 {
-	local slopes = 0;
-	local ret = {};
-	ret.rawset(end_a, 0);
-	ret.rawset(end_b, 0);
-	local direction = (end_b - end_a) / AIMap.DistanceManhattan(end_a, end_b);
-	local slope = AITile.GetSlope(end_a);
-	if (!(((slope == AITile.SLOPE_NE || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_E) && direction == 1) ||
-			((slope == AITile.SLOPE_SE || slope == AITile.SLOPE_STEEP_S || slope == AITile.SLOPE_STEEP_E) && direction == -AIMap.GetMapSizeX()) ||
-			((slope == AITile.SLOPE_SW || slope == AITile.SLOPE_STEEP_S || slope == AITile.SLOPE_STEEP_W) && direction == -1) ||
-			((slope == AITile.SLOPE_NW || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_W) && direction == AIMap.GetMapSizeX()) ||
-			slope == AITile.SLOPE_N || slope == AITile.SLOPE_E || slope == AITile.SLOPE_S || slope == AITile.SLOPE_W)) {
-		slopes++;
-		ret.rawset(end_a, 1);
+	local scan_path = path._prev;
+	while (scan_path) {
+		if (scan_path._tile == cur_tile)
+			return true;
+		scan_path = scan_path._prev;
 	}
 
-	local slope = AITile.GetSlope(end_b);
-	direction = -direction;
-	if (!(((slope == AITile.SLOPE_NE || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_E) && direction == 1) ||
-			((slope == AITile.SLOPE_SE || slope == AITile.SLOPE_STEEP_S || slope == AITile.SLOPE_STEEP_E) && direction == -AIMap.GetMapSizeX()) ||
-			((slope == AITile.SLOPE_SW || slope == AITile.SLOPE_STEEP_S || slope == AITile.SLOPE_STEEP_W) && direction == -1) ||
-			((slope == AITile.SLOPE_NW || slope == AITile.SLOPE_STEEP_N || slope == AITile.SLOPE_STEEP_W) && direction == AIMap.GetMapSizeX()) ||
-			slope == AITile.SLOPE_N || slope == AITile.SLOPE_E || slope == AITile.SLOPE_S || slope == AITile.SLOPE_W)) {
-		slopes++;
-		ret.rawset(end_b, 1);
-	}
-	return res ? ret : slopes;
+	return;
 }
 
-function SingleRail::_Cost(self, path, new_tile, new_direction)
+function SingleRail::_CleanPath()
+{
+	this._closed = null;
+	this._open = null;
+	this._goals = null;
+
+	return;
+}
+
+/**
+ * The path of the AyStar algorithm.
+ *  It is reversed, that is, the first entry is more close to the goal-nodes
+ *  than his _prev. You can walk this table to find the whole path.
+ *  The last entry has a _prev of null.
+ */
+function SingleRail::_Path(path, next_tile, prev_cur_dirbit)
+{
+	return {
+		_prev = path,
+		_tile = next_tile,
+		_direction = prev_cur_dirbit,
+		_cost = this._Cost(path, next_tile)
+	};
+}
+
+function SingleRail::_Cost(path, next_tile,
+	get_tile_x = AIMap.GetTileX,
+	get_tile_y = AIMap.GetTileY,
+	distance_manhattan = AIMap.DistanceManhattan,
+	get_other_tunnel_end = AITunnel.GetOtherTunnelEnd,
+	is_slope_dir_bridge = PreSingleRail()._is_slope_dir_bridge,
+	dir_to_dirbit_rail_2d = PreSingleRail()._dir_to_dirbit_rail_2d,
+	is_slope_dirbit_rail = PreSingleRail()._is_slope_dirbit_rail,
+	get_slope = AITile.GetSlope,
+	has_transport_type = AITile.HasTransportType,
+	transport_water = AITile.TRANSPORT_WATER,
+	transport_road = AITile.TRANSPORT_ROAD,
+	is_road_tile = AIRoad.IsRoadTile,
+	min_tunnelbridge_length = 2)
 {
 	/* path == null means this is the first node of a path, so the cost is 0. */
-	if (path == null) return 0;
+	if (!path) return 0;
 
-	if (self._search_range) {
-		local cur_tile_x = AIMap.GetTileX(new_tile);
-		local cur_tile_y = AIMap.GetTileY(new_tile);
-		if (cur_tile_x < self._min_x || cur_tile_x > self._max_x || cur_tile_y < self._min_y || cur_tile_y > self._max_y) return self._max_cost;
-		if (abs(self._a * cur_tile_x + self._b * cur_tile_y + self._c) / self._sqrt > self._search_range) return self._max_cost;
+	if (this._search_range) {
+		local cur_tile_x = get_tile_x(next_tile);
+		local cur_tile_y = get_tile_y(next_tile);
+		if (cur_tile_x < this._min_x || cur_tile_x > this._max_x || cur_tile_y < this._min_y || cur_tile_y > this._max_y) return this._max_cost;
+		if (abs(this._a * cur_tile_x + this._b * cur_tile_y + this._c) / this._sqrt > this._search_range) return this._max_cost;
 	}
 
-	local prev_tile = path._tile;
-	local pprev_tile = path._prev != null ? path._prev._tile : 0;
-	local ppprev_tile = pprev_tile && path._prev._prev != null ? path._prev._prev._tile : 0;
-	local pppprev_tile = ppprev_tile && path._prev._prev._prev != null ? path._prev._prev._prev._tile : 0;
-	local dist = AIMap.DistanceManhattan(prev_tile, new_tile);
+	local cur_tile = path._tile;
+	local prev_tile = path._prev ? path._prev._tile : 0;
+	local pprev_tile = prev_tile && path._prev._prev ? path._prev._prev._tile : 0;
+	local cur_next_dist = distance_manhattan(cur_tile, next_tile);
+	local pprev_prev_offset = pprev_tile - prev_tile;
+	local ppprev_tile = pprev_tile && path._prev._prev._prev ? path._prev._prev._prev._tile : 0;
+	local ppprev_pprev_offset = ppprev_tile - pprev_tile;
+	local prev_cur_offset = prev_tile - cur_tile;
 
-//	AILog.Warning("---Cost. new_tile = " + new_tile + "; new_direction = " + new_direction);
+	local cost = 0;
+
 	/* If the two tiles are more than 1 tile apart, the pathfinder wants a bridge or tunnel
-	 *  to be built. */
-	if (dist > 1) {
+	 *  to be built. It isn't an existing bridge / tunnel, as that case is already handled. */
+	if (cur_next_dist >= min_tunnelbridge_length) {
+		if (pprev_tile && pprev_prev_offset / distance_manhattan(pprev_tile, prev_tile) != prev_cur_offset) {
+			cost += this._cost_turn45;
+			if (ppprev_tile)
+				if (ppprev_pprev_offset != prev_cur_offset && distance_manhattan(ppprev_tile, cur_tile) == 3)
+					cost += this._cost_consecutive_turn;
+				else if (-prev_cur_offset == ppprev_pprev_offset)
+					cost += this._cost_consecutive_turn;
+				else if (distance_manhattan(ppprev_tile, pprev_tile) >= min_tunnelbridge_length && ppprev_pprev_offset / distance_manhattan(ppprev_tile, pprev_tile) != prev_cur_offset)
+					cost += this._cost_consecutive_turn;
+		}
+
 		/* Check if we should build a bridge or a tunnel. */
-		local cost = 0;
-		if (AITunnel.GetOtherTunnelEnd(prev_tile) == new_tile) {
-//			AILog.Info("Cross tunnel. Cost before: " + cost + "; Cost: " + (dist * self._cost_tile + (dist + 1) * self._cost_tunnel_per_tile) + "; Cost After: " + (cost + dist * self._cost_tile + (dist + 1) * self._cost_tunnel_per_tile));
-			cost += dist * self._cost_tile + (dist + 1) * self._cost_tunnel_per_tile;
-		} else {
-//			AILog.Info("Cross bridge, including slopes. Cost before: " + cost + "; Cost: " + (dist * self._cost_tile + (dist + 1) * self._cost_bridge_per_tile + self._GetBridgeNumSlopes(prev_tile, new_tile) * self._cost_slope) + "; Cost After: " + (cost + dist * self._cost_tile + (dist + 1) * self._cost_bridge_per_tile + self._GetBridgeNumSlopes(prev_tile, new_tile) * self._cost_slope));
-			cost += dist * self._cost_tile + (dist + 1) * self._cost_bridge_per_tile + self._GetBridgeNumSlopes(prev_tile, new_tile) * self._cost_slope;
-			if (AITile.HasTransportType(prev_tile, AITile.TRANSPORT_WATER)) {
-//				AILog.Info("Coast prev_tile. Cost before: " + cost + "; Cost: " + (self._cost_coast) + "; Cost After: " + (cost + self._cost_coast));
-				cost += self._cost_coast;
-			}
-			if (AITile.HasTransportType(new_tile, AITile.TRANSPORT_WATER)) {
-//				AILog.Info("Coast new_tile. Cost before: " + cost + "; Cost: " + (self._cost_coast) + "; Cost After: " + (cost + self._cost_coast));
-				cost += self._cost_coast;
-			}
-			if (ppprev_tile && pprev_tile && self._IsSlopedBridge(prev_tile, new_tile, prev_tile)) {
-				if (AIMap.DistanceManhattan(ppprev_tile, pprev_tile) > 1) {
-					if (AITunnel.GetOtherTunnelEnd(ppprev_tile) != pprev_tile && self._IsSlopedBridge(ppprev_tile, pprev_tile, pprev_tile)) {
-//						AILog.Info("s1:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//						AILog.Info("Consecutive slope type 1. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_slope) + "; Cost After: " + (cost + self._cost_consecutive_slope));
-						cost += self._cost_consecutive_slope;
-					}
-				} else if (self._IsSlopedRail(ppprev_tile, pprev_tile, prev_tile)) {
-//					AILog.Info("s2:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//					AILog.Info("Consecutive slope type 2. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_slope) + "; Cost After: " + (cost + self._cost_consecutive_slope));
-					cost += self._cost_consecutive_slope;
-				}
-			}
+		if (get_other_tunnel_end(cur_tile) == next_tile)
+			cost += cur_next_dist * this._cost_tile + ++cur_next_dist * this._cost_tunnel_per_tile;
+		else {
+			if (pprev_tile && prev_tile && is_slope_dir_bridge[get_slope(cur_tile)][-prev_cur_offset])
+				if (distance_manhattan(pprev_tile, prev_tile) >= min_tunnelbridge_length) {
+					if (get_other_tunnel_end(pprev_tile) != prev_tile && is_slope_dir_bridge[get_slope(prev_tile)][pprev_prev_offset / distance_manhattan(pprev_tile, prev_tile)])
+						cost += this._cost_consecutive_slope;
+				} else if (is_slope_dirbit_rail[get_slope(prev_tile)][dir_to_dirbit_rail_2d[pprev_prev_offset][prev_cur_offset]])
+					cost += this._cost_consecutive_slope;
+			cost += cur_next_dist * this._cost_tile + (is_slope_dir_bridge[get_slope(next_tile)][prev_cur_offset] + is_slope_dir_bridge[get_slope(cur_tile)][-prev_cur_offset]) * this._cost_slope + ++cur_next_dist * this._cost_bridge_per_tile;
+			if (has_transport_type(cur_tile, transport_water))
+				cost += this._cost_coast;
+			if (has_transport_type(next_tile, transport_water))
+				cost += this._cost_coast;
 		}
-		if (pprev_tile && ppprev_tile &&
-				(ppprev_tile - pprev_tile) / AIMap.DistanceManhattan(ppprev_tile, pprev_tile) != (prev_tile - new_tile) / dist) {
-//			AILog.Info("Turn 45 degrees type 1. Cost before: " + cost + "; Cost: " + (self._cost_turn45) + "; Cost After: " + (cost + self._cost_turn45));
-			cost += self._cost_turn45;
-			if (pppprev_tile) {
-				if (AIMap.DistanceManhattan(prev_tile, pppprev_tile) == 3 && pppprev_tile - ppprev_tile != pprev_tile - prev_tile) {
-//					AILog.Info("t1:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//					AILog.Info("Consecutive turn type 1. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_turn) + "; Cost After: " + (cost + self._cost_consecutive_turn));
-					cost += self._cost_consecutive_turn;
-				} else if (prev_tile - pprev_tile == pppprev_tile - ppprev_tile) {
-//					AILog.Info("t2:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//					AILog.Info("Consecutive turn type 2. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_turn) + "; Cost After: " + (cost + self._cost_consecutive_turn));
-					cost += self._cost_consecutive_turn;
-				} else if (AIMap.DistanceManhattan(pppprev_tile, ppprev_tile) > 1 && (pppprev_tile - ppprev_tile) / AIMap.DistanceManhattan(pppprev_tile, ppprev_tile) != (pprev_tile - prev_tile) / AIMap.DistanceManhattan(pprev_tile, prev_tile)) {
-//					AILog.Info("t3:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//					AILog.Info("Consecutive turn type 3. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_turn) + "; Cost After: " + (cost + self._cost_consecutive_turn));
-					cost += self._cost_consecutive_turn;
-				}
-			}
-		}
-//		AILog.Info("Cost for this node: " + path._cost + " + " + cost + " = " + (path._cost + cost));
+
 		return path._cost + cost;
 	}
 
@@ -334,476 +512,157 @@ function SingleRail::_Cost(self, path, new_tile, new_direction)
 	 *  node from the TileID of the previous node and comparing that to the
 	 *  difference between the tile before the previous node and the node before
 	 *  that. */
-	local cost = 0;
-	if (pprev_tile) {
-		if (AIMap.DistanceManhattan(pprev_tile, prev_tile) == 1 && pprev_tile - prev_tile != prev_tile - new_tile) {
-//			AILog.Info("Diagonal tile. Cost before: " + cost + "; Cost: " + (self._cost_diagonal_tile) + "; Cost After: " + (cost + self._cost_diagonal_tile));
-			cost += self._cost_diagonal_tile;
-		} else {
-//			AILog.Info("Tile. Cost before: " + cost + "; Cost: " + (self._cost_tile) + "; Cost After: " + (cost + self._cost_tile));
-			cost += self._cost_tile;
-		}
-	}
-	if (pprev_tile && ppprev_tile) {
-		local is_turn = false;
-		if (AIMap.DistanceManhattan(new_tile, ppprev_tile) == 3 && ppprev_tile - pprev_tile != prev_tile - new_tile) {
-//			AILog.Info("Turn 45 degrees type 2. Cost before: " + cost + "; Cost: " + (self._cost_turn45) + "; Cost After: " + (cost + self._cost_turn45));
-			cost += self._cost_turn45;
-			is_turn = true;
-		} else if (new_tile - prev_tile == ppprev_tile - pprev_tile) {
-//			AILog.Info("Turn 90 degrees. Cost before: " + cost + "; Cost: " + (self._cost_turn90) + "; Cost After: " + (cost + self._cost_turn90));
-			cost += self._cost_turn90;
-			is_turn = true;
-		} else if (AIMap.DistanceManhattan(ppprev_tile, pprev_tile) > 1 && (ppprev_tile - pprev_tile) / AIMap.DistanceManhattan(ppprev_tile, pprev_tile) != (prev_tile - new_tile) / dist) {
-//			AILog.Info("Turn 45 degrees type 3. Cost before: " + cost + "; Cost: " + (self._cost_turn45) + "; Cost After: " + (cost + self._cost_turn45));
-			cost += self._cost_turn45;
-			is_turn = true;
-		}
-		if (pppprev_tile && is_turn) {
-			if (AIMap.DistanceManhattan(prev_tile, pppprev_tile) == 3 && pppprev_tile - ppprev_tile != pprev_tile - prev_tile) {
-//				AILog.Info("t4:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//				AILog.Info("Consecutive turn type 4. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_turn) + "; Cost After: " + (cost + self._cost_consecutive_turn));
-				cost += self._cost_consecutive_turn;
-			} else if (prev_tile - pprev_tile == pppprev_tile - ppprev_tile) {
-//				AILog.Info("t5:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//				AILog.Info("Consecutive turn type 5. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_turn) + "; Cost After: " + (cost + self._cost_consecutive_turn));
-				cost += self._cost_consecutive_turn;
-			} else if (AIMap.DistanceManhattan(pppprev_tile, ppprev_tile) > 1 && (pppprev_tile - ppprev_tile) / AIMap.DistanceManhattan(pppprev_tile, ppprev_tile) != (pprev_tile - prev_tile) / AIMap.DistanceManhattan(pprev_tile, prev_tile)) {
-//				AILog.Info("t6:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//				AILog.Info("Consecutive turn type 6. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_turn) + "; Cost After: " + (cost + self._cost_consecutive_turn));
-				cost += self._cost_consecutive_turn;
+	if (prev_tile) {
+		local prev_cur_dist_is_1 = distance_manhattan(prev_tile, cur_tile) < min_tunnelbridge_length;
+		local cur_next_offset = cur_tile - next_tile;
+		if (prev_cur_offset != cur_next_offset && prev_cur_dist_is_1)
+			cost += this._cost_diagonal_tile;
+		else
+			cost += this._cost_tile;
+
+		if (prev_cur_dist_is_1)
+			if (is_slope_dirbit_rail[get_slope(cur_tile)][dir_to_dirbit_rail_2d[prev_cur_offset][cur_next_offset]]) {
+				cost += this._cost_slope;
+				if (pprev_tile)
+					if (distance_manhattan(pprev_tile, prev_tile) >= min_tunnelbridge_length) {
+						if (get_other_tunnel_end(pprev_tile) != prev_tile && is_slope_dir_bridge[get_slope(prev_tile)][pprev_prev_offset / distance_manhattan(pprev_tile, prev_tile)])
+							cost += this._cost_consecutive_slope;
+					} else if (is_slope_dirbit_rail[get_slope(prev_tile)][dir_to_dirbit_rail_2d[pprev_prev_offset][prev_cur_offset]])
+						cost += this._cost_consecutive_slope;
+			}
+
+		if (pprev_tile) {
+			if (pprev_prev_offset != cur_next_offset && distance_manhattan(pprev_tile, next_tile) == 3) {
+				cost += this._cost_turn45;
+				if (ppprev_tile)
+					if (ppprev_pprev_offset != prev_cur_offset && distance_manhattan(ppprev_tile, cur_tile) == 3)
+						cost += this._cost_consecutive_turn;
+					else if (-prev_cur_offset == ppprev_pprev_offset)
+						cost += this._cost_consecutive_turn;
+					else if (distance_manhattan(ppprev_tile, pprev_tile) >= min_tunnelbridge_length && ppprev_pprev_offset / distance_manhattan(ppprev_tile, pprev_tile) != prev_cur_offset / distance_manhattan(prev_tile, cur_tile))
+						cost += this._cost_consecutive_turn;
+			} else if (-cur_next_offset == pprev_prev_offset) {
+				cost += this._cost_turn90;
+				if (ppprev_tile)
+					if (ppprev_pprev_offset != prev_cur_offset && distance_manhattan(ppprev_tile, cur_tile) == 3)
+						cost += this._cost_consecutive_turn;
+					else if (-prev_cur_offset == ppprev_pprev_offset)
+						cost += this._cost_consecutive_turn;
+					else if (distance_manhattan(ppprev_tile, pprev_tile) >= min_tunnelbridge_length && ppprev_pprev_offset / distance_manhattan(ppprev_tile, pprev_tile) != prev_cur_offset / distance_manhattan(prev_tile, cur_tile))
+						cost += this._cost_consecutive_turn;
+			} else if (distance_manhattan(pprev_tile, prev_tile) >= min_tunnelbridge_length && pprev_prev_offset / distance_manhattan(pprev_tile, prev_tile) != cur_next_offset) {
+				cost += this._cost_turn45;
+				if (ppprev_tile)
+					if (ppprev_pprev_offset != prev_cur_offset && distance_manhattan(ppprev_tile, cur_tile) == 3)
+						cost += this._cost_consecutive_turn;
+					else if (-prev_cur_offset == ppprev_pprev_offset)
+						cost += this._cost_consecutive_turn;
+					else if (distance_manhattan(ppprev_tile, pprev_tile) >= min_tunnelbridge_length && ppprev_pprev_offset / distance_manhattan(ppprev_tile, pprev_tile) != prev_cur_offset / distance_manhattan(prev_tile, cur_tile))
+						cost += this._cost_consecutive_turn;
 			}
 		}
 	}
 
 	/* Check if the new tile is a level crossing. */
-	if (AITile.HasTransportType(new_tile, AITile.TRANSPORT_ROAD) || AIRoad.IsRoadTile(new_tile)) {
-//		AILog.Info("Level crossing. Cost before: " + cost + "; Cost: " + (self._cost_level_crossing) + "; Cost After: " + (cost + self._cost_level_crossing));
-		cost += self._cost_level_crossing;
-	}
+	if (has_transport_type(next_tile, transport_road) || is_road_tile(next_tile))
+		cost += this._cost_level_crossing;
 
-	/* Check if the last tile was sloped. */
-	if (pprev_tile) {
-		if (AIMap.DistanceManhattan(pprev_tile, prev_tile) == 1) {
-			if (self._IsSlopedRail(pprev_tile, prev_tile, new_tile)) {
-//				AILog.Info("Slope type 1. Cost before: " + cost + "; Cost: " + (self._cost_slope) + "; Cost After: " + (cost + self._cost_slope));
-				cost += self._cost_slope;
-				if (ppprev_tile) {
-					if (AIMap.DistanceManhattan(ppprev_tile, pprev_tile) == 1) {
-						if (self._IsSlopedRail(ppprev_tile, pprev_tile, prev_tile)) {
-//							AILog.Info(s3:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//							AILog.Info("Consecutive slope type 3. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_slope) + "; Cost After: " + (cost + self._cost_consecutive_slope));
-							cost += self._cost_consecutive_slope;
-						}
-					} else if (AITunnel.GetOtherTunnelEnd(ppprev_tile) != pprev_tile && self._IsSlopedBridge(ppprev_tile, pprev_tile, pprev_tile)) {
-//						AILog.Info("s4:pppprev_tile = " + pppprev_tile + "; ppprev_tile = " + ppprev_tile + "; pprev_tile = " + pprev_tile + "; prev_tile = " + prev_tile + "; new_tile = " + new_tile);
-//						AILog.Info("Consecutive slope type 4. Cost before: " + cost + "; Cost: " + (self._cost_consecutive_slope) + "; Cost After: " + (cost + self._cost_consecutive_slope));
-						cost += self._cost_consecutive_slope;
-					}
-				}
-			}
-//		} else if (AITunnel.GetOtherTunnelEnd(pprev_tile) != prev_tile && self._IsSlopedBridge(pprev_tile, prev_tile, prev_tile)) {
-///			AILog.Info("Slope type 2. Cost before: " + cost + "; Cost: " + (self._cost_slope) + "; Cost After: " + (cost + self._cost_slope));
-//			cost += self._cost_slope;
-		}
-	}
-
-//	AILog.Info("Cost for this node: " + path._cost + " + " + cost + " = " + (path._cost + cost));
 	return path._cost + cost;
 }
 
-function SingleRail::_Estimate(self, cur_tile, cur_direction, goal_tiles)
+function SingleRail::_Estimate(cur_tile,
+	get_tile_x = AIMap.GetTileX,
+	get_tile_y = AIMap.GetTileY)
 {
-	local min_cost = self._max_cost;
-	/* As estimate we multiply the lowest possible cost for a single tile
+	local min_cost = this._max_cost;
+	/* As estimate we multiply the lowest possible cost for a single tile with
 	 *  with the minimum number of tiles we need to traverse. */
-	foreach (tile in goal_tiles) {
-		local dx = abs(AIMap.GetTileX(cur_tile) - AIMap.GetTileX(tile[1]));
-		local dy = abs(AIMap.GetTileY(cur_tile) - AIMap.GetTileY(tile[1]));
-		min_cost = min(min_cost, min(dx, dy) * self._cost_diagonal_tile * 2 + abs(dx - dy) * self._cost_tile);
+	foreach (index, goal in this._goals) {
+		local dx = abs(get_tile_x(cur_tile) - this._goals_x[index]);
+		local dy = abs(get_tile_y(cur_tile) - this._goals_y[index]);
+		local min = min(dx, dy) * this._cost_diagonal_tile_times_2 + abs(dx - dy) * this._cost_tile;
+		if (min < min_cost) min_cost = min;
 	}
-	return min_cost * self._estimate_multiplier;
+
+	return min_cost * this._estimate_multiplier;
 }
 
-function SingleRail::_Neighbours(self, path, cur_node)
+function SingleRail::_Neighbours(path, cur_tile,
+	has_transport_type = AITile.HasTransportType,
+	transport_rail = AITile.TRANSPORT_RAIL,
+//	transport_water = AITile.TRANSPORT_WATER,
+//	transport_road = AITile.TRANSPORT_ROAD,
+	distance_manhattan = AIMap.DistanceManhattan,
+	build_rail = AIRail.BuildRail,
+	get_other_tunnel_end = AITunnel.GetOtherTunnelEnd,
+	is_valid_tile = AIMap.IsValidTile,
+	get_slope = AITile.GetSlope,
+	get_complement_slope = AITile.GetComplementSlope,
+	build_tunnel = AITunnel.BuildTunnel,
+	vt_rail = AIVehicle.VT_RAIL,
+	is_buildable = AITile.IsBuildable,
+	get_max_height = AITile.GetMaxHeight,
+	build_bridge = AIBridge.BuildBridge,
+	offsets_array = PreSingleRail()._offsets_array,
+	dir_to_dirbit_rail_2d = PreSingleRail()._dir_to_dirbit_rail_2d,
+	dir_to_dirbit_tunnelbridge = PreSingleRail()._dir_to_dirbit_tunnelbridge,
+	wooden_bridge = 0,
+	min_tunnelbridge_length = 2)
 {
-	if (AITile.HasTransportType(cur_node, AITile.TRANSPORT_RAIL)) return [];
-	/* self._max_cost is the maximum path cost, if we go over it, the path isn't valid. */
-	if (path._cost >= self._max_cost) return [];
-	local tiles = [];
-	local offsets = [AIMap.GetTileIndex(0, 1), AIMap.GetTileIndex(0, -1),
-	                 AIMap.GetTileIndex(1, 0), AIMap.GetTileIndex(-1, 0)];
+	/* Don't build on rails */
+	if (has_transport_type(cur_tile, transport_rail)) return [];
+//	/* Don't build on coasts */
+//	if (has_transport_type(cur_tile, transport_water)) return [];
+//	/* Don't build level crossings */
+//	if (has_transport_type(cur_tile, transport_road)) return [];
 
-	local prev_tile = path._prev != null ? path._prev._tile : 0;
-//	local pprev_tile = pprev_tile && path._prev._prev != null ? path._prev._prev._tile : 0;
-
-	local dist = AIMap.DistanceManhattan(cur_node, prev_tile);
-	if (prev_tile && dist > 1) {
-		local next_tile = cur_node + (cur_node - prev_tile) / dist;
-		foreach (offset in offsets) {
-			/* Don't turn back */
-			if (next_tile + offset == cur_node) continue;
-			if (AIRail.BuildRail(cur_node, next_tile, next_tile + offset)) {
-				tiles.push([next_tile, self._GetDirection(prev_tile, cur_node, next_tile, true), []]);
-				break;
-			}
-		}
-	} else {
-		/* Check all tiles adjacent to the current tile. */
-		foreach (offset in offsets) {
-			local next_tile = cur_node + offset;
-			/* Don't turn back */
-			if (prev_tile && next_tile == prev_tile) continue;
-//			/* Disallow 90 degree turns */
-//			if (prev_tile && pprev_tile &&
-//					next_tile - cur_node == pprev_tile - prev_tile) continue;
-			/* We add them to the to the neighbours-list if we can build a rail to
-			 *  them and no rail exists there. */
-			if (!prev_tile || AIRail.BuildRail(prev_tile, cur_node, next_tile)) {
-				tiles.push([next_tile, self._GetDirection(prev_tile ? prev_tile : null, cur_node, next_tile, false), []]);
-			}
-		}
-		if (prev_tile) {
-			/**
-			 * Get a list of all bridges and tunnels that can be built from the
-			 *  current tile. Tunnels will only be built if no terraforming
-			 *  is needed on both ends.
-			 */
-			local bridge_dir = self._GetDirection(null, prev_tile, cur_node, true);
-
-			for (local i = 2; i < self._max_bridge_length; i++) {
-				local target = cur_node + i * (cur_node - prev_tile);
-				if (!AIMap.IsValidTile(target)) break; // don't wrap the map
-				local bridge_list = AIBridgeList_Length(i + 1);
-				if (!bridge_list.IsEmpty() && AIBridge.BuildBridge(AIVehicle.VT_RAIL, bridge_list.Begin(), cur_node, target)) {
-					local used_tiles = self._GetUsedTiles(cur_node, target, true);
-					if (!self._UsedTileListsConflict(path.GetUsedTiles(), used_tiles)) {
-						tiles.push([target, bridge_dir, used_tiles]);
-					}
-				}
-			}
-
-			local slope = AITile.GetSlope(cur_node);
-			if (slope == AITile.SLOPE_SW || slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE || slope == AITile.SLOPE_NE) {
-				local other_tunnel_end = AITunnel.GetOtherTunnelEnd(cur_node);
-				if (AIMap.IsValidTile(other_tunnel_end)) {
-
-					local tunnel_length = AIMap.DistanceManhattan(cur_node, other_tunnel_end);
-					local tile_before = cur_node + (cur_node - other_tunnel_end) / tunnel_length;
-					if (AITunnel.GetOtherTunnelEnd(other_tunnel_end) == cur_node && tunnel_length >= 2 &&
-							tile_before == prev_tile && tunnel_length < self._max_tunnel_length && AITunnel.BuildTunnel(AIVehicle.VT_RAIL, cur_node)) {
-						local used_tiles = self._GetUsedTiles(cur_node, other_tunnel_end, false);
-						if (!self._UsedTileListsConflict(path.GetUsedTiles(), used_tiles)) {
-							tiles.push([other_tunnel_end, bridge_dir, used_tiles]);
-						}
-					}
-				}
-			}
-		}
+	local prev_tile = path._prev._tile;
+	local dist = distance_manhattan(cur_tile, prev_tile);
+	local prev_cur_offset = prev_tile - cur_tile;
+	/* Check if the current tile is part of a bridge or tunnel. */
+	if (dist >= min_tunnelbridge_length) {
+		prev_cur_offset /= dist;
+		local next_tile = cur_tile - prev_cur_offset;
+		foreach (offset in offsets_array[prev_cur_offset])
+			if (build_rail(cur_tile, next_tile, next_tile + offset) && !(this._closed.GetValue(next_tile) & dir_to_dirbit_tunnelbridge[prev_cur_offset]))
+				return [[next_tile, dir_to_dirbit_tunnelbridge[prev_cur_offset]]];
+		return [];
 	}
-	return tiles;
-}
 
-function SingleRail::_CheckDirection(self, is_neighbour, existing_direction, new_direction)
-{
-//	local trackdir_left_n = 1 << 6;   // 64
-//	local trackdir_left_s = 1 << 17;  // 131072
-//	local trackdir_lower_e = 1 << 7;  // 128
-//	local trackdir_lower_w = 1 << 13; // 8192
-//	local trackdir_upper_w = 1 << 10; // 1024
-//	local trackdir_upper_e = 1 << 16; // 65536
-//	local trackdir_right_s = 1 << 11; // 2048
-//	local trackdir_right_n = 1 << 12; // 4096
+	local neighbours = [];
+//	local pprev_prev_dir = path._prev._prev ? path._prev._prev._tile - prev_tile : 0;
 
-//	local track_left = trackdir_left_n | trackdir_left_s;    // 131136
-//	local track_lower = trackdir_lower_e | trackdir_lower_w; // 8320
-//	local track_upper = trackdir_upper_w | trackdir_upper_e; // 66560
-//	local track_right = trackdir_right_s | trackdir_right_n; // 6144
-
-//	local trackdir_3way_ne = (1 << 4) | (1 << 12) | (1 << 16); // 69648
-//	local trackdir_3way_nw = (1 << 6) | (1 << 10) | (1 << 14); // 17472
-//	local trackdir_3way_se = (1 << 7) | (1 << 11) | (1 << 19); // 526464
-//	local trackdir_3way_sw = (1 << 9) | (1 << 13) | (1 << 17); // 139776
-
-//	/* Allowed combinations */
-//	if ((existing_direction & ~track_left) == 0) {
-//		if (is_neighbour) {
-//			if ((new_direction & ~track_right) == 0) return true;
-//		} else {
-//			if ((new_direction & ~trackdir_3way_nw) == 0) return true;
-//			if ((new_direction & ~trackdir_3way_sw) == 0) return true;
-//		}
-//	}
-//	if ((existing_direction & ~track_right) == 0) {
-//		if (is_neighbour) {
-//			if ((new_direction & ~track_left) == 0) return true;
-//		} else {
-//			if ((new_direction & ~trackdir_3way_ne) == 0) return true;
-//			if ((new_direction & ~trackdir_3way_se) == 0) return true;
-//		}
-//	}
-//	if ((existing_direction & ~track_upper) == 0) {
-//		if (is_neighbour) {
-//			if ((new_direction & ~track_lower) == 0) return true;
-//		} else {
-//			if ((new_direction & ~trackdir_3way_ne) == 0) return true;
-//			if ((new_direction & ~trackdir_3way_nw) == 0) return true;
-//		}
-//	}
-//	if ((existing_direction & ~track_lower) == 0) {
-//		if (is_neighbour) {
-//			if ((new_direction & ~track_upper) == 0) return true;
-//		} else {
-//			if ((new_direction & ~trackdir_3way_se) == 0) return true;
-//			if ((new_direction & ~trackdir_3way_sw) == 0) return true;
-//		}
-//	}
-
-	/* Allowed combinations */
-	if (!(existing_direction & ~131136)) {
-		if (is_neighbour) {
-			if (!(new_direction & ~6144)) return true;
-		} else {
-			if (!(new_direction & ~17472)) return true;
-			if (!(new_direction & ~139776)) return true;
-		}
+	/* Check all neighbours adjacent to the current tile. */
+	foreach (offset in offsets_array[prev_cur_offset]) {
+		local next_tile = cur_tile + offset;
+//		/* Disallow 90 degree turns */
+//		if (offset == pprev_prev_dir) continue;
+		/* We add them to the neighbours-list if we can build a rail to
+		 *  them and no rail exists there. */
+		if (build_rail(prev_tile, cur_tile, next_tile) && !(this._closed.GetValue(next_tile) & dir_to_dirbit_rail_2d[prev_cur_offset][offset]))
+			neighbours.push([next_tile, dir_to_dirbit_rail_2d[prev_cur_offset][offset]]);
 	}
-	if (!(existing_direction & ~6144)) {
-		if (is_neighbour) {
-			if (!(new_direction & ~131136)) return true;
-		} else {
-			if (!(new_direction & ~69648)) return true;
-			if (!(new_direction & ~526464)) return true;
-		}
-	}
-	if (!(existing_direction & ~66560)) {
-		if (is_neighbour) {
-			if (!(new_direction & ~8320)) return true;
-		} else {
-			if (!(new_direction & ~69648)) return true;
-			if (!(new_direction & ~17472)) return true;
-		}
-	}
-	if (!(existing_direction & ~8320)) {
-		if (is_neighbour) {
-			if (!(new_direction & ~66560)) return true;
-		} else {
-			if (!(new_direction & ~526464)) return true;
-			if (!(new_direction & ~139776)) return true;
+
+	/* Check if we can build a tunnel, only if no terraforming is needed. */
+	local next_tile = get_other_tunnel_end(cur_tile);
+	if (is_valid_tile(next_tile) && get_slope(next_tile) == get_complement_slope(get_slope(cur_tile))) {
+		local dist = distance_manhattan(cur_tile, next_tile);
+		if (cur_tile + (cur_tile - next_tile) / dist == prev_tile && dist >= min_tunnelbridge_length && dist < this._max_tunnel_length && build_tunnel(vt_rail, cur_tile) && !(this._closed.GetValue(next_tile) & dir_to_dirbit_tunnelbridge[prev_cur_offset])) {
+			neighbours.push([next_tile, dir_to_dirbit_tunnelbridge[prev_cur_offset]]);
+			return neighbours;
 		}
 	}
 
-	/* Everything else is disallowed */
-	return false;
-}
-
-function SingleRail::_dir(from, to)
-{
-	if (from - to == 1) return 0;
-	if (from - to == -1) return 1;
-	if (from - to == AIMap.GetMapSizeX()) return 2;
-	if (from - to == -AIMap.GetMapSizeX()) return 3;
-	throw("Shouldn't come here in _dir");
-}
-
-function SingleRail::_GetDirection(pre_from, from, to, is_bridge)
-{
-	if (is_bridge) {
-		if (from - to == 1) return 1;
-		if (from - to == -1) return 2;
-		if (from - to == AIMap.GetMapSizeX()) return 4;
-		if (from - to == -AIMap.GetMapSizeX()) return 8;
-	}
-	return 1 << (4 + (pre_from == null ? 0 : 4 * this._dir(pre_from, from)) + this._dir(from, to));
-}
-
-function SingleRail::_IsSlopedRail(start, middle, end)
-{
-	local NW = middle - AIMap.GetMapSizeX();
-	local NE = middle - 1;
-	local SE = middle + AIMap.GetMapSizeX();
-	local SW = middle + 1;
-
-	NW = NW == start || NW == end; // Set to true if we want to build a rail to / from the north-west
-	NE = NE == start || NE == end; // Set to true if we want to build a rail to / from the north-east
-	SE = SE == start || SE == end; // Set to true if we want to build a rail to / from the south-west
-	SW = SW == start || SW == end; // Set to true if we want to build a rail to / from the south-east
-
-	/* If there is a turn in the current tile, it can't be sloped. */
-	if ((NW || SE) && (NE || SW)) return false;
-
-	local slope = AITile.GetSlope(middle);
-	/* A rail on a steep slope is always sloped. */
-	if (AITile.IsSteepSlope(slope)) return true;
-
-	/* If only one corner is raised, the rail is sloped. */
-	if (slope == AITile.SLOPE_N || slope == AITile.SLOPE_W) return true;
-	if (slope == AITile.SLOPE_S || slope == AITile.SLOPE_E) return true;
-
-	if (NW && (slope == AITile.SLOPE_NW || slope == AITile.SLOPE_SE)) return true;
-	if (NE && (slope == AITile.SLOPE_NE || slope == AITile.SLOPE_SW)) return true;
-
-	return false;
-}
-
-/**
- * Get the tiles that become used when planning to build
- *  a bridge or a tunnel to help prevent crossings with
- *  other planned bridges or tunnels.
- * @param from Tile where the bridge or tunnel starts.
- * @param to Tile where the bridge or tunnel ends.
- * @param is_bridge Whether we're planning a bridge or a tunnel.
- * @return A list of used tiles with their respective bits.
- */
-function SingleRail::_GetUsedTiles(from, to, is_bridge)
-{
-	local used_list = [];
-	local offset = (to - from) / AIMap.DistanceManhattan(from, to);
-
-	local axis;
-	if (abs(offset) == 1) {
-		axis = 1; // Axis X
-	} else if (abs(offset) == AIMap.GetMapSizeX()) {
-		axis = 0; // Axis Y
+	/* Check if we can build bridges. */
+	local cur_max_height = ++get_max_height(cur_tile);
+	local dist = min_tunnelbridge_length;
+	while (dist < this._max_bridge_length) {
+		local next_tile = cur_tile - prev_cur_offset * dist++;
+		if (!is_valid_tile(next_tile)) break;
+		if (get_max_height(next_tile) > cur_max_height) break;
+		if (build_bridge(vt_rail, wooden_bridge, cur_tile, next_tile) && !(this._closed.GetValue(next_tile) & dir_to_dirbit_tunnelbridge[prev_cur_offset]))
+			neighbours.push([next_tile, dir_to_dirbit_tunnelbridge[prev_cur_offset]]);
 	}
 
-	local from_height = AITile.GetMaxHeight(from);
-	local to_height = AITile.GetMaxHeight(to);
-
-	if (is_bridge) {
-		local slopes = this._GetBridgeNumSlopes(from, to, true);
-		from_height += --slopes.rawget(from);
-		to_height += --slopes.rawget(to);
-	}
-
-	used_list.push([from, to, axis, is_bridge, from_height]);
-
-	return used_list;
-}
-
-/**
- * Checks whether two lists of used tiles conflict with each other.
- * @param prev_used_list List of used tiles (from a previous path node).
- * @param used_list List of used tiles (for the current node).
- * @return true if there is a conflict with one of the tiles.
- */
-function SingleRail::_UsedTileListsConflict(prev_used_list, used_list)
-{
-	foreach (prev_item in prev_used_list) {
-		foreach (item in used_list) {
-			/* [from, to, axis, is_bridge, from_height] */
-			local prev_from = prev_item[0];
-			local prev_to = prev_item[1];
-			local prev_axis = prev_item[2];
-			local prev_is_bridge = prev_item[3];
-			local prev_height = prev_item[4];
-//			AILog.Info("NEW:prev_from = " + prev_from + "; prev_to = " + prev_to + "; prev_axis = " + prev_axis + "; prev_is_bridge = " + prev_is_bridge + "; prev_height = " + prev_height);
-//			local prev_offset = (prev_to - prev_from) / AIMap.DistanceManhattan(prev_from, prev_to);
-			local prev_from_x = AIMap.GetTileX(prev_from);
-			local prev_from_y = AIMap.GetTileY(prev_from);
-			local prev_to_x = AIMap.GetTileX(prev_to);
-			local prev_to_y = AIMap.GetTileY(prev_to);
-			local prev_min_x = min(prev_from_x, prev_to_x);
-			local prev_max_x = max(prev_from_x, prev_to_x);
-			local prev_min_y = min(prev_from_y, prev_to_y);
-			local prev_max_y = max(prev_from_y, prev_to_y);
-
-			local from = item[0];
-			local to = item[1];
-			local axis = item[2];
-			local is_bridge = item[3];
-			local height = item[4];
-//			AILog.Info("NEW:from = " + from + "; to = " + to + "; axis = " + axis + "; is_bridge = " + is_bridge + "; height = " + height);
-//			local offset = (from - to) / AIMap.DistanceManhattan(from, to);
-			local from_x = AIMap.GetTileX(from);
-			local from_y = AIMap.GetTileY(from);
-			local to_x = AIMap.GetTileX(to);
-			local to_y = AIMap.GetTileY(to);
-			local min_x = min(from_x, to_x);
-			local max_x = max(from_x, to_x);
-			local min_y = min(from_y, to_y);
-			local max_y = max(from_y, to_y);
-
-			if (prev_from == from || prev_from == to || prev_to == from || prev_to == to) {
-				return true; // tunnel or bridge heads are on top of each other
-			}
-
-			if (!prev_is_bridge && !is_bridge) {
-				if (prev_axis != axis) {
-					if (prev_height == height) {
-						if (prev_axis == 1) {
-							/* existing axis x tunnel */
-							if (min_y <= prev_from_y && prev_from_y <= max_y &&
-									prev_min_x <= from_x && from_x <= prev_max_x) {
-//								AILog.Info("tunnels are crossing each other, prev_axis == 1");
-								return true; //tunnels are crossing each other
-							}
-						} else {
-							/* existing axis y tunnel */
-							if (min_x <= prev_from_x && prev_from_x <= max_x &&
-									prev_min_y <= from_y && from_y <= prev_max_y) {
-//								AILog.Info("tunnels are crossing each other, prev_axis == 0");
-								return true; //tunnels are crossing each other
-							}
-						}
-					}
-				}
-			}
-
-			if (prev_is_bridge && is_bridge) {
-				if (prev_axis == axis) {
-					if (prev_axis == 1) {
-						/* both on axis x */
-						if (min_x <= prev_max_x && max_x >= prev_min_x &&
-								prev_from_y == from_y) {
-//							AILog.Info("bridges are on top of one another, prev_axis == 1");
-							return true; // bridges are on top of one another
-						}
-					} else {
-						/* both on axis y */
-						if (min_y <= prev_max_y && max_y >= prev_min_y &&
-								prev_from_x == from_x) {
-//							AILog.Info("bridges are on top of one another, prev_axis == 0");
-							return true; // bridges are on top of one another
-						}
-					}
-				} else {
-					/* prev_axis != axis */
-					if (prev_axis == 1) {
-						/* bridge in axis y crossing existing axis x bridge */
-						if (min_y <= prev_from_y && prev_from_y <= max_y &&
-								prev_min_x <= from_x && from_x <= prev_max_x) {
-							local pass = false;
-							if (prev_height > height && (from_y == prev_from_y || to_y == prev_from_y)) {
-//								AILog.Info("bridge in axis y can cross over the head of the existing bridge, prev_axis == 1");
-								pass = true; // bridge in axis y can cross over the head of the existing bridge
-							} else if (height > prev_height && (prev_from_x == from_x || prev_to_x == from_x)) {
-//								AILog.Info("bridge in axis y can cross below the head of the existing bridge, prev_axis == 1");
-								pass = true; // bridge in axis y can cross below the head of the existing bridge
-							}
-//							AILog.Info("bridge middle parts are crossing each other or doesn't have enough height to cross the existing head, prev_axis == 1");
-							if (!pass) return true; // bridge middle parts are crossing each other or doesn't have enough height to cross the existing head
-						}
-					} else {
-						/* bridge in axis x crossing existing axis y bridge */
-						if (min_x <= prev_from_x && prev_from_x <= max_x &&
-								prev_min_y <= from_y && from_y <= prev_max_y) {
-							local pass = false;
-							if (prev_height > height && (from_x == prev_from_x || to_x == prev_from_x)) {
-//								AILog.Info("bridge in axis x can cross over the head of the existing bridge, prev_axis == 0");
-								pass = true; // bridge in axis x can cross over the head of the existing bridge
-							} else if (height > prev_height && (prev_from_y == from_y || prev_to_y == from_y)) {
-//								AILog.Info("bridge in axis x can cross below the head of the existing bridge, prev_axis == 0");
-								pass = true; // bridge in axis x can cross below the head of the existing bridge
-							}
-//							AILog.Info("bridge middle parts are crossing each other or doesn't have enough height to cross the existing head, prev_axis == 0");
-							if (!pass) return true; // bridge middle parts are crossing each other or doesn't have enough height to cross the existing head
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return false;
+	return neighbours;
 }
