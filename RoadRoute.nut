@@ -3,7 +3,7 @@ require("RoadRouteManager.nut");
 class RoadRoute
 {
 	static START_VEHICLE_COUNT = {
-	    [AICargo.CC_PASSENGERS] = 10,
+		[AICargo.CC_PASSENGERS] = 10,
 		[AICargo.CC_MAIL] = 5,
 	};
 	static MIN_VEHICLE_START_COUNT = 5;
@@ -30,7 +30,6 @@ class RoadRoute
 	m_station_id_to = null;
 	m_station_name_from = null;
 	m_station_name_to = null;
-	m_max_vehicle_count_mode = null;
 	m_cargo_type = null;
 	m_vehicle_type = null;
 	m_station_type = null;
@@ -54,7 +53,6 @@ class RoadRoute
 		this.m_expanded_from_count = 0;
 		this.m_expanded_to_count = 0;
 		this.m_group = AIGroup.GROUP_INVALID;
-		this.m_max_vehicle_count_mode = AIController.GetSetting("road_cap_mode");
 
 		this.m_vehicle_list = AIList();
 		this.m_vehicle_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
@@ -200,9 +198,6 @@ class RoadRoute
 	function AddVehicle(return_vehicle = false)
 	{
 		this.ValidateVehicleList();
-		if (this.m_max_vehicle_count_mode != 2 && this.m_vehicle_list.Count() >= this.OptimalVehicleCount()) {
-			return null;
-		}
 
 		/* Clone vehicle, share orders */
 		local clone_vehicle_id = AIVehicle.VEHICLE_INVALID;
@@ -313,8 +308,6 @@ class RoadRoute
 
 	function OptimalVehicleCount()
 	{
-		if (this.m_max_vehicle_count_mode == 0) return 25;
-
 //		AILog.Info("this.m_route_dist = " + this.m_route_dist);
 		local count_interval = Utils.GetEngineTileDist(this.m_engine, MIN_VEHICLE_START_COUNT);
 //		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + AIEngine.GetMaxSpeed(this.m_engine));
@@ -363,7 +356,7 @@ class RoadRoute
 		}
 
 		local buy_vehicle_count = START_VEHICLE_COUNT[this.m_cargo_class];
-		buy_vehicle_count += this.m_max_vehicle_count_mode == 0 ? this.m_route_dist / 20 : optimal_vehicle_count / (this.m_cargo_class == AICargo.CC_PASSENGERS ? 2 : 4);
+		buy_vehicle_count += optimal_vehicle_count / (this.m_cargo_class == AICargo.CC_PASSENGERS ? 2 : 4);
 
 		if (buy_vehicle_count > optimal_vehicle_count - num_vehicles) {
 			buy_vehicle_count = optimal_vehicle_count - num_vehicles;
@@ -390,7 +383,7 @@ class RoadRoute
 				break;
 			}
 		}
-		if (num_vehicles < (this.m_max_vehicle_count_mode == 0 ? 1 : optimal_vehicle_count) && this.m_last_vehicle_added >= 0) {
+		if (num_vehicles < optimal_vehicle_count && this.m_last_vehicle_added >= 0) {
 			this.m_last_vehicle_added = 0;
 		}
 		return num_vehicles - num_vehicles_before;
@@ -529,14 +522,9 @@ class RoadRoute
 			return this.AddVehiclesToNewRoute();
 		}
 
-		if (this.m_max_vehicle_count_mode != AIController.GetSetting("road_cap_mode")) {
-			this.m_max_vehicle_count_mode = AIController.GetSetting("road_cap_mode");
-//			AILog.Info("this.m_max_vehicle_count_mode = " + this.m_max_vehicle_count_mode);
-		}
-
 		this.ValidateVehicleList();
 		local num_vehicles = null;
-		if (this.m_max_vehicle_count_mode == 2 && AIDate.GetCurrentDate() -  this.m_last_vehicle_added > 30) {
+		if (AIDate.GetCurrentDate() -  this.m_last_vehicle_added > 30) {
 			num_vehicles = this.m_vehicle_list.Count();
 			local stopped_list = AIList();
 			foreach (vehicle, _ in this.m_vehicle_list) {
@@ -574,10 +562,6 @@ class RoadRoute
 		}
 		local num_vehicles_before = num_vehicles;
 
-		if (this.m_max_vehicle_count_mode != 2 && num_vehicles >= optimal_vehicle_count && maxed_out_num_vehs) {
-			return 0;
-		}
-
 		local cargo_waiting_from_via_to = AICargo.GetDistributionType(this.m_cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(this.m_station_id_from, this.m_station_id_to, this.m_cargo_type);
 		local cargo_waiting_from_any = AIStation.GetCargoWaitingVia(this.m_station_id_from, AIStation.STATION_INVALID, this.m_cargo_type);
 		local cargo_waiting_from = cargo_waiting_from_via_to + cargo_waiting_from_any;
@@ -602,8 +586,8 @@ class RoadRoute
 						cargo_waiting_to -= engine_capacity;
 						skipped_order = AIOrder.SkipToOrder(added_vehicle, 3);
 					}
-					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + (this.m_max_vehicle_count_mode != 2 ? "/" + optimal_vehicle_count : "") + " road vehicle" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
-					if (num_vehicles >= this.m_max_vehicle_count_mode != 2 ? 1 : optimal_vehicle_count) {
+					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + " road vehicle" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
+					if (num_vehicles >= optimal_vehicle_count) {
 						number_to_add = 0;
 					}
 				}
@@ -629,7 +613,6 @@ class RoadRoute
 		if (!this.m_active_route) return result;
 
 		this.ValidateVehicleList();
-//		if (this.m_max_vehicle_count_mode != 0 && this.m_vehicle_list.Count() < this.OptimalVehicleCount()) return result; // too slow
 		if (this.m_vehicle_list.Count() < this.OptimalVehicleCount()) return result;
 
 		local articulated = false;

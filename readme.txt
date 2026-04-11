@@ -149,31 +149,6 @@ Road pathfinder profile:
     bridges, which may not be ideal for maps with lots of water.
 
 
-Road route capacity mode:
-    Determines how the AI will handle the capacity of a route by managing
-    the number of vehicles when there's enough cargo waiting at the
-    stations.
-
-    - Maximum of 25 road vehicles:
-    Depending on the cargo waiting, the AI may decide to add road vehicles
-    to the route, as long as it doesn't go over 25. It adds one at a time
-    per management cycle.
-
-    - Estimate maximum number of road vehicles:
-    Same as above, but instead of 25 road vehicles, the maximum number is
-    based on the distance between stations, maximum speed of the engine
-    and the number of loading bays available at the stations. Stations may
-    also spread to accommodate more loading bays, and thus more vehicles.
-    It also adds one at a time per management cycle.
-
-    - Adjust number of road vehicles dynamically:
-    In this mode, the AI will keep adding vehicles to the route whenever
-    there's cargo waiting, but will also remove road vehicles if it finds
-    its vehicles unable to move. It will be constantly doing this all the
-    time, which may slow down management. Contrary to the other modes, it
-    can add or remove multiple vehicles at once per management cycle.
-
-
 Road route load orders mode:
     Determines how road vehicles set up their orders.
 

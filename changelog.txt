@@ -5,6 +5,8 @@ v26 (11-04-2026)
   "Town choice priority" to "Randomize town choices". Functions the same
   way as the previous two first choices but as a boolean setting
 - Removed "Approximate number of days in transit..." settings
+- Removed "Road route capacity mode" settings, dynamically adding and
+  removing road vehicles becomes the core behaviour
 
 v25 (02-04-2026)
 - Added "RailRedux" pathfinder profile setting, tweaked for performance

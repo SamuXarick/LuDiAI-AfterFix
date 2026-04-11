@@ -119,21 +119,6 @@ class LuDiAIAfterFix extends AIInfo
 		});
 
 		AIInfo.AddSetting({
-			name = "road_cap_mode",
-			description = "Road route capacity mode",
-			min_value = 0,
-			max_value = 2,
-			default_value = 2,
-			flags = AIInfo.CONFIG_INGAME,
-		});
-
-		AIInfo.AddLabels("road_cap_mode", {
-			_0 = "Maximum of 25 road vehicles",
-			_1 = "Estimate maximum number of road vehicles",
-			_2 = "Adjust number of road vehicles dynamically",
-		});
-
-		AIInfo.AddSetting({
 			name = "road_load_mode",
 			description = "Road route load orders mode",
 			min_value = 0,
