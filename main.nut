@@ -19,9 +19,9 @@ require("Caches.nut");
 
 class LuDiAIAfterFix extends AIController
 {
-	static ROAD_DAYS_IN_TRANSIT = AIController.GetSetting("road_days_in_transit");
-	static WATER_DAYS_IN_TRANSIT = AIController.GetSetting("water_days_in_transit");
-	static RAIL_DAYS_IN_TRANSIT = AIController.GetSetting("rail_days_in_transit");
+	static ROAD_DAYS_IN_TRANSIT = 65;
+	static WATER_DAYS_IN_TRANSIT = 65;
+	static RAIL_DAYS_IN_TRANSIT = 65;
 
 	static MAX_DISTANCE_INCREASE = 25;
 

@@ -103,13 +103,6 @@ Days dedicated to exclusively attempting a transport mode:
     type built before allowing the next transport type.
 
 
-Approximate number of days in transit for rail routes:
-    Lower values may help pathfinding faster, but at the cost of lesser
-    profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used.
-    The limit can never go below 10 or above 150.
-
-
 Rail pathfinder profile:
     Select the behaviour of the pathfinder when connecting two towns by
     rails.
@@ -124,13 +117,6 @@ Rail pathfinder profile:
 
     - RailRedux:
     Tweaked for performance. Connects each of the two lanes separately.
-
-
-Approximate number of days in transit for road routes:
-    Lower values may help pathfinding faster, but at the cost of lesser
-    profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used.
-    The limit can never go below 10 or above 150.
 
 
 Road pathfinder profile:
@@ -198,13 +184,6 @@ Road route load orders mode:
 
     - May load nothing before departing:
     The default 'Load if available' is used on their go-to orders.
-
-
-Approximate number of days in transit for water routes:
-    Lower values may help pathfinding faster, but at the cost of lesser
-    profits. Higher values may slow pathfinding and may not necessarily
-    yield the best profits, assuming the default engines are being used.
-    The limit can never go below 10 or above 150.
 
 
 Water route capacity mode:

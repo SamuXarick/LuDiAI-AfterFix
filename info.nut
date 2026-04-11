@@ -88,16 +88,6 @@ class LuDiAIAfterFix extends AIInfo
 			flags = AIInfo.CONFIG_INGAME,
 		});
 
-		AIInfo.AddSetting({
-			name = "rail_days_in_transit",
-			description = "Approximate number of days in transit for rail routes",
-			min_value = 10,
-			max_value = 150,
-			default_value = 65,
-			step_size = 5,
-			flags = AIInfo.CONFIG_NONE,
-		});
-
 		AddSetting({
 			name = "rail_pf_profile",
 			description = "Rail pathfinder profile",
@@ -111,16 +101,6 @@ class LuDiAIAfterFix extends AIInfo
 			_0 = "SingleRail",
 			_1 = "DoubleRail",
 			_2 = "RailRedux",
-		});
-
-		AIInfo.AddSetting({
-			name = "road_days_in_transit",
-			description = "Approximate number of days in transit for road routes",
-			min_value = 10,
-			max_value = 150,
-			default_value = 65,
-			step_size = 5,
-			flags = AIInfo.CONFIG_NONE,
 		});
 
 		AIInfo.AddSetting({
@@ -166,16 +146,6 @@ class LuDiAIAfterFix extends AIInfo
 			_0 = "Full load before departing",
 			_1 = "Load something before departing",
 			_2 = "May load nothing before departing",
-		});
-
-		AIInfo.AddSetting({
-			name = "water_days_in_transit",
-			description = "Approximate number of days in transit for water routes",
-			min_value = 10,
-			max_value = 150,
-			default_value = 65,
-			step_size = 5,
-			flags = AIInfo.CONFIG_NONE,
 		});
 
 		AIInfo.AddSetting({
