@@ -163,27 +163,6 @@ Road route load orders mode:
     The default 'Load if available' is used on their go-to orders.
 
 
-Water route capacity mode:
-    Determines how the AI will handle the capacity of a route by managing
-    the number of vehicles when there's enough cargo waiting at the
-    stations.
-
-    - Maximum of 10 ships:
-    Depending on the cargo waiting, the AI may decide to add ships to the
-    route, as long as it doesn't go over 10. It adds one at a time per
-    management cycle.
-
-    - Estimate maximum number of ships:
-    Same as above, but instead of 10 ships, the maximum number is based on
-    the distance between stations and maximum speed of the engine. It also
-    adds one at a time per management cycle.
-
-    - Adjust number of ships dynamically:
-    In this mode, the AI will keep adding ships to the route whenever
-    there's cargo waiting. Contrary to the other modes, it can add or
-    remove multiple ships at once per management cycle.
-
-
 Water route load orders mode:
     Determines how ships set up their orders.
 

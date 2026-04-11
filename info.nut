@@ -134,21 +134,6 @@ class LuDiAIAfterFix extends AIInfo
 		});
 
 		AIInfo.AddSetting({
-			name = "water_cap_mode",
-			description = "Water route capacity mode",
-			min_value = 0,
-			max_value = 2,
-			default_value = 2,
-			flags = AIInfo.CONFIG_INGAME,
-		});
-
-		AIInfo.AddLabels("water_cap_mode", {
-			_0 = "Maximum of 10 ships",
-			_1 = "Estimate maximum number of ships",
-			_2 = "Adjust number of ships dynamically",
-		});
-
-		AIInfo.AddSetting({
 			name = "water_load_mode",
 			description = "Water route load orders mode",
 			min_value = 0,

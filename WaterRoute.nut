@@ -20,7 +20,6 @@ class WaterRoute
 	/* These are not saved */
 	m_engine = null;
 	m_vehicle_list = null;
-	m_max_vehicle_count_mode = null;
 	m_station_id_from = null;
 	m_station_id_to = null;
 	m_station_name_from = null;
@@ -37,7 +36,6 @@ class WaterRoute
 		this.m_depot_tile = depot_tile;
 		this.m_cargo_class = cargo_class;
 
-		this.m_max_vehicle_count_mode = AIController.GetSetting("water_cap_mode");
 		this.m_group = AIGroup.GROUP_INVALID;
 		this.m_last_vehicle_added = 0;
 		this.m_last_vehicle_removed = AIDate.GetCurrentDate();
@@ -125,9 +123,6 @@ class WaterRoute
 	function AddVehicle(return_vehicle = false)
 	{
 		this.ValidateVehicleList();
-		if (this.m_max_vehicle_count_mode != 2 && this.m_vehicle_list.Count() >= this.OptimalVehicleCount()) {
-			return null;
-		}
 
 		/* Clone vehicle, share orders */
 		local clone_vehicle_id = AIVehicle.VEHICLE_INVALID;
@@ -259,8 +254,6 @@ class WaterRoute
 
 	function OptimalVehicleCount()
 	{
-		if (this.m_max_vehicle_count_mode == 0) return 10;
-
 //		AILog.Info("this.m_route_dist = " + this.m_route_dist);
 		local count_interval = Utils.GetEngineTileDist(this.m_engine, STATION_RATING_INTERVAL);
 //		AILog.Info("count_interval = " + count_interval + "; MaxSpeed = " + AIEngine.GetMaxSpeed(this.m_engine));
@@ -328,7 +321,7 @@ class WaterRoute
 				break;
 			}
 		}
-		if (num_vehicles * 2 < (this.m_max_vehicle_count_mode == 0 ? 1 : optimal_vehicle_count) && this.m_last_vehicle_added >= 0) {
+		if (num_vehicles * 2 < optimal_vehicle_count && this.m_last_vehicle_added >= 0) {
 			this.m_last_vehicle_added = 0;
 		}
 		return num_vehicles - num_vehicles_before;
@@ -560,11 +553,6 @@ class WaterRoute
 			return this.AddVehiclesToNewRoute();
 		}
 
-		if (this.m_max_vehicle_count_mode != AIController.GetSetting("water_cap_mode")) {
-			this.m_max_vehicle_count_mode = AIController.GetSetting("water_cap_mode");
-//			AILog.Info("this.m_max_vehicle_count_mode = " + this.m_max_vehicle_count_mode);
-		}
-
 		if (AIDate.GetCurrentDate() - this.m_last_vehicle_added < 90) {
 			return 0;
 		}
@@ -573,10 +561,6 @@ class WaterRoute
 		this.ValidateVehicleList();
 		local num_vehicles = this.m_vehicle_list.Count();
 		local num_vehicles_before = num_vehicles;
-
-		if (this.m_max_vehicle_count_mode != 2 && num_vehicles >= optimal_vehicle_count && maxed_out_num_vehs) {
-			return 0;
-		}
 
 		local cargo_waiting_from_via_to = AICargo.GetDistributionType(this.m_cargo_type) == AICargo.DT_MANUAL ? 0 : AIStation.GetCargoWaitingVia(this.m_station_id_from, this.m_station_id_to, this.m_cargo_type);
 		local cargo_waiting_from_any = AIStation.GetCargoWaitingVia(this.m_station_id_from, AIStation.STATION_INVALID, this.m_cargo_type);
@@ -605,8 +589,8 @@ class WaterRoute
 						skipped_order = AIOrder.SkipToOrder(added_vehicle, this.GetSecondDepotOrderIndex(added_vehicle));
 					}
 					AIVehicle.StartStopVehicle(added_vehicle);
-					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + (this.m_max_vehicle_count_mode != 2 ? "/" + optimal_vehicle_count : "") + " ship" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
-					if (num_vehicles >= this.m_max_vehicle_count_mode != 2 ? 1 : optimal_vehicle_count) {
+					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + " ship" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
+					if (num_vehicles >= optimal_vehicle_count) {
 						number_to_add = 0;
 					}
 				}
