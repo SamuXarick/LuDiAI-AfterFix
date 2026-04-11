@@ -61,7 +61,7 @@ class TownManager
 	function GetLastMonthProductionDiffRate(town_id, cargo_type)
 	{
 		local last_month_production = AITown.GetLastMonthProduction(town_id, cargo_type);
-		if (AIController.GetSetting("pick_mode") == 0) {
+		if (!AIController.GetSetting("randomize_towns")) {
 			return (last_month_production - AITown.GetLastMonthSupplied(town_id, cargo_type)) * (100 - AITown.GetLastMonthTransportedPercentage(town_id, cargo_type)) / 100;
 		}
 		return last_month_production;
@@ -124,8 +124,7 @@ class TownManager
 		unused_cities_list.RemoveList(this.m_used_cities_list[cargo_class]);
 
 		local unused_town = null;
-		local pick_mode = AIController.GetSetting("pick_mode");
-		if (pick_mode == 1) {
+		if (AIController.GetSetting("randomize_towns")) {
 			unused_cities_list.RemoveTop(AIBase.RandRange(unused_cities_list.Count()));
 			unused_town = unused_cities_list.Begin();
 			this.m_used_cities_list[cargo_class][unused_town] = 0;
@@ -218,8 +217,7 @@ class TownManager
 			return;
 		}
 
-		local pick_mode = AIController.GetSetting("pick_mode");
-		if (pick_mode == 1) {
+		if (AIController.GetSetting("randomize_towns")) {
 			unused_cities_list.RemoveTop(AIBase.RandRange(unused_cities_list.Count()));
 			local unused_town = unused_cities_list.Begin();
 
@@ -244,26 +242,11 @@ class TownManager
 						continue;
 					}
 				}
-				local last_month_production = this.GetLastMonthProductionDiffRate(town_id, cargo_type);
-				if (!best_routes_built) {
-					if (pick_mode >= 2 && last_month_production <= CARGO_TYPE_LIMIT[cargo_class]) {
-						unused_cities_list[town_id] = null;
-						continue;
-					}
-				}
-				unused_cities_list[town_id] = last_month_production;
+				unused_cities_list[town_id] = this.GetLastMonthProductionDiffRate(town_id, cargo_type);
 			}
 
 			if (unused_cities_list.IsEmpty()) {
 				return;
-			}
-
-			if (pick_mode >= 2) {
-				unused_cities_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
-				foreach (town_id, value in unused_cities_list) {
-					unused_cities_list[town_id] = this.DistanceFunction(max_fake_dist, town_id, from_city_location);
-				}
-				unused_cities_list.Sort(AIList.SORT_BY_VALUE, (pick_mode == 2 ? AIList.SORT_ASCENDING : AIList.SORT_DESCENDING));
 			}
 
 			if (!best_routes_built) {

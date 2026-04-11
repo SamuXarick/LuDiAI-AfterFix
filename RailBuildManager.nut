@@ -797,7 +797,7 @@ class RailBuildManager
 	function BuildTownRailStation(city_from, city_to, best_routes_built, rail_type)
 	{
 		AIRail.SetCurrentRailType(rail_type);
-		local pick_mode = AIController.GetSetting("pick_mode");
+		local randomize_towns = AIController.GetSetting("randomize_towns");
 		local max_station_spread = AIGameSettings.GetValue("station_spread");
 		local max_train_length = AIGameSettings.GetValue("max_train_length");
 		local platform_length = min(RailRoute.MAX_PLATFORM_LENGTH, min(max_station_spread, max_train_length));
@@ -886,7 +886,7 @@ class RailBuildManager
 				}
 
 				local cargo_production = AITile.GetCargoProduction(tile, this.m_cargo_type, rail_station.m_width, rail_station.m_height, this.m_coverage_radius);
-				if (pick_mode != 1 && !best_routes_built && cargo_production < 8) {
+				if (!randomize_towns && !best_routes_built && cargo_production < 8) {
 					continue;
 				}
 

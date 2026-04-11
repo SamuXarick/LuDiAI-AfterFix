@@ -64,22 +64,10 @@ Town Cargo:
     and/or rail.
 
 
-Town choice priority:
-    Defines how the AI will pair two towns.
-
-    - Most cargo produced first:
-    The AI choses the most productive towns first when creating a service.
-
-    - None, pick at random:
-    The AI choses the towns at random when creating a service.
-
-    - Shorter routes first:
-    The AI choses towns which are closer to each other first when creating
-    a service.
-
-    - Longer routes first:
-    The AI choses towns which are further from each other first when
-    creating a service.
+Randomize Town Choices:
+    Defines how the AI will pair two towns. When enabled, the AI choses
+    the towns at random when creating a service. When disalbed, the AI
+    choses the most productive towns first when creating a service.
 
 
 Is friendly:

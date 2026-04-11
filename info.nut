@@ -3,9 +3,9 @@ class LuDiAIAfterFix extends AIInfo
 	function GetAuthor()        { return "lukin_, Samu"; }
 	function GetName()          { return "LuDiAI AfterFix"; }
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
-	function GetVersion()       { return 25; }
-	function MinVersionToLoad() { return 22; }
-	function GetDate()          { return "06-04-2026"; }
+	function GetVersion()       { return 26; }
+	function MinVersionToLoad() { return 26; }
+	function GetDate()          { return "11-04-2026"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "15"; }
@@ -30,19 +30,10 @@ class LuDiAIAfterFix extends AIInfo
 		});
 
 		AIInfo.AddSetting({
-			name = "pick_mode",
-			description = "Town choice priority",
-			min_value = 0,
-			max_value = 3,
+			name = "randomize_towns",
+			description = "Randomize town choices",
 			default_value = 0,
-			flags = AIInfo.CONFIG_NONE,
-		});
-
-		AIInfo.AddLabels("pick_mode", {
-			_0 = "Most cargo produced first",
-			_1 = "None, pick at random",
-			_2 = "Shorter routes first",
-			_3 = "Longer routes first",
+			flags = AIInfo.CONFIG_BOOLEAN,
 		});
 
 		AIInfo.AddSetting({
@@ -119,7 +110,7 @@ class LuDiAIAfterFix extends AIInfo
 		AIInfo.AddLabels("rail_pf_profile", {
 			_0 = "SingleRail",
 			_1 = "DoubleRail",
-			_2 = "RailRedux"
+			_2 = "RailRedux",
 		});
 
 		AIInfo.AddSetting({

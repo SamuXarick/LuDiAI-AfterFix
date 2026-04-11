@@ -570,6 +570,7 @@ class WaterBuildManager
 
 	function BuildTownDock(town_id)
 	{
+		local randomize_towns = AIController.GetSetting("randomize_towns");
 		local tile_list = AITileList();
 
 		/* build square around @town_id and find suitable tiles for docks */
@@ -594,8 +595,7 @@ class WaterBuildManager
 				continue;
 			}
 			local cargo_production = AITile.GetCargoProduction(top_tile, this.m_cargo_type, x_length, y_length, this.m_coverage_radius);
-			local pick_mode = AIController.GetSetting("pick_mode");
-			if (pick_mode != 1 && !this.m_best_routes_built && cargo_production < 8) {
+			if (!randomize_towns && !this.m_best_routes_built && cargo_production < 8) {
 				continue;
 			}
 

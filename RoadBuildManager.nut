@@ -273,7 +273,7 @@ class RoadBuildManager
 			/* build square around @city_from and find suitable tiles for truck stops */
 			local rectangle_coordinates = Utils.EstimateTownRectangle(city_from);
 			tile_list.AddRectangle(rectangle_coordinates[0], rectangle_coordinates[1]);
-			local pick_mode = AIController.GetSetting("pick_mode");
+			local randomize_towns = AIController.GetSetting("randomize_towns");
 			foreach (tile, _ in tile_list) {
 				if (!this.IsStationBuildableTile(tile)) {
 					tile_list[tile] = null;
@@ -290,7 +290,7 @@ class RoadBuildManager
 					continue;
 				}
 				local cargo_production = AITile.GetCargoProduction(tile, cargo_type, 1, 1, coverage_radius);
-				if (pick_mode != 1 && !best_routes_built && cargo_production < 8) {
+				if (!randomize_towns && !best_routes_built && cargo_production < 8) {
 					tile_list[tile] = null;
 					continue;
 				}

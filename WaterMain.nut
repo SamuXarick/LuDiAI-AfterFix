@@ -91,7 +91,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 			if (city_from == null) {
 				city_from = this.water_town_manager.GetUnusedCity(this.water_route_manager.m_routes_built.best[cargo_class], cargo_class);
 				if (city_from == null) {
-					if (AIController.GetSetting("pick_mode") == 1) {
+					if (AIController.GetSetting("randomize_towns")) {
 						this.water_town_manager.m_used_cities_list[cargo_class].Clear();
 					} else if (!this.water_route_manager.m_routes_built.best[cargo_class]) {
 						this.water_route_manager.m_routes_built.best[cargo_class] = true;
@@ -125,7 +125,7 @@ function LuDiAIAfterFix::BuildWaterRoute()
 						if (!this.water_route_manager.TownRouteExists(city_from, near_city_pair[1], cargo_class)) {
 							city_to = near_city_pair[1];
 
-							if (AIController.GetSetting("pick_mode") != 1 && !this.water_route_manager.m_routes_built.all[cargo_class] && this.water_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
+							if (!AIController.GetSetting("randomize_towns") && !this.water_route_manager.m_routes_built.all[cargo_class] && this.water_route_manager.HasMaxStationCount(city_from, city_to, cargo_class)) {
 //								AILog.Info("this.water_route_manager.HasMaxStationCount(" + AITown.GetName(city_from) + ", " + AITown.GetName(city_to) + ", " + cargo_class + ") == " + this.water_route_manager.HasMaxStationCount(city_from, city_to, cargo_class));
 								city_to = null;
 								continue;

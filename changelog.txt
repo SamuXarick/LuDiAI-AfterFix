@@ -1,5 +1,10 @@
 LuDiAI AfterFix
 ===============
+v26 (11-04-2026)
+- Removed "Shorter routes first" and "Longer routes first" and renamed
+  "Town choice priority" to "Randomize town choices". Functions the same
+  way as the previous two first choices but as a boolean setting
+
 v25 (02-04-2026)
 - Added "RailRedux" pathfinder profile setting, tweaked for performance
 
