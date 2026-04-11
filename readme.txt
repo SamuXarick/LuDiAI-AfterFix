@@ -44,6 +44,8 @@ Main differences or improvements
 - Founds towns
 - Initiates advertising campaigns in towns
 - Funds construction of buildings in towns
+- Buys exclusive transport rights in towns
+- Bribes towns to abort competitor's exlusive transport rights
 - Loans and repays on-the-go
 
 
