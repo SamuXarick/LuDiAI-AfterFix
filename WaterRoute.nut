@@ -154,11 +154,11 @@ class WaterRoute
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
 					if (AIOrder.AppendOrder(new_vehicle, this.m_depot_tile, depot_order_flags) &&
-							AIOrder.AppendOrder(new_vehicle, this.m_dock_from, AIOrder.OF_NONE) &&
-							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true) &&
+							AIOrder.AppendOrder(new_vehicle, this.m_dock_from, (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
+							(load_mode == 1 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true) &&
 							AIOrder.AppendOrder(new_vehicle, this.m_depot_tile, depot_order_flags) &&
-							AIOrder.AppendOrder(new_vehicle, this.m_dock_to, AIOrder.OF_NONE) &&
-							(load_mode == 0 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true)) {
+							AIOrder.AppendOrder(new_vehicle, this.m_dock_to, (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
+							(load_mode == 1 && AIOrder.AppendConditionalOrder(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 1) && AIOrder.SetOrderCondition(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, AIOrder.GetOrderCount(new_vehicle) - 2, 0) || true)) {
 						vehicle_ready_to_start = true;
 					} else {
 						this.DeleteSellVehicle(new_vehicle);
@@ -200,7 +200,7 @@ class WaterRoute
 					}
 					new_vehicle_order_depot2_flags = AIOrder.GetOrderFlags(new_vehicle, this.GetSecondDepotOrderIndex(new_vehicle));
 					if (new_vehicle_order_depot1_flags == depot_order_flags && new_vehicle_order_depot2_flags == depot_order_flags) {
-						if (load_mode == 0 && !this.HasConditionalOrders(new_vehicle)) {
+						if (load_mode == 1 && !this.HasConditionalOrders(new_vehicle)) {
 							if (!this.AddConditionalOrders(new_vehicle)) {
 								AILog.Error("Failed to add conditional orders to " + AIVehicle.GetName(new_vehicle));
 								this.DeleteSellVehicle(new_vehicle);

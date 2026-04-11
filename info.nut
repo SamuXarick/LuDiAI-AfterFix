@@ -137,14 +137,15 @@ class LuDiAIAfterFix extends AIInfo
 			name = "water_load_mode",
 			description = "Water route load orders mode",
 			min_value = 0,
-			max_value = 1,
-			default_value = 0,
+			max_value = 2,
+			default_value = 1,
 			flags = AIInfo.CONFIG_INGAME,
 		});
 
 		AIInfo.AddLabels("water_load_mode", {
-			_0 = "Load something before departing",
-			_1 = "May load nothing before departing",
+			_0 = "Full load before departing",
+			_1 = "Load something before departing",
+			_2 = "May load nothing before departing",
 		});
 
 		AIInfo.AddSetting({

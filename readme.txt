@@ -166,6 +166,9 @@ Road route load orders mode:
 Water route load orders mode:
     Determines how ships set up their orders.
 
+    - Full load before departing:
+    The vehicles will use 'Full load any cargo' on their go-to orders.
+
     - Load something before departing:
     A conditional order is placed between their go-to orders that Jump to
     their respective go-to order when load percentage is equal to zero.

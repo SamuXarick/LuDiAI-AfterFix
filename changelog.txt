@@ -9,6 +9,8 @@ v26 (11-04-2026)
   removing road vehicles becomes the core behaviour
 - Removed "Water route capacity mode" settings. Dynamically adding ships
   becomes the core behaviour
+- Added "Full load before departing" option for "Water route load orders
+  mode"
 
 v25 (02-04-2026)
 - Added "RailRedux" pathfinder profile setting, tweaked for performance
