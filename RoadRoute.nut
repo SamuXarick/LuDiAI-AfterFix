@@ -22,6 +22,7 @@ class RoadRoute
 	m_expanded_from_count = null;
 	m_expanded_to_count = null;
 	m_group = null;
+	m_load_mode = null;
 
 	/* These are not saved */
 	m_engine = null;
@@ -53,6 +54,7 @@ class RoadRoute
 		this.m_expanded_from_count = 0;
 		this.m_expanded_to_count = 0;
 		this.m_group = AIGroup.GROUP_INVALID;
+		this.m_load_mode = AIController.GetSetting("road_load_mode");
 
 		this.m_vehicle_list = AIList();
 		this.m_vehicle_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
@@ -227,13 +229,12 @@ class RoadRoute
 			local depot_order_flags = AIOrder.OF_SERVICE_IF_NEEDED | AIOrder.OF_NON_STOP_INTERMEDIATE;
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
-					local load_mode = AIController.GetSetting("road_load_mode");
 					if (AIOrder.AppendOrder(new_vehicle, this.m_depot_tile, depot_order_flags) &&
-							AIOrder.AppendOrder(new_vehicle, this.m_station_from, AIOrder.OF_NON_STOP_INTERMEDIATE | (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
-							(load_mode == 1 && AIOrder.AppendConditionalOrder(new_vehicle, 0) && AIOrder.SetOrderCondition(new_vehicle, 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, 2, 0) || true) &&
+							AIOrder.AppendOrder(new_vehicle, this.m_station_from, AIOrder.OF_NON_STOP_INTERMEDIATE | (this.m_load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
+							(this.m_load_mode == 1 && AIOrder.AppendConditionalOrder(new_vehicle, 0) && AIOrder.SetOrderCondition(new_vehicle, 2, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, 2, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, 2, 0) || true) &&
 							AIOrder.AppendOrder(new_vehicle, this.m_depot_tile, depot_order_flags) &&
-							AIOrder.AppendOrder(new_vehicle, this.m_station_to, AIOrder.OF_NON_STOP_INTERMEDIATE | (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
-							(load_mode == 1 && AIOrder.AppendConditionalOrder(new_vehicle, 3) && AIOrder.SetOrderCondition(new_vehicle, 5, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, 5, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, 5, 0) || true)) {
+							AIOrder.AppendOrder(new_vehicle, this.m_station_to, AIOrder.OF_NON_STOP_INTERMEDIATE | (this.m_load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
+							(this.m_load_mode == 1 && AIOrder.AppendConditionalOrder(new_vehicle, 3) && AIOrder.SetOrderCondition(new_vehicle, 5, AIOrder.OC_LOAD_PERCENTAGE) && AIOrder.SetOrderCompareFunction(new_vehicle, 5, AIOrder.CF_EQUALS) && AIOrder.SetOrderCompareValue(new_vehicle, 5, 0) || true)) {
 						vehicle_ready_to_start = true;
 					} else {
 						this.DeleteSellVehicle(new_vehicle);
@@ -355,8 +356,7 @@ class RoadRoute
 			return 0;
 		}
 
-		local buy_vehicle_count = START_VEHICLE_COUNT[this.m_cargo_class];
-		buy_vehicle_count += optimal_vehicle_count / (this.m_cargo_class == AICargo.CC_PASSENGERS ? 2 : 4);
+		local buy_vehicle_count = max(0, START_VEHICLE_COUNT[this.m_cargo_class] + optimal_vehicle_count / (this.m_cargo_class == AICargo.CC_PASSENGERS ? 2 : 4) - num_vehicles);
 
 		if (buy_vehicle_count > optimal_vehicle_count - num_vehicles) {
 			buy_vehicle_count = optimal_vehicle_count - num_vehicles;
@@ -383,7 +383,7 @@ class RoadRoute
 				break;
 			}
 		}
-		if (num_vehicles < optimal_vehicle_count && this.m_last_vehicle_added >= 0) {
+		if (num_vehicles < optimal_vehicle_count && buy_vehicle_count > 1 && this.m_last_vehicle_added >= 0) {
 			this.m_last_vehicle_added = 0;
 		}
 		return num_vehicles - num_vehicles_before;
@@ -697,7 +697,7 @@ class RoadRoute
 
 	function SaveRoute()
 	{
-		return [this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile, this.m_bridge_tiles, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_expanded_from_count, this.m_expanded_to_count, this.m_group];
+		return [this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile, this.m_bridge_tiles, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_expanded_from_count, this.m_expanded_to_count, this.m_group, this.m_load_mode];
 	}
 
 	function LoadRoute(data)
@@ -718,6 +718,7 @@ class RoadRoute
 		route.m_expanded_from_count = data[10];
 		route.m_expanded_to_count = data[11];
 		route.m_group = data[12];
+		route.m_load_mode = data[13];
 
 		return [route, bridge_tiles.len()];
 	}

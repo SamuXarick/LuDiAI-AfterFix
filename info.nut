@@ -5,7 +5,7 @@ class LuDiAIAfterFix extends AIInfo
 	function GetDescription()   { return "Transports passengers and mail with trucks, buses, airplanes, helicopters, ships and trains"; }
 	function GetVersion()       { return 26; }
 	function MinVersionToLoad() { return 26; }
-	function GetDate()          { return "11-04-2026"; }
+	function GetDate()          { return "12-04-2026"; }
 	function CreateInstance()   { return "LuDiAIAfterFix"; }
 	function GetShortName()     { return "LDAF"; }
 	function GetAPIVersion()    { return "15"; }
@@ -116,6 +116,20 @@ class LuDiAIAfterFix extends AIInfo
 			_0 = "Custom",
 			_1 = "Default",
 			_2 = "Fastest",
+		});
+
+		AIInfo.AddSetting({
+			name = "rail_load_mode",
+			description = "Rail route load orders mode",
+			min_value = 0,
+			max_value = 1,
+			default_value = 1,
+			flags = AIInfo.CONFIG_INGAME,
+		});
+
+		AIInfo.AddLabels("rail_load_mode", {
+			_0 = "Full load before departing",
+			_1 = "May load nothing before departing",
 		});
 
 		AIInfo.AddSetting({

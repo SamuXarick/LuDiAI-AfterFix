@@ -23,6 +23,7 @@ class RailRoute
 	m_rail_type = null;
 	m_station_from_dir = null;
 	m_station_to_dir = null;
+	m_load_mode = null;
 
 	/* These are not saved */
 	m_station_id_from = null;
@@ -56,6 +57,7 @@ class RailRoute
 		this.m_last_vehicle_removed = AIDate.GetCurrentDate();
 		this.m_active_route = true;
 		this.m_group = AIGroup.GROUP_INVALID;
+		this.m_load_mode = AIController.GetSetting("rail_load_mode");
 
 		this.m_station_id_from = AIStation.GetStationID(station_from);
 		this.m_station_id_to = AIStation.GetStationID(station_to);
@@ -363,8 +365,8 @@ class RailRoute
 			local vehicle_ready_to_start = false;
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
-					if (AIOrder.AppendOrder(new_vehicle, this.m_station_from, AIOrder.OF_NON_STOP_INTERMEDIATE | AIOrder.OF_NONE) &&
-							AIOrder.AppendOrder(new_vehicle, this.m_station_to, AIOrder.OF_NON_STOP_INTERMEDIATE | AIOrder.OF_NONE)) {
+					if (AIOrder.AppendOrder(new_vehicle, this.m_station_from, AIOrder.OF_NON_STOP_INTERMEDIATE | (this.m_load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
+							AIOrder.AppendOrder(new_vehicle, this.m_station_to, AIOrder.OF_NON_STOP_INTERMEDIATE | (this.m_load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE))) {
 						vehicle_ready_to_start = true;
 					} else {
 						this.DeleteSellVehicle(new_vehicle);
@@ -444,7 +446,7 @@ class RailRoute
 			return 0;
 		}
 
-		local buy_vehicle_count = optimal_vehicle_count * 2 / 3;
+		local buy_vehicle_count = max(0, (this.m_load_mode == 1 ? optimal_vehicle_count * 2 / 3 : 2) - num_vehicles);
 
 		if (buy_vehicle_count > optimal_vehicle_count - num_vehicles) {
 			buy_vehicle_count = optimal_vehicle_count - num_vehicles;
@@ -452,7 +454,7 @@ class RailRoute
 
 		for (local i = 0; i < buy_vehicle_count; ++i) {
 			local old_last_vehicle_added = -this.m_last_vehicle_added;
-			if (old_last_vehicle_added > 0 && AIDate.GetCurrentDate() - old_last_vehicle_added <= 3) {
+			if (this.m_load_mode == 1 && old_last_vehicle_added > 0 && AIDate.GetCurrentDate() - old_last_vehicle_added <= 3) {
 				break;
 			}
 			this.m_last_vehicle_added = 0;
@@ -465,13 +467,13 @@ class RailRoute
 				AILog.Info("Added " + AIEngine.GetName(this.m_engine_wagon_pair[0]) + " on new route from " + (num_vehicles % 2 == 1 ? this.m_station_name_to : this.m_station_name_from) + " to " + (num_vehicles % 2 == 1 ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + "/" + optimal_vehicle_count + " train" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
 				if (buy_vehicle_count > 1) {
 					this.m_last_vehicle_added *= -1;
-					break;
+					if (this.m_load_mode == 1) break;
 				}
 			} else {
 				break;
 			}
 		}
-		if (num_vehicles < optimal_vehicle_count && this.m_last_vehicle_added >= 0) {
+		if (num_vehicles < optimal_vehicle_count && buy_vehicle_count > 1 && this.m_last_vehicle_added >= 0) {
 			this.m_last_vehicle_added = 0;
 		}
 		return num_vehicles - num_vehicles_before;
@@ -905,7 +907,7 @@ class RailRoute
 
 	function SaveRoute()
 	{
-		return [this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile_from, this.m_depot_tile_to, this.m_bridge_tiles, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_sent_to_depot_rail_group, this.m_group, this.m_rail_type, this.m_station_from_dir, this.m_station_to_dir];
+		return [this.m_city_from, this.m_city_to, this.m_station_from, this.m_station_to, this.m_depot_tile_from, this.m_depot_tile_to, this.m_bridge_tiles, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_sent_to_depot_rail_group, this.m_group, this.m_rail_type, this.m_station_from_dir, this.m_station_to_dir, this.m_load_mode];
 	}
 
 	function LoadRoute(data)
@@ -932,7 +934,7 @@ class RailRoute
 		route.m_last_vehicle_added = data[8];
 		route.m_last_vehicle_removed = data[9];
 		route.m_active_route = data[10];
-
+		route.m_load_mode = data[16];
 		route.m_group = data[12];
 
 		local vehicle_list = AIVehicleList_Station(route.m_station_id_from);

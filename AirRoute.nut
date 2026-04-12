@@ -13,6 +13,7 @@ class AirRoute
 	m_last_vehicle_removed = null;
 	m_renew_vehicles = null;
 	m_active_route = null;
+	m_load_mode = null;
 
 	/* These are unsaved */
 	m_engine = null;
@@ -40,6 +41,7 @@ class AirRoute
 		this.m_last_vehicle_removed = AIDate.GetCurrentDate();
 		this.m_renew_vehicles = true;
 		this.m_active_route = true;
+		this.m_load_mode = AIController.GetSetting("air_load_mode");
 
 		this.m_vehicle_list = AIList();
 		this.m_vehicle_list.Sort(AIList.SORT_BY_ITEM, AIList.SORT_ASCENDING);
@@ -184,9 +186,8 @@ class AirRoute
 			local order_2 = AIAirport.IsHangarTile(this.m_airport_to) ? AIMap.GetTileIndex(AIMap.GetTileX(this.m_airport_to), AIMap.GetTileY(this.m_airport_to) + 1) : this.m_airport_to;
 			if (!AIVehicle.IsValidVehicle(clone_vehicle_id)) {
 				if (!AIVehicle.IsValidVehicle(share_orders_vid)) {
-					local load_mode = AIController.GetSetting("air_load_mode");
-					if (AIOrder.AppendOrder(new_vehicle, order_1, (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
-							AIOrder.AppendOrder(new_vehicle, order_2, (load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE))) {
+					if (AIOrder.AppendOrder(new_vehicle, order_1, (this.m_load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE)) &&
+							AIOrder.AppendOrder(new_vehicle, order_2, (this.m_load_mode == 0 ? AIOrder.OF_FULL_LOAD_ANY : AIOrder.OF_NONE))) {
 						vehicle_ready_to_start = true;
 					} else {
 						this.DeleteSellVehicle(new_vehicle);
@@ -304,7 +305,7 @@ class AirRoute
 
 		for (local i = 0; i < buy_vehicle_count; ++i) {
 			local old_last_vehicle_added = -this.m_last_vehicle_added;
-			if (!infrastructure && (old_last_vehicle_added > 0 && AIDate.GetCurrentDate() - old_last_vehicle_added <= 3)) {
+			if (!infrastructure && old_last_vehicle_added > 0 && AIDate.GetCurrentDate() - old_last_vehicle_added <= 3) {
 				break;
 			}
 			this.m_last_vehicle_added = 0;
@@ -600,7 +601,7 @@ class AirRoute
 
 	function SaveRoute()
 	{
-		return [this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_group, this.m_renew_vehicles];
+		return [this.m_city_from, this.m_city_to, this.m_airport_from, this.m_airport_to, this.m_cargo_class, this.m_last_vehicle_added, this.m_last_vehicle_removed, this.m_active_route, this.m_group, this.m_renew_vehicles, this.m_load_mode];
 	}
 
 	function LoadRoute(data)
@@ -619,6 +620,7 @@ class AirRoute
 		route.m_active_route = data[7];
 		route.m_group = data[8];
 		route.m_renew_vehicles = data[9];
+		route.m_load_mode = data[10];
 
 		return route;
 	}

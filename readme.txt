@@ -149,6 +149,16 @@ Road pathfinder profile:
     bridges, which may not be ideal for maps with lots of water.
 
 
+Rail route load orders mode:
+    Determines how trains set up their orders.
+
+    - Full load before departing:
+    The vehicles will use 'Full load any cargo' on their go-to orders.
+
+    - May load nothing before departing:
+    The default 'Load if available' is used on their go-to orders.
+
+
 Road route load orders mode:
     Determines how road vehicles set up their orders.
 
