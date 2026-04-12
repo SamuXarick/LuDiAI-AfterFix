@@ -648,24 +648,25 @@ class RailRoute
 
 		local train_capacity = this.m_engine_wagon_pair[4];
 
-		if ((cargo_waiting_from > train_capacity && cargo_waiting_to != 0) || (cargo_waiting_to > train_capacity && cargo_waiting_from != 0)) {
-			local number_to_add = max(1, (cargo_waiting_from > cargo_waiting_to ? cargo_waiting_from : cargo_waiting_to) / train_capacity);
+		if ((cargo_waiting_from < train_capacity || cargo_waiting_to == 0) && (cargo_waiting_to < train_capacity || cargo_waiting_from == 0)) {
+			return 0;
+		}
 
-			while (number_to_add) {
-				number_to_add--;
-				local skip_order = cargo_waiting_from <= cargo_waiting_to;
-				local added_vehicle = this.AddVehicle(true, skip_order);
-				if (added_vehicle != null) {
-					num_vehicles++;
-					if (!skip_order) {
-						cargo_waiting_from -= train_capacity;
-					} else {
-						cargo_waiting_to -= train_capacity;
-					}
-					AILog.Info("Added " + AIEngine.GetName(this.m_engine_wagon_pair[0]) + " on existing route from " + (skip_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skip_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + "/" + optimal_vehicle_count + " train" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
-					if (num_vehicles >= optimal_vehicle_count) {
-						number_to_add = 0;
-					}
+		local number_to_add = max(1, max(cargo_waiting_from, cargo_waiting_to) / train_capacity);
+		while (number_to_add) {
+			number_to_add--;
+			local skip_order = cargo_waiting_from <= cargo_waiting_to;
+			local added_vehicle = this.AddVehicle(true, skip_order);
+			if (added_vehicle != null) {
+				num_vehicles++;
+				if (!skip_order) {
+					cargo_waiting_from -= train_capacity;
+				} else {
+					cargo_waiting_to -= train_capacity;
+				}
+				AILog.Info("Added " + AIEngine.GetName(this.m_engine_wagon_pair[0]) + " on existing route from " + (skip_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skip_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + "/" + optimal_vehicle_count + " train" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
+				if (num_vehicles >= optimal_vehicle_count) {
+					number_to_add = 0;
 				}
 			}
 		}

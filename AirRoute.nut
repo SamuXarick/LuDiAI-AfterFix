@@ -506,7 +506,7 @@ class AirRoute
 			return 0;
 		}
 
-		local number_to_add = max (1, (cargo_waiting_from > cargo_waiting_to ? cargo_waiting_from : cargo_waiting_to) / engine_capacity);
+		local number_to_add = max (1, max(cargo_waiting_from, cargo_waiting_to) / engine_capacity);
 		while (number_to_add) {
 			number_to_add--;
 			local added_vehicle = this.AddVehicle(true, cargo_waiting_from <= cargo_waiting_to);

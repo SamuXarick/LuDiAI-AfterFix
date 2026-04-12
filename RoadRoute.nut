@@ -571,25 +571,26 @@ class RoadRoute
 
 		local engine_capacity = ::caches.GetCapacity(this.m_engine, this.m_cargo_type);
 
-		if (cargo_waiting_from > engine_capacity || cargo_waiting_to > engine_capacity) {
-			local number_to_add = max(1, (cargo_waiting_from > cargo_waiting_to ? cargo_waiting_from : cargo_waiting_to) / engine_capacity);
+		if (cargo_waiting_from < engine_capacity && cargo_waiting_to < engine_capacity) {
+			return 0;
+		}
 
-			while (number_to_add) {
-				number_to_add--;
-				local added_vehicle = this.AddVehicle(true);
-				if (added_vehicle != null) {
-					num_vehicles++;
-					local skipped_order = false;
-					if (cargo_waiting_from > cargo_waiting_to) {
-						cargo_waiting_from -= engine_capacity;
-					} else {
-						cargo_waiting_to -= engine_capacity;
-						skipped_order = AIOrder.SkipToOrder(added_vehicle, 3);
-					}
-					AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + " road vehicle" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
-					if (num_vehicles >= optimal_vehicle_count) {
-						number_to_add = 0;
-					}
+		local number_to_add = max(1, max(cargo_waiting_from, cargo_waiting_to) / engine_capacity);
+		while (number_to_add) {
+			number_to_add--;
+			local added_vehicle = this.AddVehicle(true);
+			if (added_vehicle != null) {
+				num_vehicles++;
+				local skipped_order = false;
+				if (cargo_waiting_from > cargo_waiting_to) {
+					cargo_waiting_from -= engine_capacity;
+				} else {
+					cargo_waiting_to -= engine_capacity;
+					skipped_order = AIOrder.SkipToOrder(added_vehicle, 3);
+				}
+				AILog.Info("Added " + AIEngine.GetName(this.m_engine) + " on existing route from " + (skipped_order ? this.m_station_name_to : this.m_station_name_from) + " to " + (skipped_order ? this.m_station_name_from : this.m_station_name_to) + "! (" + num_vehicles + " road vehicle" + (num_vehicles != 1 ? "s" : "") + ", " + this.m_route_dist + " manhattan tiles)");
+				if (num_vehicles >= optimal_vehicle_count) {
+					number_to_add = 0;
 				}
 			}
 		}
