@@ -151,7 +151,7 @@ function LuDiAIAfterFix::BuildRoadRoute()
 			}
 		}
 
-		if (unfinished || city_from != null && city_to != null) {
+		if (unfinished || (city_from != null && city_to != null)) {
 			if (!unfinished) {
 				AILog.Info("r:New city found: " + AITown.GetName(city_from));
 				AILog.Info("r:New near city found: " + AITown.GetName(city_to));
