@@ -141,7 +141,7 @@ class Caches
 
 		/* it's not in the list yet */
 		local result = null;
-		if (!AIRail.IsRailDepotTile(depot_tile)) {
+		if (!AIRail.IsRailDepotTile(depot_tile) || AIRail.GetRailType(depot_tile) != rail_type) {
 			depot_tile = this.GetExistingRailDepot(rail_type);
 		}
 

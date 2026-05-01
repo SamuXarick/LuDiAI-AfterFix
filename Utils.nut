@@ -1098,32 +1098,32 @@ class TestBuildRail extends MoneyTest
 	}
 };
 
-// class TestConvertRailType extends MoneyTest
-// {
-// 	s = null;
-// 	e = null;
-// 	c = null;
+class TestConvertRailType extends MoneyTest
+{
+	s = null;
+	e = null;
+	c = null;
 
-// 	function DoAction()
-// 	{
-// 		return AIExecMode() && AIRail.ConvertRailType(this.s, this.e, this.c);
-// 	}
+	function DoAction()
+	{
+		return AIExecMode() && AIRail.ConvertRailType(this.s, this.e, this.c);
+	}
 
-// 	function GetPrice()
-// 	{
-// 		local cost = AIAccounting();
-// 		AITestMode() && AIRail.ConvertRailType(this.s, this.e, this.c);
-// 		return cost.GetCosts();
-// 	}
+	function GetPrice()
+	{
+		local cost = AIAccounting();
+		AITestMode() && AIRail.ConvertRailType(this.s, this.e, this.c);
+		return cost.GetCosts();
+	}
 
-// 	function TryConvert(start_tile, end_tile, convert_to)
-// 	{
-// 		this.s = start_tile;
-// 		this.e = end_tile;
-// 		this.c = convert_to;
-// 		return this.DoMoneyTest();
-// 	}
-// };
+	function TryConvert(start_tile, end_tile, convert_to)
+	{
+		this.s = start_tile;
+		this.e = end_tile;
+		this.c = convert_to;
+		return this.DoMoneyTest();
+	}
+};
 
 class TestBuildRailDepot extends MoneyTest
 {
