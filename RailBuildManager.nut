@@ -759,41 +759,6 @@ class RailBuildManager
 		return station_list.IsEmpty() ? AIStation.STATION_NEW : station_list.Begin();
 	}
 
-	function WorstStationOrientations(rail_station, rail_station_tiles, city_from, city_to)
-	{
-		local shortest_city_to_dist = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
-
-		for (local platform = 1; platform <= rail_station.m_num_plat; platform++) {
-			local city_to_dist = AITown.GetDistanceManhattanToTile(city_to, rail_station.GetEntryTile(platform));
-			if (city_to_dist < shortest_city_to_dist) {
-				shortest_city_to_dist = city_to_dist;
-			}
-		}
-
-		local best_tile = AIMap.TILE_INVALID;
-		local shortest_city_from_dist = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
-
-		foreach (tile, _ in rail_station_tiles) {
-			local city_from_dist = AITown.GetDistanceManhattanToTile(city_from, tile);
-			if (city_from_dist < shortest_city_from_dist) {
-				shortest_city_from_dist = city_from_dist;
-				best_tile = tile;
-			}
-		}
-
-		local town_from_tile = AITown.GetLocation(city_from);
-		local diff_x = AIMap.GetTileX(town_from_tile) - AIMap.GetTileX(best_tile);
-		local diff_y = AIMap.GetTileY(town_from_tile) - AIMap.GetTileY(best_tile);
-
-		local worst_dirs = AIList();
-		if (diff_x < 0) worst_dirs[RailStationDir.NE] = 0;
-		if (diff_y < 0) worst_dirs[RailStationDir.NW] = 0;
-		if (diff_x > 0) worst_dirs[RailStationDir.SW] = 0;
-		if (diff_y > 0) worst_dirs[RailStationDir.SE] = 0;
-
-		return [worst_dirs, shortest_city_from_dist, shortest_city_to_dist];
-	}
-
 	function BuildTownRailStation(city_from, city_to, best_routes_built, rail_type)
 	{
 		AIRail.SetCurrentRailType(rail_type);
@@ -802,7 +767,6 @@ class RailBuildManager
 		local max_train_length = AIGameSettings.GetValue("max_train_length");
 		local platform_length = min(RailRoute.MAX_PLATFORM_LENGTH, min(max_station_spread, max_train_length));
 		local num_platforms = RailRoute.MAX_NUM_PLATFORMS;
-		local distance_between_towns = AIMap.DistanceSquare(AITown.GetLocation(city_from), AITown.GetLocation(city_to));
 		local town_rectangle = Utils.EstimateTownRectangle(city_from);
 		town_rectangle = OrthogonalTileArea.CreateArea(town_rectangle[0], town_rectangle[1]);
 
@@ -823,33 +787,25 @@ class RailBuildManager
 				local rail_station_tiles = AITileList();
 				rail_station_tiles.AddRectangle(rail_station.GetTopTile(), rail_station.GetBottomTile());
 
-				local worst_dirs = this.WorstStationOrientations(rail_station, rail_station_tiles, city_from, city_to);
-//				if (worst_dirs[0].HasItem(dir)){
-//					continue;
-//				}
-
-//				local in_range = true;
-//				foreach (station_tile, _ in rail_station_tiles) {
-//					local city_from_dist = AITown.GetDistanceSquareToTile(city_from, station_tile);
-//					local city_to_dist = AITown.GetDistanceSquareToTile(city_to, station_tile);
-//					local farthest_town_id = city_from_dist < city_to_dist ? city_to : city_from;
-//					if (AITown.GetDistanceSquareToTile(farthest_town_id, station_tile) >= distance_between_towns) {
-//						in_range = false;
-//						break;
-///					} else {
-///						AISign.BuildSign(station_tile, "" + dir);
-//					}
-//				}
-//				if (!in_range) {
-//					continue;
-//				}
-
 				local rectangle = rail_station.GetValidRectangle(4); // 4 tiles free
 				if (rectangle == null) {
 					continue;
 				}
 
 				if (!AITile.IsBuildableRectangle(rectangle[0], rectangle[1], rectangle[2])) {
+					continue;
+				}
+
+				/* Check if all tiles are of the same height */
+				rectangle = rail_station.GetValidRectangle(1);
+				rectangle = OrthogonalTileArea(rectangle[0], rectangle[1], rectangle[2]);
+				local rectangle_area = AITileList();
+				rectangle_area.AddRectangle(rectangle.tile_top, rectangle.tile_bot);
+				foreach (tile2, _ in rectangle_area) {
+					rectangle_area[tile2] = AITile.GetMaxHeight(tile2);
+				}
+				rectangle_area.RemoveValue(rectangle_area.GetValue(rectangle_area.Begin()));
+				if (!rectangle_area.IsEmpty()) {
 					continue;
 				}
 
@@ -877,7 +833,7 @@ class RailBuildManager
 					continue;
 				}
 
-				if (AITile.GetCargoAcceptance(tile, this.m_cargo_type, rail_station.m_width, rail_station.m_height, this.m_coverage_radius) < 8) {
+				if (AITile.GetCargoAcceptance(tile, this.m_cargo_type, rail_station.m_width, rail_station.m_height, this.m_coverage_radius) < 10) {
 					continue;
 				}
 
@@ -886,12 +842,28 @@ class RailBuildManager
 				}
 
 				local cargo_production = AITile.GetCargoProduction(tile, this.m_cargo_type, rail_station.m_width, rail_station.m_height, this.m_coverage_radius);
-				if (!randomize_towns && !best_routes_built && cargo_production < 8) {
+				if (!randomize_towns && !best_routes_built && cargo_production < 12) {
 					continue;
 				}
 
+				local shortest_city_to_dist = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
+				for (local platform = 1; platform <= rail_station.m_num_plat; platform++) {
+					local city_to_dist = AITown.GetDistanceManhattanToTile(city_to, rail_station.GetEntryTile(platform));
+					if (city_to_dist < shortest_city_to_dist) {
+						shortest_city_to_dist = city_to_dist;
+					}
+				}
+
+				local shortest_city_from_dist = AIMap.GetMapSizeX() + AIMap.GetMapSizeY();
+				foreach (tile2, _ in rail_station_tiles) {
+					local city_from_dist = AITown.GetDistanceManhattanToTile(city_from, tile2);
+					if (city_from_dist < shortest_city_from_dist) {
+						shortest_city_from_dist = city_from_dist;
+					}
+				}
+
 				/* store as negative to make priority queue prioritize highest values */
-				rail_stations.Insert(rail_station, -((cargo_production << 26) | ((0x1FFF - worst_dirs[1]) << 13) | (0x1FFF - worst_dirs[2])));
+				rail_stations.Insert(rail_station, -((cargo_production << 26) | ((0x1FFF - shortest_city_from_dist) << 13) | (0x1FFF - shortest_city_to_dist)));
 			}
 		}
 

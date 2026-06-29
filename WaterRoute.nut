@@ -294,10 +294,14 @@ class WaterRoute
 			return 0;
 		}
 
-		local buy_vehicle_count = max(0, (this.m_load_mode == 1 ? optimal_vehicle_count / 2 : 2) - num_vehicles)
+		local buy_vehicle_count = max(0, (this.m_load_mode == 1 ? optimal_vehicle_count / 2 : 2) - num_vehicles);
 
 		if (buy_vehicle_count > optimal_vehicle_count - num_vehicles) {
 			buy_vehicle_count = optimal_vehicle_count - num_vehicles;
+		}
+
+		if (buy_vehicle_count == 0 && num_vehicles == 0) {
+			buy_vehicle_count = 1;
 		}
 
 		for (local i = 0; i < buy_vehicle_count; ++i) {
@@ -578,7 +582,7 @@ class WaterRoute
 			return 0;
 		}
 
-		if (cargo_waiting_from < engine_capacity && cargo_waiting_to < engine_capacity) {
+		if ((cargo_waiting_from < engine_capacity || cargo_waiting_to == 0) && (cargo_waiting_to < engine_capacity || cargo_waiting_from == 0)) {
 			return 0;
 		}
 

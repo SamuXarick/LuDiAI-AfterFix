@@ -1,6 +1,6 @@
 LuDiAI AfterFix
 ===============
-v26 (12-04-2026)
+v26 (29-06-2026)
 - Removed "Shorter routes first" and "Longer routes first" and renamed
   "Town choice priority" to "Randomize town choices". Functions the same
   way as the previous two first choices but as a boolean setting
@@ -14,6 +14,7 @@ v26 (12-04-2026)
 - Added "Rail route load orders mode" setting with "Full load before
   departing" and "May load nothing before departing" modes
 - Rail routes can now upgrade their rail types
+- Improved time required to place a rail station
 
 v25 (02-04-2026)
 - Added "RailRedux" pathfinder profile setting, tweaked for performance
